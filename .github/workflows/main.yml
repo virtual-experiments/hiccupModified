@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - name: Build release .zips
+        shell: bash
+        run: |
+          cd hicupp
+          export PATH=$(cygpath -u $JAVA_HOME_17_X64)/bin:$PATH
+          GIF_FILES=$(cd src; find . -name \*.gif)
+          javac -d bin --module-source-path hicupp=src -m hicupp
+          for F in $GIF_FILES
+          do
+            cp src/$F bin/hicupp/$F
+          done
+          jpackage -p bin -m hicupp/interactivehicupp.ImagesMain --name HicuppForImages --type app-image
+          7z a HicuppForImages.zip HicuppForImages 
+          jpackage -p bin -m hicupp/interactivehicupp.GeneralMain --name HicuppForGeneralPointSets --type app-image
+          7z a HicuppForGeneralPointSets.zip HicuppForGeneralPointSets
+          jpackage -p bin -m hicupp/hicupp.SequentialHicupp --name SequentialHicupp --type app-image
+          7z a SequentialHicupp.zip SequentialHicupp
+
+      - name: Upload release .zips
+        uses: actions/upload-artifact@v2.3.0
+        with:
+          name: Windows release
+          path: hicupp/*.zip
+          if-no-files-found: error
+
+  ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build release .zip
+        run: |
+          cd hicupp
+          GIF_FILES=$(cd src; find . -name \*.gif)
+          javac -d bin --module-source-path hicupp=src -m hicupp
+          for F in $GIF_FILES
+          do
+            cp src/$F bin/hicupp/$F
+          done
+          jpackage -p bin -m hicupp/interactivehicupp.ImagesMain --name HicuppForImages --type app-image
+          gcc -o run-HicuppForImages -no-pie run-HicuppForImages.c
+          cp run-HicuppForImages HicuppForImages
+          tar cJf HicuppForImages.txz HicuppForImages
+          jpackage -p bin -m hicupp/interactivehicupp.GeneralMain --name HicuppForGeneralPointSets --type app-image
+          gcc -o run-HicuppForGeneralPointSets -no-pie run-HicuppForGeneralPointSets.c
+          cp run-HicuppForGeneralPointSets HicuppForGeneralPointSets
+          tar cJf HicuppForGeneralPointSets.txz HicuppForGeneralPointSets
+          jpackage -p bin -m hicupp/hicupp.SequentialHicupp --name SequentialHicupp --type app-image
+          gcc -o run-SequentialHicupp -no-pie run-SequentialHicupp.c
+          cp run-SequentialHicupp SequentialHicupp
+          tar cJf SequentialHicupp.txz SequentialHicupp
+
+      - name: Upload release .zip
+        uses: actions/upload-artifact@v2.3.0
+        with:
+          name: Linux release
+          path: hicupp/*.txz
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+
+    steps:
+      # Checks-out the repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+
+      - name: Install Apple Developer ID
+        env:
+          APPLE_DEVELOPER_ID: ${{ secrets.APPLE_DEVELOPER_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+        run: |
+          echo -n "$APPLE_DEVELOPER_ID" | base64 --decode --output apple_developer_id.p12
+          security create-keychain -p '' apple_developer_id.keychain-db
+          security set-keychain-settings -lut 21600 apple_developer_id.keychain-db
+          security unlock-keychain -p '' apple_developer_id.keychain-db
+          security import apple_developer_id.p12 -P '' -A -t cert -f pkcs12 -k apple_developer_id.keychain-db
+          security list-keychains -d user -s apple_developer_id.keychain-db
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k '' apple_developer_id.keychain-db
+          xcrun notarytool store-credentials APPLE_ID_PASSWORD --apple-id bart.a.jacobs@gmail.com --team-id 6C42VUP45N --password "$APPLE_ID_PASSWORD"
+
+      - name: Build release .zips
+        shell: zsh {0}
+        run: cd hicupp; PATH=$JAVA_HOME_17_X64/bin:$PATH . ./build-macos.sh
+
+      - name: Upload release .zips
+        uses: actions/upload-artifact@v2.3.0
+        with:
+          name: MacOS release
+          path: hicupp/*.zip
+          if-no-files-found: error

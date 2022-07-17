@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>HiCuPP Release July 4th, 2002</title>
+</head>
+<body>
+<h1>HiCuPP Release July 4th, 2002</h1>
+<p>Author: <a href="mailto:bart.jacobs@cs.kuleuven.ac.be">Bart Jacobs</a>.</p>
+<h2>New In This Release</h2>
+<p>This release fixes a problem with the node popup menu when the program is run
+in Windows XP. In the previous release, a java.awt.PopupMenu object is created
+and added to the tree document
+after the user clicks the mouse on the node. In the current release, the
+PopupMenu object is created and added to the tree document
+once when the TreeDocument is constructed.</p>
+<h2>How To Build The Executables</h2>
+<p>The classes in this release support three programs:</p>
+<table border=1>
+<tr><td><b>Main Class</b></td><td><b>Executable Name</b></td></tr>
+<tr><td>hicupp.SequentialHicupp</td><td>SeCuPPBeta15.exe</td></tr>
+<tr><td>interactivehicupp.ImagesMain</td><td>InteractiveHicuppForImagesBeta16.exe</td></tr>
+<tr><td>interactivehicupp.GeneralMain</td><td>InteractiveHicuppForGeneralPointSetsBeta16.exe</td></tr>
+</table>
+<h2>Structure Of The Source Code</h2>
+<h3>Package Jama</h3>
+<p>Jama is a library for manipulating matrices which I downloaded from the Internet.
+It is used by classes in the hicupp package for computing the split axis.</p>
+<h3>Package imageformats</h3>
+<p>These classes are used by the hicupp and interactivehicupp packages to load
+the images selected for segmentation by the user.</p>
+<h3>Package hicupp</h3>
+<p>Contains the classes that actually compute the split axis. The main class for the
+computation is hicupp.Clusterer. This package also contains the user interface
+for sequential hicupp.</p>
+<p>The projection indices are defined in hicupp.ProjectionIndexFunction. It should be
+easy to add new projection indices there. When done correctly, new projection indices
+automatically show up in the user interface.</p>
+<p>The hicupp.FunctionMaximizer class implements the simplex algorithm.</p>
+<h3>Package interactivehicupp</h3>
+<p>The structure of this package is somewhat complicated. This is mainly due to the
+effort to share as much code as possible between Hicupp for Images and Hicupp for
+General Point Sets.</p>
+<p>The DocumentXXX classes implement generic document management: opening and saving
+documents. The TreeDocumentXXX classes instantiate the general document concept for
+so-called tree documents, which are the hierarchical clusterings. A tree document
+consists of a number of nodes and a number of splits. There is one root node, and each
+node has zero or one split. Each split has a left child node and a right child node.</p>
+<p>The main difference between HiCuPP for Images and HiCuPP for General Point Sets is
+where the points come from: in the former case, they come from bitmap files, and in
+the latter case, they come from ASCII files. Therefore, I have factored out
+the concept of PointsSource. There is an ImagePointsSourceProvider and a
+GeneralPointsSourceProvider. Since there is a need for two-way communication between
+the PointsSourceProvider and the TreeDocument, the TreeDocument implements the
+PointsSourceClient interface.</p>
+</body>
+</html>
