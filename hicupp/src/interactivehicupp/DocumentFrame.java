@@ -12,7 +12,7 @@ public class DocumentFrame extends Frame {
   private int untitledCounter = 1;
   private File file;
   private boolean dirty;
-  
+
   private final Menu fileMenu = new Menu();
   private final MenuItem fileNewMenuItem = new MenuItem();
   private final MenuItem fileOpenMenuItem = new MenuItem();
@@ -22,13 +22,11 @@ public class DocumentFrame extends Frame {
   public DocumentFrame(DocumentType documentType, String title) {
     this.documentType = documentType;
     this.title = title;
-    
+
     String documentTypeName = documentType.getCapitalizedName();
 
-    Font menuFont = new Font("Default", Font.PLAIN, 14);
-
     fileMenu.setLabel("File");
-    fileMenu.setFont(menuFont);
+    fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     fileNewMenuItem.setLabel("New " + documentTypeName);
     fileNewMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -53,16 +51,16 @@ public class DocumentFrame extends Frame {
         saveDocumentAs();
       }
     });
-    
+
     fileMenu.add(fileNewMenuItem);
     fileMenu.add(fileOpenMenuItem);
     fileMenu.add(fileSaveMenuItem);
     fileMenu.add(fileSaveAsMenuItem);
-    
+
     setDocument(documentType.createNewDocument());
     pack();
   }
-  
+
   private void setDocument(Document document) {
     this.document = document;
     MenuBar menuBar = new MenuBar();
@@ -82,7 +80,7 @@ public class DocumentFrame extends Frame {
     add(documentComponent, BorderLayout.CENTER);
     updateTitle();
   }
-  
+
   private String getFileName() {
     String filename;
     if (file == null)
@@ -94,11 +92,11 @@ public class DocumentFrame extends Frame {
       filename = file.getName();
     return filename;
   }
-  
+
   private void updateTitle() {
     setTitle(getFileName() + (dirty ? "*" : "") + " - " + title);
   }
-  
+
   /**
    * Returns <code>false</code> if the user cancelled the operation,
    * and <code>true</code> otherwise.
@@ -106,12 +104,12 @@ public class DocumentFrame extends Frame {
   public boolean askSaveIfDirty() {
     boolean continueOperation;
     String name = documentType.getName();
-    
+
     if (dirty) {
       int result = MessageBox.showMessage(this,
-                                          "The " + name + " has been modified. Save?",
-                                          title,
-                                          new String[] {"Yes", "No", "Cancel"});
+              "The " + name + " has been modified. Save?",
+              title,
+              new String[] {"Yes", "No", "Cancel"});
       if (result == 0)
         continueOperation = saveDocument();
       else
@@ -120,13 +118,13 @@ public class DocumentFrame extends Frame {
       continueOperation = true;
     return continueOperation;
   }
-  
+
   private boolean saveDocument() {
     if (file == null)
       return saveDocumentAs();
     return saveDocument(file.toString());
   }
-  
+
   private boolean saveDocument(String filename) {
     try {
       document.save(filename);
@@ -140,7 +138,7 @@ public class DocumentFrame extends Frame {
       return false;
     }
   }
-  
+
   private boolean saveDocumentAs() {
     String name = documentType.getCapitalizedName();
     FileDialog fileDialog = new FileDialog(this, "Save " + name + " As", FileDialog.SAVE);
@@ -153,7 +151,7 @@ public class DocumentFrame extends Frame {
     else
       return saveDocument(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
   }
-  
+
   private void newDocument() {
     if (askSaveIfDirty()) {
       file = null;
@@ -161,7 +159,7 @@ public class DocumentFrame extends Frame {
       setDocument(documentType.createNewDocument());
     }
   }
-  
+
   private void openDocument() {
     if (askSaveIfDirty()) {
       String capdName = documentType.getCapitalizedName();

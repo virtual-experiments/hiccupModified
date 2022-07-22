@@ -11,9 +11,9 @@ import hicupp.classify.*;
 import hicupp.trees.*;
 
 public class SplitView extends Label {
-  private static final int histogramWidth = 100;
-  private static final int histogramHeight = 50;
-  
+  private static final int histogramWidth = 300;
+  private static final int histogramHeight = 150;
+
   private final ClassSplit classSplit;
   private final NodeView parent;
   private final NodeView leftChild, rightChild;
@@ -34,14 +34,14 @@ public class SplitView extends Label {
     }
     pointsPlotFrame.show();
   }
-  
+
   private void updatePointsPlotCoords() {
     if (pointsPlotFrame != null) {
       pointsPlotFrame.getPointsPlot().setCoords(PrincipalPlaneFinder.projectOntoPrincipalPlane(parent.getClassNode(), classSplit.getSplit().getAxis()));
       pointsPlotFrame.getPointsPlot().setThreshold(classSplit.getSplit().getThreshold());
     }
   }
-  
+
   public NodeView getLeftChild() {
     return leftChild;
   }
@@ -49,11 +49,11 @@ public class SplitView extends Label {
   public NodeView getRightChild() {
     return rightChild;
   }
-    
+
   public NodeView getParentNodeView() {
     return parent;
   }
-    
+
   public SplitView(NodeViewFactory nodeViewFactory,
                    NodeView parent,
                    ClassSplit classSplit,
@@ -80,9 +80,9 @@ public class SplitView extends Label {
         int x = e.getX();
         int y = e.getY();
         boolean inComponent = 0 <= x &&
-                              x <= size.width &&
-                              0 <= y &&
-                              y <= size.height;
+                x <= size.width &&
+                0 <= y &&
+                y <= size.height;
         if (inComponent && (e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0) {
           PopupMenu popupMenu = new PopupMenu();
           MenuItem showPointsPlotMenuItem = new MenuItem("Show Points Plot");
@@ -99,19 +99,19 @@ public class SplitView extends Label {
       }
     });
   }
-    
+
   public void newPoints() {
     updatePointsPlotCoords();
     leftChild.newPoints();
     rightChild.newPoints();
   }
-    
+
   public void updateText() {
     setText(getEquationString(classSplit.getSplit()));
   }
 
   private static final NumberFormat equationNumberFormat = new DecimalFormat("##0.00");
-  
+
   private String getEquationString(Split split) {
     StringBuffer buffer = new StringBuffer();
     double[] axis = split.getAxis();
@@ -134,7 +134,7 @@ public class SplitView extends Label {
     addSubtreeToContainer(leftChild, container);
     addSubtreeToContainer(rightChild, container);
   }
-    
+
   public void layoutSubtree(int left, int top, int right) {
     {
       updateText();
@@ -146,14 +146,14 @@ public class SplitView extends Label {
       layoutSubtree(leftChild, left, newTop, center);
       layoutSubtree(rightChild, center, newTop, right);
     }
-      
+
     if (classSplit.getSplit().isLeafSplit()) {
       Dimension size = histogramView.getSize();
       Rectangle leftBounds = leftChild.getComponent().getBounds();
       histogramView.setLocation((left + right - size.width) / 2, leftBounds.y + leftBounds.height + 5);
     }
   }
-    
+
   public void paintSubtree(Graphics g, NodeView parent) {
     Rectangle bounds = parent.getComponent().getBounds();
     int x = bounds.x + bounds.width / 2;
@@ -166,11 +166,11 @@ public class SplitView extends Label {
     int rightY = rightBounds.y + rightBounds.height / 2;
     g.drawLine(x, y, leftX, leftY);
     g.drawLine(x, y, rightX, rightY);
-        
+
     paintSubtree(leftChild, g);
     paintSubtree(rightChild, g);
   }
-    
+
   private class HistogramView extends Canvas {
     public HistogramView() {
       setBackground(Color.white);
@@ -186,7 +186,7 @@ public class SplitView extends Label {
         }
       });
     }
-      
+
     private void updateValue(int x) {
       if (classSplit.getParent().getPointCount() > 0) {
         Histogram histogram = classSplit.getHistogram();
@@ -196,7 +196,7 @@ public class SplitView extends Label {
         classSplit.getSplit().setThreshold(value);
       }
     }
-      
+
     public void paint(Graphics g) {
       if (classSplit.getParent().getPointCount() > 0) {
         Histogram histogram = classSplit.getHistogram();
@@ -231,13 +231,13 @@ public class SplitView extends Label {
         if (value > histogram.getMax())
           valueX = size.width;
         else
-          valueX = (int) ((float) size.width * (value - histogram.getMin()) 
-                          / (histogram.getMax() - histogram.getMin()));
+          valueX = (int) ((float) size.width * (value - histogram.getMin())
+                  / (histogram.getMax() - histogram.getMin()));
         g.drawLine(valueX, 0, valueX, size.height);
       }
     }
   }
-  
+
   static void addSubtreeToContainer(NodeView nodeView, Container container) {
     container.add(nodeView.getComponent());
     SplitView child = nodeView.getChild();
@@ -254,7 +254,7 @@ public class SplitView extends Label {
     if (child != null)
       child.layoutSubtree(left, top + size.height + 5, right);
   }
-    
+
   static void paintSubtree(NodeView nodeView, Graphics g) {
     SplitView child = nodeView.getChild();
     if (child != null)

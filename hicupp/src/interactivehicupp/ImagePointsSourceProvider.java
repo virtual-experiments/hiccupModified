@@ -9,29 +9,31 @@ import hicupp.*;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
+import javax.swing.*;
+
 public class ImagePointsSourceProvider implements PointsSourceProvider {
-  private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
+  //  private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
   private static final String[] parameterNames = {"R", "G", "B"};
-  
+
   private static final Color[] colors = {
-    Color.black, Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta, Color.white
+          Color.black, Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta, Color.white
   };
-  
+
   private static final String[] colorNames = {
-    "Black", "Red", "Green", "Blue", "Yellow", "Cyan", "Magenta", "White"
+          "Black", "Red", "Green", "Blue", "Yellow", "Cyan", "Magenta", "White"
   };
 
   private static final int initialOldMaskColorIndex = 4;
   private static final int initialNewMaskColorIndex = 7;
-  
+
   private final Menu viewMenu = new Menu();
   private final MenuItem viewChooseImageMenuItem = new MenuItem();
   private final Menu viewZoomMenuItem = new Menu();
-  private final MenuItem[] zoomMenuItems = new MenuItem[zoomFactors.length];
+  //  private final MenuItem[] zoomMenuItems = new MenuItem[zoomFactors.length];
   private final MenuItem zoomCustomMenuItem = new MenuItem();
   private final MenuItem viewOldMaskColorMenuItem;
   private final MenuItem viewNewMaskColorMenuItem;
-  
+
   private final PointsSourceClient client;
   private final ClassTree classTree;
   private final ImageNodeView root;
@@ -46,53 +48,53 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private MemoryImageSource imageSource;
   private int oldMaskColor = colors[initialOldMaskColorIndex].getRGB();
   private int newMaskColor = colors[initialNewMaskColorIndex].getRGB();
-  
+
   private final SetOfPoints points = new SetOfPoints() {
     public int getDimensionCount() {
       return 3;
     }
-    
+
     public int getPointCount() {
       return imagePixels.length;
     }
-    
+
     public PointIterator createIterator() {
       return new PixelIterator();
     }
-    
+
     class PixelIterator implements PointIterator {
       private int index = -1;
-      
+
       public boolean hasNext() {
         return index < imagePixels.length;
       }
-      
+
       public void next() {
         index++;
       }
-      
+
       public double getCoordinate(int index) {
         return (imagePixels[this.index] >> ((2 - index) << 3)) & 0xff;
       }
     }
   };
-    
+
   private static void pixelToRgb(int pixel, double[] rgb) {
     rgb[0] = (pixel >> 16) & 0xff;
     rgb[1] = (pixel >> 8) & 0xff;
     rgb[2] = pixel & 0xff;
   }
-      
+
   private class ImageNodeView extends AbstractNodeView {
     private class NodeViewComponent extends Canvas {
       public void update(Graphics g) {
         paint(g);
       }
-    
+
       public Dimension getPreferredSize() {
         return new Dimension(displayImageWidth + 4, displayImageHeight + 4);
       }
-    
+
       public void paint(Graphics g) {
         if (image == null)
           updateImage(this);
@@ -104,12 +106,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         g.drawImage(image, 2, 2, size.width - 4, size.height - 4, null);
       }
     }
-    
+
     private final NodeViewComponent component = new NodeViewComponent();
     private Image image;
     private InspectorFrame inspectorFrame;
     private Inspector inspector;
-    
+
     private void updateImage(Component c) {
       ClassNode classNode = getClassNode();
       ClassNode parentClassNode;
@@ -124,28 +126,29 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       int[] pixels = new int[imageWidth * imageHeight];
       for (int i = 0; i < pixels.length; i++) {
         int color = parentClassNode.containsPointAtIndex(i) ?
-                    classNode.containsPointAtIndex(i) ?
-                    imagePixels[i] :
-                    newMaskColor :
-                    oldMaskColor;
+                classNode.containsPointAtIndex(i) ?
+                        imagePixels[i] :
+                        newMaskColor :
+                oldMaskColor;
         pixels[i] = color;
       }
-        
+
       MemoryImageSource producer = new MemoryImageSource(imageWidth,
-                                                         imageHeight,
-                                                         pixels,
-                                                         0,
-                                                         imageWidth);
+              imageHeight,
+              pixels,
+              0,
+              imageWidth);
       image = c.createImage(producer);
     }
 
     public Component getComponent() {
       return component;
     }
-    
+
     private class Inspector extends Canvas {
       public Inspector() {
         addMouseListener(new MouseAdapter() {
+          @Override
           public void mouseClicked(MouseEvent e) {
             ScrollPane scrollPane = inspectorFrame.scrollPane;
             Dimension size = getSize();
@@ -164,7 +167,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
               zoomFactor = (float) newHeight / size.height;
               newWidth = (int) ((float) size.width * zoomFactor);
             }
-            
+
             int newX = (int) ((float) e.getX() * zoomFactor);
             int newY = (int) ((float) e.getY() * zoomFactor);
             int deltaX = e.getX() - scrollPosition.x;
@@ -172,15 +175,15 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
             setSize(newWidth, newHeight);
             scrollPane.doLayout();
             scrollPane.setScrollPosition(newX - deltaX,
-                                         newY - deltaY);
+                    newY - deltaY);
           }
         });
       }
-      
+
       public void update(Graphics g) {
         paint(g);
       }
-      
+
       public void paint(Graphics g) {
         Dimension size = getSize();
         if (image == null)
@@ -188,19 +191,20 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         g.drawImage(image, 0, 0, size.width, size.height, null);
       }
     }
-    
+
     private class InspectorFrame extends Frame {
       public ScrollPane scrollPane = new ScrollPane();
-      
+
       public InspectorFrame() {
-        super("Node Inspector");
-        
+        super("Node Inspector - Left Click Zoom In / Right Click Zoom Out");
+
         inspector = new Inspector();
+        inspector.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
         inspector.setSize(imageWidth, imageHeight);
         scrollPane.add(inspector);
-        scrollPane.setSize(imageWidth + 4, imageHeight + 4);
+        scrollPane.setSize(600, 600);
         add(scrollPane, BorderLayout.CENTER);
-        
+
         addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {
             dispose();
@@ -211,13 +215,14 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         pack();
       }
     }
-    
+
     public void inspect() {
       if (inspectorFrame == null)
         inspectorFrame = new InspectorFrame();
       inspectorFrame.setVisible(true);
+      inspectorFrame.setResizable(false);
     }
-    
+
     public ImageNodeView(SplitView parent, ClassNode classNode) {
       super(ImagePointsSourceProvider.this.client, parent, classNode);
       initChild();
@@ -225,7 +230,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       newImageSource();
       newPoints();
     }
-    
+
     SplitView createChild() {
       return new SplitView(new NodeViewFactory() {
         public NodeView createNodeView(SplitView parent, ClassNode classNode) {
@@ -233,7 +238,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         }
       }, this, getClassNode().getChild(), parameterNames);
     }
-    
+
     protected void addNodePopupMenuItems(PopupMenu popupMenu) {
       final MenuItem inspectMenuItem = new MenuItem("Inspect");
       inspectMenuItem.addActionListener(new ActionListener() {
@@ -243,7 +248,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       });
       popupMenu.add(inspectMenuItem);
     }
-    
+
     public void newPoints() {
       super.newPoints();
       image = null;
@@ -251,7 +256,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       if (inspector != null)
         inspector.repaint();
     }
-    
+
     public void newImageSource() {
       component.repaint();
       component.setSize(displayImageWidth + 4, displayImageHeight + 4);
@@ -260,11 +265,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         ((ImageNodeView) getChild().getRightChild()).newImageSource();
       }
     }
-    
+
     public void split() throws NoConvergenceException, CancellationException {
       super.split();
     }
-    
+
     public void newMaskColors() {
       image = null;
       component.repaint();
@@ -274,21 +279,20 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       }
     }
   }
-  
+
   public ImagePointsSourceProvider(PointsSourceClient client,
                                    Tree tree) {
     this.client = client;
-    
+
     viewMenu.setLabel("View");
-    Font menuFont = new Font("Default", Font.PLAIN, 14);
-    viewMenu.setFont(menuFont);
+    viewMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     viewChooseImageMenuItem.setLabel("Choose Image...");
     viewChooseImageMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         chooseImage(ImagePointsSourceProvider.this.client.getFrame());
       }
     });
-    
+
     {
       RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
         public void itemChosen(int index) {
@@ -296,13 +300,13 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
           root.newMaskColors();
         }
       };
-          
+
       viewOldMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
-                                                                initialOldMaskColorIndex,
-                                                                listener);
+              initialOldMaskColorIndex,
+              listener);
       viewOldMaskColorMenuItem.setLabel("Old Mask Color");
     }
-    
+
     {
       RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
         public void itemChosen(int index) {
@@ -310,18 +314,19 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
           root.newMaskColors();
         }
       };
-          
+
       viewNewMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
-                                                                initialNewMaskColorIndex,
-                                                                listener);
+              initialNewMaskColorIndex,
+              listener);
       viewNewMaskColorMenuItem.setLabel("New Mask Color");
     }
-    
+
     viewMenu.add(viewChooseImageMenuItem);
-    viewMenu.add(viewZoomMenuItem);
+//    viewMenu.add(viewZoomMenuItem);
     viewMenu.add(viewOldMaskColorMenuItem);
     viewMenu.add(viewNewMaskColorMenuItem);
-    
+
+    /*
     for (int i = 0; i < zoomMenuItems.length; i++) {
       MenuItem item = new MenuItem(Float.toString(zoomFactors[i]));
       viewZoomMenuItem.add(item);
@@ -332,18 +337,19 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         }
       });
     }
-    
+
     viewZoomMenuItem.setLabel("Zoom");
     viewZoomMenuItem.addSeparator();
     viewZoomMenuItem.add(zoomCustomMenuItem);
-    
+
     zoomCustomMenuItem.setLabel("Custom factor...");
     zoomCustomMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         chooseCustomZoomFactor();
       }
     });
-    
+    */
+
     generateDefaultImage();
     classTree = new ClassTree(tree, points);
     this.root = new ImageNodeView(null, classTree.getRoot());
@@ -352,25 +358,25 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     displayImageHeight = imageHeight;
     updateImageSource();
   }
-  
+
   public void addMenuBarItems(MenuBar menuBar) {
     menuBar.add(viewMenu);
   }
-  
+
   public NodeView getRoot() {
     return root;
   }
-    
+
   public String[] getParameterNames() {
     return parameterNames;
   }
-  
+
   private static Frame getFrameAncestor(Component c) {
     while (!(c instanceof Frame))
       c = c.getParent();
     return (Frame) c;
   }
-  
+
   private void chooseImage(Component c) {
     FileDialog dialog = new FileDialog(client.getFrame(), "Choose an Image", FileDialog.LOAD);
     dialog.show();
@@ -378,7 +384,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     if (file != null)
       loadBMPFile(new File(dialog.getDirectory(), file).toString());
   }
-  
+
   private void loadBMPFile(String file) {
     try {
       imageformats.RGBAImage image = imageformats.BMPFileFormat.readImage(file);
@@ -391,16 +397,16 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e.toString(), "Interactive Hicupp");
     }
   }
-  
+
   private void setZoomFactor(float value) {
     zoomFactor = value;
-    displayImageWidth = (int) (zoomFactor * (float) imageWidth);
-    displayImageHeight = (int) (zoomFactor * (float) imageHeight);
+    displayImageWidth = 300;
+    displayImageHeight = imageWidth / imageHeight * 300;
     updateImageSource();
     root.newImageSource();
     client.layoutTree();
   }
-  
+
   private void chooseCustomZoomFactor() {
     final Dialog dialog = new Dialog(client.getFrame(), "Custom Zoom Factor", true);
     final Label label = new Label("Zoom factor: ");
@@ -408,14 +414,14 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     final Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
     final Button okButton = new Button("OK");
     final Button cancelButton = new Button("Cancel");
-    
+
     dialog.setLayout(new BorderLayout());
     dialog.add(label, BorderLayout.WEST);
     dialog.add(textField, BorderLayout.CENTER);
     dialog.add(buttonsPanel, BorderLayout.SOUTH);
     buttonsPanel.add(okButton);
     buttonsPanel.add(cancelButton);
-    
+
     cancelButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         dialog.dispose();
@@ -436,15 +442,15 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         }
       }
     });
-    
+
     dialog.pack();
     Dimension dialogSize = dialog.getSize();
     Dimension screenSize = client.getFrame().getToolkit().getScreenSize();
     dialog.setLocation((screenSize.width - dialogSize.width) / 2,
-                       (screenSize.height - dialogSize.height) / 2);
+            (screenSize.height - dialogSize.height) / 2);
     dialog.show();
   }
-  
+
   private void generateDefaultImage() {
     final int width = 100;
     final int height = 100;
@@ -467,13 +473,13 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       ImageProducer producer = new FilteredImageSource(unscaledImageSource, filter);
       int[] scaledImagePixels = new int[displayImageWidth * displayImageHeight];
       PixelGrabber pixelGrabber = new PixelGrabber(producer,
-                                                   0,
-                                                   0,
-                                                   displayImageWidth,
-                                                   displayImageHeight,
-                                                   scaledImagePixels,
-                                                   0,
-                                                   displayImageWidth);
+              0,
+              0,
+              displayImageWidth,
+              displayImageHeight,
+              scaledImagePixels,
+              0,
+              displayImageWidth);
       try {
         pixelGrabber.grabPixels();
       } catch (InterruptedException e) {

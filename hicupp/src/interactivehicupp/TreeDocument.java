@@ -12,59 +12,55 @@ import hicupp.classify.*;
 import hicupp.trees.*;
 
 public class TreeDocument extends Panel implements Document, PointsSourceClient {
-  
+
   private final PointsSourceProvider pointsSourceProvider;
-  
+
   private NodeView displayRoot;
   private int projectionIndex = ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX;
-  
+
   private DocumentChangeListener changeListener;
-  
+
   private final Menu toolsMenu = new Menu();
   private final Menu projectionIndexMenu;
   private final Menu goMenu = new Menu();
-
   private final MenuItem goToRootMenuItem = new MenuItem();
   private final MenuItem goToParentMenuItem = new MenuItem();
   private final MenuItem goToLeftChildMenuItem = new MenuItem();
   private final MenuItem goToRightChildMenuItem = new MenuItem();
-
   private final Frame logFrame = new Frame();
   private final TextArea logTextArea = new TextArea();
   private final PopupMenu nodePopupMenu = new PopupMenu();
 
-  private final Font menuFont = new Font("Default", Font.PLAIN, 14);
-  
   private static Frame getFrameAncestor(Component c) {
     while (!(c instanceof Frame))
       c = c.getParent();
     return (Frame) c;
   }
-  
+
   int getProjectionIndex() {
     return projectionIndex;
   }
-  
+
   public Frame getFrame() {
     return getFrameAncestor(this);
   }
-  
+
   TextArea getLogTextArea() {
     return logTextArea;
   }
-  
+
   public TreeDocument(PointsSourceType pointsSourceType, String filename)
-      throws IOException {
+          throws IOException {
     this(pointsSourceType, TreeFileFormat.loadTree(filename));
   }
-  
+
   public TreeDocument(PointsSourceType pointsSourceType) {
     this(pointsSourceType, new Tree());
   }
-  
+
   private TreeDocument(PointsSourceType pointsSourceType, Tree tree) {
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
-    
+
     {
       RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
         public void itemChosen(int index) {
@@ -73,23 +69,22 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       };
       String[] labels = ProjectionIndexFunction.getProjectionIndexNames();
       projectionIndexMenu = RadioMenuTools.createRadioMenu(labels,
-                                                           projectionIndex,
-                                                           listener);
+              projectionIndex,
+              listener);
     }
     projectionIndexMenu.setLabel("Projection Index");
-    projectionIndexMenu.setFont(menuFont);
-    
+
     toolsMenu.setLabel("Tools");
+    toolsMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     toolsMenu.add(projectionIndexMenu);
-    toolsMenu.setFont(menuFont);
-    
+
     goMenu.setLabel("Go");
-    goMenu.setFont(menuFont);
+    goMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     goMenu.add(goToRootMenuItem);
     goMenu.add(goToParentMenuItem);
     goMenu.add(goToLeftChildMenuItem);
     goMenu.add(goToRightChildMenuItem);
-    
+
     goToRootMenuItem.setLabel("Go To Root");
     goToRootMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -114,13 +109,13 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         goTo(displayRoot.getChild().getRightChild());
       }
     });
-    
+
     logFrame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         logFrame.setVisible(false);
       }
     });
-    
+
     {
       logFrame.add(logTextArea, BorderLayout.CENTER);
       logFrame.setTitle("Log Window - Interactive Hicupp");
@@ -157,44 +152,41 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       logFrame.pack();
       logFrame.show();
     }
-    
+
     setBackground(Color.white);
-    
+
     addComponentListener(new ComponentAdapter() {
       public void componentResized(ComponentEvent e) {
         layoutTree();
         repaint();
       }
     });
-    
+
     tree.addObserver(new Observer() {
       public void update(Observable observable, Object object) {
         if (changeListener != null)
           changeListener.documentChanged();
       }
     });
-		
+
     goTo(pointsSourceProvider.getRoot());
   }
 
   public Dimension getPreferredSize() {
     return new Dimension(600, 400);
   }
-        
+
   public PopupMenu createNodePopupMenu(final NodeView selectedNode) {
     nodePopupMenu.removeAll();
-    nodePopupMenu.setFont(menuFont);
-
     final MenuItem splitMenuItem = new MenuItem();
     final MenuItem pruneMenuItem = new MenuItem();
     final MenuItem goToNodeMenuItem = new MenuItem();
     final MenuItem showInfoMenuItem = new MenuItem();
-    
+
     boolean split = selectedNode.getChild() == null;
 
     splitMenuItem.setLabel("Split");
     splitMenuItem.setEnabled(split);
-//    splitMenuItem.setFont(menuFont);
     splitMenuItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
@@ -235,22 +227,22 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
           selectedNode.showInfo();
       }
     });
-    
+
     nodePopupMenu.add(splitMenuItem);
     nodePopupMenu.add(pruneMenuItem);
     nodePopupMenu.add(goToNodeMenuItem);
     nodePopupMenu.add(showInfoMenuItem);
-    
+
     return nodePopupMenu;
   }
-  
+
   private void rebuildComponentStructure() {
     removeAll();
 
-		add(nodePopupMenu);
+    add(nodePopupMenu);
     SplitView.addSubtreeToContainer(displayRoot, this);
   }
-  
+
   public void layoutTree() {
     Dimension size = getSize();
     int top = displayRoot == pointsSourceProvider.getRoot() ? 0 : 10;
@@ -277,30 +269,30 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     updateGoMenu();
     repaint();
   }
-  
+
   private void updateGoMenu() {
     goToLeftChildMenuItem.setEnabled(displayRoot.getChild() != null);
     goToRightChildMenuItem.setEnabled(displayRoot.getChild() != null);
   }
-  
+
   public void addMenuBarItems(MenuBar menuBar) {
     pointsSourceProvider.addMenuBarItems(menuBar);
     menuBar.add(goMenu);
     menuBar.add(toolsMenu);
   }
-  
+
   public void addChangeListener(DocumentChangeListener listener) {
     changeListener = listener;
   }
-  
+
   public Component getComponent() {
     return this;
   }
-  
+
   public void save(String filename) throws IOException {
     TreeFileFormat.saveTree(pointsSourceProvider.getRoot().getClassNode().getNode().getTree(), filename);
   }
-  
+
   PointsSourceProvider getPointsSourceProvider() {
     return pointsSourceProvider;
   }
