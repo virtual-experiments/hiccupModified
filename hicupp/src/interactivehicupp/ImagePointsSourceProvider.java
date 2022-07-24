@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 import hicupp.*;
 import hicupp.classify.*;
@@ -48,6 +52,9 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private MemoryImageSource imageSource;
   private int oldMaskColor = colors[initialOldMaskColorIndex].getRGB();
   private int newMaskColor = colors[initialNewMaskColorIndex].getRGB();
+
+  private String chosenImageFile = null;
+  private String metadata = "N/A\nN/A";
 
   private final SetOfPoints points = new SetOfPoints() {
     public int getDimensionCount() {
@@ -359,14 +366,27 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     updateImageSource();
   }
 
+  @Override
   public void addMenuBarItems(MenuBar menuBar) {
     menuBar.add(viewMenu);
   }
 
+  @Override
   public NodeView getRoot() {
     return root;
   }
 
+  @Override
+  public String getSourceFile() {
+    return chosenImageFile;
+  }
+
+  @Override
+  public String getMetadata() {
+    return metadata;
+  }
+
+  @Override
   public String[] getParameterNames() {
     return parameterNames;
   }
@@ -381,8 +401,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     FileDialog dialog = new FileDialog(client.getFrame(), "Choose an Image", FileDialog.LOAD);
     dialog.show();
     String file = dialog.getFile();
-    if (file != null)
-      loadBMPFile(new File(dialog.getDirectory(), file).toString());
+    if (file != null) {
+      chosenImageFile = new File(dialog.getDirectory(), file).toString();
+      setMetadata();
+      loadBMPFile(chosenImageFile);
+    }
   }
 
   private void loadBMPFile(String file) {
@@ -485,6 +508,24 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       } catch (InterruptedException e) {
       }
       imageSource = new MemoryImageSource(displayImageWidth, displayImageHeight, scaledImagePixels, 0, displayImageWidth);
+    }
+  }
+
+  private void setMetadata() {
+    try {
+      Path path = Paths.get(chosenImageFile);
+
+      long kilobytes = Files.size(path) / 1024;
+      String type = Optional.ofNullable(chosenImageFile)
+              .filter(f -> f.contains("."))
+              .map(f -> f.substring(chosenImageFile.lastIndexOf(".") + 1))
+              .orElse("N/A");
+
+      metadata = kilobytes + "kB\n" + type;
+    } catch (IOException e) {
+
+      metadata = "N/A\nN/A";
+      e.printStackTrace();
     }
   }
 }

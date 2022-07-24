@@ -290,7 +290,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   }
 
   public void save(String filename) throws IOException {
-    TreeFileFormat.saveTree(pointsSourceProvider.getRoot().getClassNode().getNode().getTree(), filename);
+    TreeFileFormat.saveTree(pointsSourceProvider, filename);
   }
 
   PointsSourceProvider getPointsSourceProvider() {

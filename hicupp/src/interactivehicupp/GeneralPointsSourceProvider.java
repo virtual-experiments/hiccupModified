@@ -103,15 +103,27 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     classTree = new ClassTree(tree, points);
     root = new GeneralNodeView(null, classTree.getRoot());
   }
-  
+
+  @Override
   public NodeView getRoot() {
     return root;
   }
-  
+
+  @Override
   public void addMenuBarItems(MenuBar menuBar) {
     menuBar.add(pointsMenu);
   }
-  
+
+  @Override
+  public String getSourceFile() {
+    return null;
+  }
+
+  @Override
+  public String getMetadata() {
+    return null;
+  }
+
   public void addNodePopupMenuItems(Menu nodePopupMenu) {
   }
   

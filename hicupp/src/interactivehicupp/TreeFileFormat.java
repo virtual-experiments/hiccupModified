@@ -4,12 +4,25 @@ import hicupp.trees.*;
 import java.io.*;
 
 public class TreeFileFormat {
-  public static void saveTree(Tree tree, String filename)
+  public static void saveTree(PointsSourceProvider pointsSourceProvider, String filename)
       throws IOException {
+    Tree tree = pointsSourceProvider.getRoot().getClassNode().getNode().getTree();
     PrintWriter writer = new PrintWriter(new FileOutputStream(filename));
+
+    // source file
+    writer.println((pointsSourceProvider.getSourceFile() != null)?
+            pointsSourceProvider.getSourceFile() : "N/A");
+
+    // metadata
+    writer.println(pointsSourceProvider.getMetadata());
+
+    // number of dimensions
     int ndims = tree.getRoot().getChild() == null ? 0 : tree.getRoot().getChild().getAxis().length;
     writer.println(ndims);
+
+    // write thresholds
     writeSplit(1, tree.getRoot().getChild(), writer);
+
     writer.close();
   }
   
