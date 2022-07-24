@@ -13,10 +13,8 @@ import hicupp.*;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
-import javax.swing.*;
-
 public class ImagePointsSourceProvider implements PointsSourceProvider {
-  //  private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
+  private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
   private static final String[] parameterNames = {"R", "G", "B"};
 
   private static final Color[] colors = {
@@ -33,7 +31,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private final Menu viewMenu = new Menu();
   private final MenuItem viewChooseImageMenuItem = new MenuItem();
   private final Menu viewZoomMenuItem = new Menu();
-  //  private final MenuItem[] zoomMenuItems = new MenuItem[zoomFactors.length];
+  private final MenuItem zoomAutomaticMenuItem = new MenuItem();
+  private final MenuItem[] zoomMenuItems = new MenuItem[zoomFactors.length];
   private final MenuItem zoomCustomMenuItem = new MenuItem();
   private final MenuItem viewOldMaskColorMenuItem;
   private final MenuItem viewNewMaskColorMenuItem;
@@ -329,11 +328,17 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
 
     viewMenu.add(viewChooseImageMenuItem);
-//    viewMenu.add(viewZoomMenuItem);
+    viewMenu.add(viewZoomMenuItem);
     viewMenu.add(viewOldMaskColorMenuItem);
     viewMenu.add(viewNewMaskColorMenuItem);
 
-    /*
+    viewZoomMenuItem.add(zoomAutomaticMenuItem);
+    zoomAutomaticMenuItem.setLabel("Automatic");
+    zoomAutomaticMenuItem.addActionListener(e -> {
+      setAutomaticZoom();
+    });
+    viewZoomMenuItem.addSeparator();
+
     for (int i = 0; i < zoomMenuItems.length; i++) {
       MenuItem item = new MenuItem(Float.toString(zoomFactors[i]));
       viewZoomMenuItem.add(item);
@@ -355,7 +360,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         chooseCustomZoomFactor();
       }
     });
-    */
 
     generateDefaultImage();
     classTree = new ClassTree(tree, points);
@@ -415,7 +419,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       imageWidth = image.getWidth();
       imageHeight = image.getHeight();
       classTree.setPoints(points);
-      setZoomFactor(1.0f);
+      setAutomaticZoom();
     } catch (IOException e) {
       MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e.toString(), "Interactive Hicupp");
     }
@@ -423,6 +427,14 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
   private void setZoomFactor(float value) {
     zoomFactor = value;
+    displayImageWidth = (int) (zoomFactor * (float) imageWidth);
+    displayImageHeight = (int) (zoomFactor * (float) imageHeight);
+    updateImageSource();
+    root.newImageSource();
+    client.layoutTree();
+  }
+
+  private void setAutomaticZoom() {
     displayImageWidth = 300;
     displayImageHeight = imageWidth / imageHeight * 300;
     updateImageSource();
