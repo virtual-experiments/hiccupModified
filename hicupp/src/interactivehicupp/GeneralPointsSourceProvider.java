@@ -124,6 +124,11 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     return null;
   }
 
+  @Override
+  public void loadFile(String filename) {
+
+  }
+
   public void addNodePopupMenuItems(Menu nodePopupMenu) {
   }
   

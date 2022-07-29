@@ -8,4 +8,5 @@ public interface PointsSourceProvider {
   NodeView getRoot();
   String getSourceFile();
   String getMetadata();
+  void loadFile(String filename);
 }

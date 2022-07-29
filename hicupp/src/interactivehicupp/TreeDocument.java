@@ -41,6 +41,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return projectionIndex;
   }
 
+
   public Frame getFrame() {
     return getFrameAncestor(this);
   }
@@ -62,16 +63,13 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
 
     {
-      RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
-        public void itemChosen(int index) {
-          projectionIndex = index;
-        }
-      };
+      RadioMenuTools.RadioMenuEventListener listener = index -> projectionIndex = index;
       String[] labels = ProjectionIndexFunction.getProjectionIndexNames();
       projectionIndexMenu = RadioMenuTools.createRadioMenu(labels,
               projectionIndex,
               listener);
     }
+
     projectionIndexMenu.setLabel("Projection Index");
 
     toolsMenu.setLabel("Tools");
@@ -86,29 +84,13 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     goMenu.add(goToRightChildMenuItem);
 
     goToRootMenuItem.setLabel("Go To Root");
-    goToRootMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        goTo(pointsSourceProvider.getRoot());
-      }
-    });
+    goToRootMenuItem.addActionListener(e -> goTo(pointsSourceProvider.getRoot()));
     goToParentMenuItem.setLabel("Go To Parent");
-    goToParentMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        goTo(displayRoot.getParentSplitView().getParentNodeView());
-      }
-    });
+    goToParentMenuItem.addActionListener(e -> goTo(displayRoot.getParentSplitView().getParentNodeView()));
     goToLeftChildMenuItem.setLabel("Go To Left Child");
-    goToLeftChildMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        goTo(displayRoot.getChild().getLeftChild());
-      }
-    });
+    goToLeftChildMenuItem.addActionListener(e -> goTo(displayRoot.getChild().getLeftChild()));
     goToRightChildMenuItem.setLabel("Go To Right Child");
-    goToRightChildMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        goTo(displayRoot.getChild().getRightChild());
-      }
-    });
+    goToRightChildMenuItem.addActionListener(e -> goTo(displayRoot.getChild().getRightChild()));
 
     logFrame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -122,18 +104,16 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       MenuBar menuBar = new MenuBar();
       Menu fileMenu = new Menu("File");
       MenuItem save = new MenuItem("Save...");
-      save.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          FileDialog fileDialog = new FileDialog(getFrame(), "Save Log As", FileDialog.SAVE);
-          fileDialog.show();
-          if (fileDialog.getFile() != null) {
-            try {
-              Writer writer = new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile()));
-              writer.write(logTextArea.getText());
-              writer.close();
-            } catch (IOException ex) {
-              MessageBox.showMessage(getFrame(), "Could not save the log: " + ex, "Interactive Hicupp");
-            }
+      save.addActionListener(e -> {
+        FileDialog fileDialog = new FileDialog(getFrame(), "Save Log As", FileDialog.SAVE);
+        fileDialog.show();
+        if (fileDialog.getFile() != null) {
+          try {
+            Writer writer = new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile()));
+            writer.write(logTextArea.getText());
+            writer.close();
+          } catch (IOException ex) {
+            MessageBox.showMessage(getFrame(), "Could not save the log: " + ex, "Interactive Hicupp");
           }
         }
       });
@@ -143,11 +123,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       menuBar.add(fileMenu);
       menuBar.add(menu);
       menu.add(clear);
-      clear.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          logTextArea.setText("");
-        }
-      });
+      clear.addActionListener(e -> logTextArea.setText(""));
       logFrame.setMenuBar(menuBar);
       logFrame.pack();
       logFrame.show();
@@ -162,14 +138,25 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       }
     });
 
-    tree.addObserver(new Observer() {
-      public void update(Observable observable, Object object) {
-        if (changeListener != null)
-          changeListener.documentChanged();
-      }
+    tree.addObserver((observable, object) -> {
+      if (changeListener != null)
+        changeListener.documentChanged();
     });
 
     goTo(pointsSourceProvider.getRoot());
+
+    // ask if user want to load
+    if (TreeFileFormat.inputFileExists) {
+      int result = MessageBox.showMessage(null, "Do you want to load input file from tree?", "Open input file", new String[] {"Yes", "No"} );
+
+      if (result == 0) { // load
+        this.pointsSourceProvider.loadFile(TreeFileFormat.filename.toString());
+        getLogTextArea().append("Loaded file with input file " + TreeFileFormat.filename + " with type " + TreeFileFormat.fileExtension
+                + " and size " + TreeFileFormat.fileSize + "kB.\n");
+      } else {
+        getLogTextArea().append("Loaded tree without input file.");
+      }
+    } else getLogTextArea().append("Loaded tree with no input file.");
   }
 
   public Dimension getPreferredSize() {
@@ -275,20 +262,24 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     goToRightChildMenuItem.setEnabled(displayRoot.getChild() != null);
   }
 
+  @Override
   public void addMenuBarItems(MenuBar menuBar) {
     pointsSourceProvider.addMenuBarItems(menuBar);
     menuBar.add(goMenu);
     menuBar.add(toolsMenu);
   }
 
+  @Override
   public void addChangeListener(DocumentChangeListener listener) {
     changeListener = listener;
   }
 
+  @Override
   public Component getComponent() {
     return this;
   }
 
+  @Override
   public void save(String filename) throws IOException {
     TreeFileFormat.saveTree(pointsSourceProvider, filename);
   }

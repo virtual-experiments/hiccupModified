@@ -4,6 +4,14 @@ import hicupp.trees.*;
 import java.io.*;
 
 public class TreeFileFormat {
+  /* save file format
+    Input file path
+    Input file size
+    Input file extension
+    Dimensions
+    Tree data ...
+   */
+
   public static void saveTree(PointsSourceProvider pointsSourceProvider, String filename)
       throws IOException {
     Tree tree = pointsSourceProvider.getRoot().getClassNode().getNode().getTree();
@@ -30,9 +38,9 @@ public class TreeFileFormat {
     if (split != null) {
       writer.print(i);
       double[] axis = split.getAxis();
-      for (int j = 0; j < axis.length; j++) {
+      for (double axi : axis) {
         writer.print(' ');
-        writer.print(axis[j]);
+        writer.print(axi);
       }
       writer.print(' ');
       writer.print(split.getThreshold());
@@ -47,13 +55,21 @@ public class TreeFileFormat {
     Reader reader = new BufferedReader(new FileReader(filename));
     StreamTokenizer t = new StreamTokenizer(reader);
     t.eolIsSignificant(true);
+
+    readMetadata(t);
+
+    // number of dimensions
     t.nextToken();
     if (t.ttype != StreamTokenizer.TT_NUMBER)
-      syntaxError(t.lineno(), "The first line must state the number of dimensions.");
+      syntaxError(t.lineno(), "The fourth line must state the number of dimensions.");
     int ndims = (int) t.nval;
+
+    // EOL
     t.nextToken();
     if (t.ttype != StreamTokenizer.TT_EOL)
       syntaxError(t.lineno(), "End of line expected.");
+
+    // data points
     t.nextToken();
     Tree tree = new Tree();
     readSubtree(tree.getRoot(), ndims, 1, t);
@@ -82,7 +98,47 @@ public class TreeFileFormat {
       readSubtree(child.getRightChild(), ndims, iLeft + 1, t);
     }
   }
-    
+
+  public static boolean inputFileExists = false;
+  public static StringBuilder filename = new StringBuilder();
+  public static int fileSize = 0;
+  public static StringBuilder fileExtension = new StringBuilder();
+
+  private static void readMetadata( StreamTokenizer t) throws IOException {
+    inputFileExists = false;
+
+    // file path
+    t.nextToken();
+    filename = new StringBuilder();
+    t.wordChars(':', ':');  // ensures all path tokens are taken into account
+    t.wordChars('\\', '\\');
+
+    while (t.ttype != StreamTokenizer.TT_EOL) {
+      filename.append(t.sval);
+      t.nextToken();
+    }
+
+    if (filename.toString().contains("\\")) { // check if a file path
+      inputFileExists = true;
+    }
+
+    // file size (could be N/A)
+    t.nextToken();
+    if (t.ttype == StreamTokenizer.TT_NUMBER) fileSize = (int) t.nval;
+
+    // find EOL
+    while (t.ttype != StreamTokenizer.TT_EOL)
+      t.nextToken();
+
+    // file extension
+    t.nextToken();
+    fileExtension = new StringBuilder();
+    while (t.ttype != StreamTokenizer.TT_EOL) {
+      fileExtension.append(t.sval);
+      t.nextToken();
+    }
+  }
+
   private static double readNumber(StreamTokenizer t) throws IOException {
     t.nextToken();
     if (t.ttype != StreamTokenizer.TT_NUMBER)

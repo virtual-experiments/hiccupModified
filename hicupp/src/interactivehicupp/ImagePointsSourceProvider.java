@@ -401,6 +401,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     return (Frame) c;
   }
 
+  @Override
+  public void loadFile(String filename) {
+    loadBMPFile(filename);
+  }
+
   private void chooseImage(Component c) {
     FileDialog dialog = new FileDialog(client.getFrame(), "Choose an Image", FileDialog.LOAD);
     dialog.show();
@@ -533,7 +538,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
               .map(f -> f.substring(chosenImageFile.lastIndexOf(".") + 1))
               .orElse("N/A");
 
-      metadata = kilobytes + "kB\n" + type;
+      metadata = kilobytes + "\n" + type;
     } catch (IOException e) {
 
       metadata = "N/A\nN/A";
