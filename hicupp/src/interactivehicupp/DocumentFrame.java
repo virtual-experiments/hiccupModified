@@ -156,6 +156,7 @@ public class DocumentFrame extends Frame {
     if (askSaveIfDirty()) {
       file = null;
       untitledCounter++;
+      TreeFileFormat.inputFileExists = false;
       setDocument(documentType.createNewDocument());
     }
   }

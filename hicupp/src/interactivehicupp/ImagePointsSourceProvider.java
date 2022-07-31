@@ -440,8 +440,9 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private void setAutomaticZoom() {
-    displayImageWidth = 300;
-    displayImageHeight = imageWidth / imageHeight * 300;
+    displayImageHeight = 300;
+    double factor = (double)  imageWidth/ imageHeight;
+    displayImageWidth = (int) Math.round(factor * 300);
     updateImageSource();
     root.newImageSource();
     client.layoutTree();

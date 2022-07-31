@@ -1,5 +1,7 @@
 package imageformats;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 
 public class BMPFileFormat {
@@ -47,15 +49,34 @@ public class BMPFileFormat {
     
     f.close();
   }
-  
+
+  public static RandomAccessFile convertImage(String filename) throws IOException {
+    File file = new File(filename);
+    BufferedImage bufferedImage = ImageIO.read(file);
+
+    if (bufferedImage == null) throw new IOException("Loaded a non image file.");
+
+    System.out.println("Attempting to convert image.");
+    ImageIO.write(bufferedImage, "bmp", new File("./temp.bmp"));
+    System.out.println("BMP written successfully.");
+
+    return new RandomAccessFile("./temp.bmp", "r");
+  }
+
   public static RGBAImage readImage(String filename) throws IOException {
     RandomAccessFile file = new RandomAccessFile(filename, "r");
     
     byte[] fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
     file.readFully(fileHeaderBuffer);
     
-    if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0))
-      throw new IOException("The file is not a BMP file.");
+    if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0)) { // convert first
+//      throw new IOException("The file is not a BMP file.");
+      file = convertImage(filename);
+      fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
+      file.readFully(fileHeaderBuffer);
+      if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0)) // unable to convert
+        throw  new IOException("Unable to convert to BMP file.");
+    }
     
     BITMAPFILEHEADER fileHeader = new BITMAPFILEHEADER();
     fileHeader.read(fileHeaderBuffer, 0);
