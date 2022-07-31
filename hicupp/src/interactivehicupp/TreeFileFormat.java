@@ -99,6 +99,7 @@ public class TreeFileFormat {
     }
   }
 
+  // input file and metadata
   public static boolean inputFileExists = false;
   public static StringBuilder filename = new StringBuilder();
   public static int fileSize = 0;
