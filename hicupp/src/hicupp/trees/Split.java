@@ -10,6 +10,9 @@ public final class Split extends Observable {
   private final double[] axis;
   private double threshold;
 
+  private int splitProjectionIndex;
+  private int splitIterations;
+
   Split(Tree tree, Node parent, double[] axis, double threshold) {
     this.tree = tree;
     this.parent = parent;
@@ -18,6 +21,9 @@ public final class Split extends Observable {
     int leftChildSerialNumber = 2 * parent.getSerialNumber();
     leftChild = new Node(tree, this, leftChildSerialNumber);
     rightChild = new Node(tree, this, leftChildSerialNumber + 1);
+
+    splitProjectionIndex = -1;
+    splitIterations = 0;
   }
   
   public Node getParent() {
@@ -75,5 +81,21 @@ public final class Split extends Observable {
     return (classify(point, index) ?
             leftChild :
             rightChild).computeClass(point, index);
+  }
+
+  public int getSplitProjectionIndex() {
+    return splitProjectionIndex;
+  }
+
+  public void setSplitProjectionIndex(int splitProjectionIndex) {
+    this.splitProjectionIndex = splitProjectionIndex;
+  }
+
+  public int getSplitIterations() {
+    return splitIterations;
+  }
+
+  public void setSplitIterations(int splitIterations) {
+    this.splitIterations = splitIterations;
   }
 }

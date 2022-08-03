@@ -9,7 +9,7 @@ public class TreeFileFormat {
     Input file size
     Input file extension
     Dimensions
-    Tree data ...
+    Splits...
    */
 
   public static void saveTree(PointsSourceProvider pointsSourceProvider, String filename)
@@ -28,20 +28,32 @@ public class TreeFileFormat {
     int ndims = tree.getRoot().getChild() == null ? 0 : tree.getRoot().getChild().getAxis().length;
     writer.println(ndims);
 
-    // write thresholds
+    // write splits
     writeSplit(1, tree.getRoot().getChild(), writer);
 
     writer.close();
   }
-  
+
+  // id split_index split_iterations axis... threshold
   private static void writeSplit(int i, Split split, PrintWriter writer) {
     if (split != null) {
+      // id
       writer.print(i);
+
+      // index and iterations
+      writer.print(' ');
+      writer.print(split.getSplitProjectionIndex());
+      writer.print(' ');
+      writer.print(split.getSplitIterations());
+
+      // axis
       double[] axis = split.getAxis();
       for (double axi : axis) {
         writer.print(' ');
         writer.print(axi);
       }
+
+      // threshold
       writer.print(' ');
       writer.print(split.getThreshold());
       writer.println();
@@ -80,6 +92,11 @@ public class TreeFileFormat {
   private static void readSubtree(Node node, int ndims, int i, StreamTokenizer t)
       throws IOException {
     if (t.ttype == StreamTokenizer.TT_NUMBER && t.nval == i) {
+      // index and iterations
+      int splitIndex = (int) readNumber(t);
+      int splitIterations = (int) readNumber(t);
+
+      //axis and threshold
       double[] axis = new double[ndims];
       for (int j = 0; j < ndims; j++)
         axis[j] = readNumber(t);
@@ -94,6 +111,8 @@ public class TreeFileFormat {
       
       node.split(axis, splitValue);
       Split child = node.getChild();
+      child.setSplitProjectionIndex(splitIndex);
+      child.setSplitIterations(splitIterations);
       readSubtree(child.getLeftChild(), ndims, iLeft, t);
       readSubtree(child.getRightChild(), ndims, iLeft + 1, t);
     }

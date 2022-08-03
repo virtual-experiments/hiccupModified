@@ -2,9 +2,6 @@ package interactivehicupp;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.text.*;
-import java.util.Observable;
-import java.util.Observer;
 
 import hicupp.*;
 import hicupp.classify.*;
@@ -25,8 +22,18 @@ abstract class AbstractNodeView implements NodeView {
     this.client = (TreeDocument) client;
     this.parent = parent;
     this.classNode = classNode;
-    this.splitProjectionIndex = "N/A";
-    this.splitNoOfIterations = 0;
+
+    Split splitChild = classNode.getNode().getChild();
+
+    if (splitChild != null) {
+      int index = splitChild.getSplitProjectionIndex();
+      this.splitProjectionIndex = (index == -1) ?
+              "N/A" : ProjectionIndexFunction.getProjectionIndexNames()[index];
+      this.splitNoOfIterations = classNode.getNode().getChild().getSplitIterations();
+    } else {
+      this.splitProjectionIndex = "N/A";
+      this.splitNoOfIterations = 0;
+    }
     
     classNode.addObserver((observable, info) -> {
       if (info == "Split") {
@@ -123,6 +130,10 @@ abstract class AbstractNodeView implements NodeView {
     client.getLogTextArea().append("Node " + getClassNode().getNode().getSerialNumber() +
             " split using projection index " + splitProjectionIndex + " with " +
             splitNoOfIterations + " iterations.");
+
+    Split split = classNode.getNode().getChild();
+    split.setSplitProjectionIndex(client.getProjectionIndex());
+    split.setSplitIterations(splitNoOfIterations);
   }
   
   public void newPoints() {
@@ -148,7 +159,7 @@ abstract class AbstractNodeView implements NodeView {
     if (infoFrame == null) {
       infoFrame = new Window(client.getFrame());
       infoTextArea = new TextArea(classNode.getDimensionCount() + 1, 23);
-      infoTextArea.setFont(new Font("Monospaced", 0, 10));
+      infoTextArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
       updateInfo();
       infoTextArea.setEditable(false);
       infoFrame.add(infoTextArea);
