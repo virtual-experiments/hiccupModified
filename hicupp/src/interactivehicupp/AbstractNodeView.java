@@ -17,16 +17,23 @@ abstract class AbstractNodeView implements NodeView {
   private SplitView child;
   private Window infoFrame;
   private TextArea infoTextArea;
+
+  private String splitProjectionIndex;
+  private int splitNoOfIterations;
   
   AbstractNodeView(PointsSourceClient client, SplitView parent, ClassNode classNode) {
     this.client = (TreeDocument) client;
     this.parent = parent;
     this.classNode = classNode;
+    this.splitProjectionIndex = "N/A";
+    this.splitNoOfIterations = 0;
     
     classNode.addObserver((observable, info) -> {
       if (info == "Split") {
         child = createChild();
       } else if (info == "Prune") {
+        this.splitProjectionIndex = "N/A";
+        this.splitNoOfIterations = 0;
         child = null;
       } else if (info == "New Points") {
         newPoints();
@@ -96,8 +103,9 @@ abstract class AbstractNodeView implements NodeView {
     
     Computation computation = new Computation();
 
+    splitProjectionIndex = ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()];
     client.getLogTextArea().append("Splitting node " + getClassNode().getNode().getSerialNumber() +
-                                   " using projection index " + ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()] + "...\n");
+                                   " using projection index " + splitProjectionIndex + "...\n");
     monitorDialog.show(computation, client.getLogTextArea());
 
     if (computation.exception != null) {
@@ -110,6 +118,11 @@ abstract class AbstractNodeView implements NodeView {
 
     double[] axis = computation.axis;
     classNode.split(axis);
+
+    splitNoOfIterations = monitorDialog.getIterationCount();
+    client.getLogTextArea().append("Node " + getClassNode().getNode().getSerialNumber() +
+            " split using projection index " + splitProjectionIndex + " with " +
+            splitNoOfIterations + " iterations.");
   }
   
   public void newPoints() {
@@ -166,6 +179,12 @@ abstract class AbstractNodeView implements NodeView {
       info.append(TextTools.formatScientific(classNode.getMean(j)));
       info.append(' ');
       info.append(TextTools.formatScientific(classNode.getStandardDeviation(j)));
+    }
+
+    if (!this.splitProjectionIndex.equals("N/A")) {
+      info.append("\n\n   Split info\n");
+      info.append("Projection index: ").append(splitProjectionIndex).append("\n");
+      info.append("Number of iterations: ").append(splitNoOfIterations);
     }
     
     infoTextArea.setText(info.toString());

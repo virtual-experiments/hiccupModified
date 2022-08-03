@@ -126,4 +126,8 @@ public class MonitorDialog extends Dialog implements Monitor {
     if (logTextArea != null)
       logTextArea.append(text + "\n");
   }
+
+  public int getIterationCount() {
+    return iterationCount;
+  }
 }

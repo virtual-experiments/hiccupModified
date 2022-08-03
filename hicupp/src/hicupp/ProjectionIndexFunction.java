@@ -61,7 +61,7 @@ public class ProjectionIndexFunction implements Function {
   
   private static final String[] projectionIndices = {
     "Shape",
-		"Mixed",
+    "Mixed",
     "Entropy",
     "L1",
     "Hellinger's",

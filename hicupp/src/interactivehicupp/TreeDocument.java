@@ -154,9 +154,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         getLogTextArea().append("Loaded file with input file " + TreeFileFormat.filename + " with type " + TreeFileFormat.fileExtension
                 + " and size " + TreeFileFormat.fileSize + "kB.\n");
       } else {
-        getLogTextArea().append("Loaded tree without input file.");
+        getLogTextArea().append("Loaded tree without input file.\n");
       }
-    } else getLogTextArea().append("Loaded tree with no input file.");
+    } else getLogTextArea().append("Loaded tree with no input file.\n");
   }
 
   public Dimension getPreferredSize() {
