@@ -11,8 +11,8 @@ import hicupp.classify.*;
 import hicupp.trees.*;
 
 public class SplitView extends Label {
-  private static final int histogramWidth = 300;
-  private static final int histogramHeight = 150;
+  private static final int histogramHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 5;
+  private static final int histogramWidth = histogramHeight * 2;
 
   private final ClassSplit classSplit;
   private final NodeView parent;

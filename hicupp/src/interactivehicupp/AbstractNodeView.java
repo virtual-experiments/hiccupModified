@@ -23,17 +23,15 @@ abstract class AbstractNodeView implements NodeView {
     this.parent = parent;
     this.classNode = classNode;
     
-    classNode.addObserver(new Observer() {
-      public void update(Observable observable, Object info) {
-        if (info == "Split") {
-          child = createChild();
-        } else if (info == "Prune") {
-          child = null;
-        } else if (info == "New Points") {
-          newPoints();
-        } else
-          throw new RuntimeException("Unexpected info object: " + info);
-      }
+    classNode.addObserver((observable, info) -> {
+      if (info == "Split") {
+        child = createChild();
+      } else if (info == "Prune") {
+        child = null;
+      } else if (info == "New Points") {
+        newPoints();
+      } else
+        throw new RuntimeException("Unexpected info object: " + info);
     });
   }
   
