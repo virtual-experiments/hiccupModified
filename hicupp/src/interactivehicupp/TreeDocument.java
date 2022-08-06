@@ -284,6 +284,11 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     TreeFileFormat.saveTree(pointsSourceProvider, filename);
   }
 
+  @Override
+  public NodeView getRoot() {
+    return displayRoot;
+  }
+
   PointsSourceProvider getPointsSourceProvider() {
     return pointsSourceProvider;
   }

@@ -8,4 +8,5 @@ public interface Document {
   void addChangeListener(DocumentChangeListener listener);
   Component getComponent();
   void save(String filename) throws IOException;
+  NodeView getRoot();
 }

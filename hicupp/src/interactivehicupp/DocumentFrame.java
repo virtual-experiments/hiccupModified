@@ -28,29 +28,13 @@ public class DocumentFrame extends Frame {
     fileMenu.setLabel("File");
     fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     fileNewMenuItem.setLabel("New " + documentTypeName);
-    fileNewMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        newDocument();
-      }
-    });
+    fileNewMenuItem.addActionListener(e -> newDocument());
     fileOpenMenuItem.setLabel("Open " + documentTypeName + "...");
-    fileOpenMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        openDocument();
-      }
-    });
+    fileOpenMenuItem.addActionListener(e -> openDocument());
     fileSaveMenuItem.setLabel("Save " + documentTypeName);
-    fileSaveMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        saveDocument();
-      }
-    });
+    fileSaveMenuItem.addActionListener(e -> saveDocument());
     fileSaveAsMenuItem.setLabel("Save " + documentTypeName + " As...");
-    fileSaveAsMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        saveDocumentAs();
-      }
-    });
+    fileSaveAsMenuItem.addActionListener(e -> saveDocumentAs());
 
     fileMenu.add(fileNewMenuItem);
     fileMenu.add(fileOpenMenuItem);
@@ -59,6 +43,8 @@ public class DocumentFrame extends Frame {
 
     setDocument(documentType.createNewDocument());
     pack();
+
+    addComponentListener(new FrameComponentAdapter());
   }
 
   private void setDocument(Document document) {
@@ -176,6 +162,30 @@ public class DocumentFrame extends Frame {
         } catch (IOException e) {
           String name = documentType.getName();
           MessageBox.showMessage(this, "Could not open " + name + " file: " + e.toString(), title);
+        }
+      }
+    }
+  }
+
+  private class FrameComponentAdapter extends ComponentAdapter {
+    @Override
+    public void componentResized(ComponentEvent e) {
+      super.componentResized(e);
+      hideAllInfo(document.getRoot());
+    }
+
+    @Override
+    public void componentMoved(ComponentEvent e) {
+      super.componentMoved(e);
+      hideAllInfo(document.getRoot());
+    }
+
+    public void hideAllInfo(NodeView nodeView) {
+      if (nodeView != null) {
+        nodeView.hideInfo();
+        if (nodeView.getChild() != null) {
+          hideAllInfo(nodeView.getChild().getLeftChild());
+          hideAllInfo(nodeView.getChild().getRightChild());
         }
       }
     }

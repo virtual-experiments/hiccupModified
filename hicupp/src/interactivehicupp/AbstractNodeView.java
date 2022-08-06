@@ -134,6 +134,8 @@ abstract class AbstractNodeView implements NodeView {
     Split split = classNode.getNode().getChild();
     split.setSplitProjectionIndex(client.getProjectionIndex());
     split.setSplitIterations(splitNoOfIterations);
+
+    if (infoFrame != null) updateInfo();
   }
   
   public void newPoints() {
@@ -150,15 +152,17 @@ abstract class AbstractNodeView implements NodeView {
   }
   
   public void hideInfo() {
-    infoFrame.dispose();
-    infoFrame = null;
-    infoTextArea = null;
+    if (infoFrame != null) {
+      infoFrame.dispose();
+      infoFrame = null;
+      infoTextArea = null;
+    }
   }
   
   public void showInfo() {
     if (infoFrame == null) {
       infoFrame = new Window(client.getFrame());
-      infoTextArea = new TextArea(classNode.getDimensionCount() + 1, 23);
+      infoTextArea = new TextArea(classNode.getDimensionCount() + 1, 30);
       infoTextArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
       updateInfo();
       infoTextArea.setEditable(false);
@@ -193,10 +197,11 @@ abstract class AbstractNodeView implements NodeView {
     }
 
     if (!this.splitProjectionIndex.equals("N/A")) {
+      infoTextArea.setRows(classNode.getDimensionCount() + 5);
       info.append("\n\n   Split info\n");
       info.append("Projection index: ").append(splitProjectionIndex).append("\n");
       info.append("Number of iterations: ").append(splitNoOfIterations);
-    }
+    } else infoTextArea.setRows(classNode.getDimensionCount() + 1);
     
     infoTextArea.setText(info.toString());
   }
