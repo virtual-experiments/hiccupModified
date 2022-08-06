@@ -140,6 +140,7 @@ public class DocumentFrame extends Frame {
 
   private void newDocument() {
     if (askSaveIfDirty()) {
+
       file = null;
       untitledCounter++;
       TreeFileFormat.inputFileExists = false;
@@ -167,6 +168,16 @@ public class DocumentFrame extends Frame {
     }
   }
 
+  public void hideAllInfo(NodeView nodeView) {
+    if (nodeView != null) {
+      nodeView.hideInfo();
+      if (nodeView.getChild() != null) {
+        hideAllInfo(nodeView.getChild().getLeftChild());
+        hideAllInfo(nodeView.getChild().getRightChild());
+      }
+    }
+  }
+
   private class FrameComponentAdapter extends ComponentAdapter {
     @Override
     public void componentResized(ComponentEvent e) {
@@ -178,16 +189,6 @@ public class DocumentFrame extends Frame {
     public void componentMoved(ComponentEvent e) {
       super.componentMoved(e);
       hideAllInfo(document.getRoot());
-    }
-
-    public void hideAllInfo(NodeView nodeView) {
-      if (nodeView != null) {
-        nodeView.hideInfo();
-        if (nodeView.getChild() != null) {
-          hideAllInfo(nodeView.getChild().getLeftChild());
-          hideAllInfo(nodeView.getChild().getRightChild());
-        }
-      }
     }
   }
 }
