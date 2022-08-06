@@ -140,7 +140,7 @@ public class DocumentFrame extends Frame {
 
   private void newDocument() {
     if (askSaveIfDirty()) {
-
+      hideAllInfo(document.getRoot());
       file = null;
       untitledCounter++;
       TreeFileFormat.inputFileExists = false;
@@ -150,6 +150,7 @@ public class DocumentFrame extends Frame {
 
   private void openDocument() {
     if (askSaveIfDirty()) {
+      hideAllInfo(document.getRoot());
       String capdName = documentType.getCapitalizedName();
       FileDialog fileDialog = new FileDialog(this, "Open " + capdName, FileDialog.LOAD);
       fileDialog.show();
