@@ -33,7 +33,7 @@ abstract class AbstractNodeView implements NodeView {
 
       int optimisationIndex = splitChild.getOptimisationAlgorithmIndex();
       this.optimisationAlgorithm = (optimisationIndex == -1) ?
-              "N/A" : ProjectionIndexFunction.getProjectionIndexNames()[projectionIndex];
+              "N/A" : FunctionMaximizer.getAlgorithmNames()[optimisationIndex];
 
       this.splitNoOfIterations = classNode.getNode().getChild().getSplitIterations();
     } else {
@@ -139,7 +139,7 @@ abstract class AbstractNodeView implements NodeView {
     splitNoOfIterations = monitorDialog.getIterationCount();
     client.getLogTextArea().append("Node " + getClassNode().getNode().getSerialNumber() +
             " split using projection index " + splitProjection + " with " +
-            splitNoOfIterations + " iterations.");
+            splitNoOfIterations + " iterations.\n");
 
     Split split = classNode.getNode().getChild();
     split.setSplitProjectionIndex(client.getProjectionIndex());
@@ -173,7 +173,7 @@ abstract class AbstractNodeView implements NodeView {
   public void showInfo() {
     if (infoFrame == null) {
       infoFrame = new Window(client.getFrame());
-      infoTextArea = new TextArea(classNode.getDimensionCount() + 1, 30);
+      infoTextArea = new TextArea(classNode.getDimensionCount() + 1, 23);
       infoTextArea.setFont(new Font("Monospaced", Font.PLAIN, 11));
       updateInfo();
       infoTextArea.setEditable(false);
@@ -211,7 +211,10 @@ abstract class AbstractNodeView implements NodeView {
       infoTextArea.setRows(classNode.getDimensionCount() + 6);
       info.append("\n\n   Split info\n");
       info.append("Projection index: ").append(splitProjection).append("\n");
-      info.append("Optimisation algorithm: ").append(optimisationAlgorithm).append("\n");
+      StringBuilder algorithm = new StringBuilder();
+      algorithm.append("Optimisation algorithm: ").append(optimisationAlgorithm);
+      infoTextArea.setColumns(algorithm.length() + 1);
+      info.append(algorithm).append("\n");
       info.append("Number of iterations: ").append(splitNoOfIterations);
     } else infoTextArea.setRows(classNode.getDimensionCount() + 1);
     

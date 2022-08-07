@@ -34,15 +34,17 @@ public class TreeFileFormat {
     writer.close();
   }
 
-  // id split_index split_iterations axis... threshold
+  // id split_index split_algorithm split_iterations axis... threshold
   private static void writeSplit(int i, Split split, PrintWriter writer) {
     if (split != null) {
       // id
       writer.print(i);
 
-      // index and iterations
+      // index, algorithm, and iterations
       writer.print(' ');
       writer.print(split.getSplitProjectionIndex());
+      writer.print(' ');
+      writer.print(split.getOptimisationAlgorithmIndex());
       writer.print(' ');
       writer.print(split.getSplitIterations());
 
@@ -94,6 +96,7 @@ public class TreeFileFormat {
     if (t.ttype == StreamTokenizer.TT_NUMBER && t.nval == i) {
       // index and iterations
       int splitIndex = (int) readNumber(t);
+      int splitAlgorithm = (int) readNumber(t);
       int splitIterations = (int) readNumber(t);
 
       //axis and threshold
@@ -112,6 +115,7 @@ public class TreeFileFormat {
       node.split(axis, splitValue);
       Split child = node.getChild();
       child.setSplitProjectionIndex(splitIndex);
+      child.setOptimisationAlgorithmIndex(splitAlgorithm);
       child.setSplitIterations(splitIterations);
       readSubtree(child.getLeftChild(), ndims, iLeft, t);
       readSubtree(child.getRightChild(), ndims, iLeft + 1, t);
