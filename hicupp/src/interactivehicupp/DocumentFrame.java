@@ -169,7 +169,7 @@ public class DocumentFrame extends Frame {
     }
   }
 
-  public void hideAllInfo(NodeView nodeView) {
+  public static void hideAllInfo(NodeView nodeView) {
     if (nodeView != null) {
       nodeView.hideInfo();
       if (nodeView.getChild() != null) {

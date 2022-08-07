@@ -437,6 +437,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     updateImageSource();
     root.newImageSource();
     client.layoutTree();
+    hideAllInfo();
   }
 
   private void setAutomaticZoom() {
@@ -447,6 +448,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     updateImageSource();
     root.newImageSource();
     client.layoutTree();
+    hideAllInfo();
+  }
+
+  private void hideAllInfo() {
+    DocumentFrame.hideAllInfo(root);
   }
 
   private void chooseCustomZoomFactor() {
