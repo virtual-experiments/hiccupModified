@@ -39,6 +39,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return projectionIndex;
   }
 
+  public int getAlgorithmIndex() {
+    return algorithmIndex;
+  }
 
   public Frame getFrame() {
     return getFrameAncestor(this);

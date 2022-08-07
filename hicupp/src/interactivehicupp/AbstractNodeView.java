@@ -15,7 +15,8 @@ abstract class AbstractNodeView implements NodeView {
   private Window infoFrame;
   private TextArea infoTextArea;
 
-  private String splitProjectionIndex;
+  private String splitProjection;
+  private String optimisationAlgorithm;
   private int splitNoOfIterations;
   
   AbstractNodeView(PointsSourceClient client, SplitView parent, ClassNode classNode) {
@@ -26,12 +27,18 @@ abstract class AbstractNodeView implements NodeView {
     Split splitChild = classNode.getNode().getChild();
 
     if (splitChild != null) {
-      int index = splitChild.getSplitProjectionIndex();
-      this.splitProjectionIndex = (index == -1) ?
-              "N/A" : ProjectionIndexFunction.getProjectionIndexNames()[index];
+      int projectionIndex = splitChild.getSplitProjectionIndex();
+      this.splitProjection = (projectionIndex == -1) ?
+              "N/A" : ProjectionIndexFunction.getProjectionIndexNames()[projectionIndex];
+
+      int optimisationIndex = splitChild.getOptimisationAlgorithmIndex();
+      this.optimisationAlgorithm = (optimisationIndex == -1) ?
+              "N/A" : ProjectionIndexFunction.getProjectionIndexNames()[projectionIndex];
+
       this.splitNoOfIterations = classNode.getNode().getChild().getSplitIterations();
     } else {
-      this.splitProjectionIndex = "N/A";
+      this.splitProjection = "N/A";
+      this.optimisationAlgorithm = "N/A";
       this.splitNoOfIterations = 0;
     }
     
@@ -39,7 +46,7 @@ abstract class AbstractNodeView implements NodeView {
       if (info == "Split") {
         child = createChild();
       } else if (info == "Prune") {
-        this.splitProjectionIndex = "N/A";
+        this.splitProjection = "N/A";
         this.splitNoOfIterations = 0;
         child = null;
       } else if (info == "New Points") {
@@ -110,9 +117,12 @@ abstract class AbstractNodeView implements NodeView {
     
     Computation computation = new Computation();
 
-    splitProjectionIndex = ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()];
+    splitProjection = ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()];
+    optimisationAlgorithm = FunctionMaximizer.getAlgorithmNames()[client.getAlgorithmIndex()];
+
     client.getLogTextArea().append("Splitting node " + getClassNode().getNode().getSerialNumber() +
-                                   " using projection index " + splitProjectionIndex + "...\n");
+                                   " using projection index " + splitProjection +
+                                   " with algorithm " + optimisationAlgorithm + "...\n");
     monitorDialog.show(computation, client.getLogTextArea());
 
     if (computation.exception != null) {
@@ -128,14 +138,15 @@ abstract class AbstractNodeView implements NodeView {
 
     splitNoOfIterations = monitorDialog.getIterationCount();
     client.getLogTextArea().append("Node " + getClassNode().getNode().getSerialNumber() +
-            " split using projection index " + splitProjectionIndex + " with " +
+            " split using projection index " + splitProjection + " with " +
             splitNoOfIterations + " iterations.");
 
     Split split = classNode.getNode().getChild();
     split.setSplitProjectionIndex(client.getProjectionIndex());
+    split.setOptimisationAlgorithmIndex(client.getAlgorithmIndex());
     split.setSplitIterations(splitNoOfIterations);
 
-    if (infoFrame != null) updateInfo();
+    if (infoTextArea != null) updateInfo();
   }
   
   public void newPoints() {
@@ -196,10 +207,11 @@ abstract class AbstractNodeView implements NodeView {
       info.append(TextTools.formatScientific(classNode.getStandardDeviation(j)));
     }
 
-    if (!this.splitProjectionIndex.equals("N/A")) {
-      infoTextArea.setRows(classNode.getDimensionCount() + 5);
+    if (!this.splitProjection.equals("N/A")) {
+      infoTextArea.setRows(classNode.getDimensionCount() + 6);
       info.append("\n\n   Split info\n");
-      info.append("Projection index: ").append(splitProjectionIndex).append("\n");
+      info.append("Projection index: ").append(splitProjection).append("\n");
+      info.append("Optimisation algorithm: ").append(optimisationAlgorithm).append("\n");
       info.append("Number of iterations: ").append(splitNoOfIterations);
     } else infoTextArea.setRows(classNode.getDimensionCount() + 1);
     
