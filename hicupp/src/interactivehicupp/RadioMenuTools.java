@@ -1,10 +1,9 @@
 package interactivehicupp;
 
 import java.awt.*;
-import java.awt.event.*;
 
 public class RadioMenuTools {
-  public static interface RadioMenuEventListener {
+  public interface RadioMenuEventListener {
     void itemChosen(int index);
   }
   
@@ -16,12 +15,10 @@ public class RadioMenuTools {
     for (int i = 0; i < items.length; i++) {
       final int index = i;
       CheckboxMenuItem item = new CheckboxMenuItem(labels[i]);
-      item.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent e) {
-          for (int j = 0; j < items.length; j++)
-            items[j].setState(index == j);
-          listener.itemChosen(index);
-        }
+      item.addItemListener(e -> {
+        for (int j = 0; j < items.length; j++)
+          items[j].setState(index == j);
+        listener.itemChosen(index);
       });
       items[i] = item;
       menu.add(item);

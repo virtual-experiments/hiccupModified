@@ -6,6 +6,21 @@ import interactivehicupp.TextTools;
  * Holds a method for maximizing a function using the Simplex method of Nelder and Mead.
  */
 public final class FunctionMaximizer {
+
+  // simulated annealing,  genetic algorithms, gradient descent methods
+  private static final String[] algorithmIndices = {
+    "Simplex",
+    "Simulated annealing",
+    "Genetic algorithm",
+    "Gradient descent"
+  };
+
+  public static final int SIMPLEX_ALGORITHM_INDEX = 0;
+
+  public static String[] getAlgorithmNames() {
+    return algorithmIndices;
+  }
+
   /**
    * Maximize a function using the Simplex method of Nelder and Mead.
    * <p>Reference:<br />

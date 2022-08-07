@@ -70,7 +70,7 @@ public class ProjectionIndexFunction implements Function {
     "Cook's"
   };
   
-	public static final int MIXED_PROJECTION_INDEX = 1;
+  public static final int MIXED_PROJECTION_INDEX = 1;
   public static final int FRIEDMANS_PROJECTION_INDEX = 5;
 
   public static String[] getProjectionIndexNames() {

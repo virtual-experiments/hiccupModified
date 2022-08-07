@@ -65,13 +65,11 @@ public class SplitView extends Label {
     rightChild = nodeViewFactory.createNodeView(this, classSplit.getRightChild());
     histogramView = new HistogramView();
 
-    classSplit.addObserver(new Observer() {
-      public void update(Observable observable, Object object) {
-        updateText();
-        histogramView.repaint();
-        if (pointsPlotFrame != null)
-          pointsPlotFrame.getPointsPlot().setThreshold(SplitView.this.classSplit.getSplit().getThreshold());
-      }
+    classSplit.addObserver((observable, object) -> {
+      updateText();
+      histogramView.repaint();
+      if (pointsPlotFrame != null)
+        pointsPlotFrame.getPointsPlot().setThreshold(SplitView.this.classSplit.getSplit().getThreshold());
     });
 
     addMouseListener(new MouseAdapter() {

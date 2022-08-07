@@ -2,13 +2,9 @@ package interactivehicupp;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.image.*;
 import java.io.*;
-import java.text.*;
-import java.util.*;
 
 import hicupp.*;
-import hicupp.classify.*;
 import hicupp.trees.*;
 
 public class TreeDocument extends Panel implements Document, PointsSourceClient {
@@ -17,11 +13,13 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   private NodeView displayRoot;
   private int projectionIndex = ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX;
+  private int algorithmIndex = FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX;
 
   private DocumentChangeListener changeListener;
 
   private final Menu toolsMenu = new Menu();
   private final Menu projectionIndexMenu;
+  private final Menu optimisationAlgorithmMenu;
   private final Menu goMenu = new Menu();
   private final MenuItem goToRootMenuItem = new MenuItem();
   private final MenuItem goToParentMenuItem = new MenuItem();
@@ -63,18 +61,28 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
 
     {
-      RadioMenuTools.RadioMenuEventListener listener = index -> projectionIndex = index;
-      String[] labels = ProjectionIndexFunction.getProjectionIndexNames();
-      projectionIndexMenu = RadioMenuTools.createRadioMenu(labels,
+      RadioMenuTools.RadioMenuEventListener projectionIndexListener = index -> projectionIndex = index;
+      String[] projectionLabels = ProjectionIndexFunction.getProjectionIndexNames();
+      projectionIndexMenu = RadioMenuTools.createRadioMenu(
+              projectionLabels,
               projectionIndex,
-              listener);
+              projectionIndexListener);
+
+      RadioMenuTools.RadioMenuEventListener algorithmIndexListener = index -> algorithmIndex = index;
+      String[] optimisationLabel = FunctionMaximizer.getAlgorithmNames();
+      optimisationAlgorithmMenu = RadioMenuTools.createRadioMenu(
+              optimisationLabel,
+              algorithmIndex,
+              algorithmIndexListener);
     }
 
     projectionIndexMenu.setLabel("Projection Index");
+    optimisationAlgorithmMenu.setLabel("Optimisation Algorithm");
 
     toolsMenu.setLabel("Tools");
     toolsMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     toolsMenu.add(projectionIndexMenu);
+    toolsMenu.add(optimisationAlgorithmMenu);
 
     goMenu.setLabel("Go");
     goMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
@@ -153,10 +161,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         this.pointsSourceProvider.loadFile(TreeFileFormat.filename.toString());
         getLogTextArea().append("Loaded file with input file " + TreeFileFormat.filename + " with type " + TreeFileFormat.fileExtension
                 + " and size " + TreeFileFormat.fileSize + "kB.\n");
-      } else {
-        getLogTextArea().append("Loaded tree without input file.\n");
-      }
-    } else getLogTextArea().append("Loaded tree with no input file.\n");
+      } else getLogTextArea().append("Loaded tree without input file.\n");
+    }
   }
 
   public Dimension getPreferredSize() {
