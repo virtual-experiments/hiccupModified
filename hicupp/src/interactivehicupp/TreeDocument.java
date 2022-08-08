@@ -257,6 +257,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   }
 
   private void goTo(NodeView nodeView) {
+    DocumentFrame.hideAllInfo(displayRoot);
     displayRoot = nodeView;
     rebuildComponentStructure();
     layoutTree();

@@ -65,7 +65,7 @@ public class BMPFileFormat {
 
   public static RGBAImage readImage(String filename) throws IOException {
     RandomAccessFile file = new RandomAccessFile(filename, "r");
-    
+
     byte[] fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
     file.readFully(fileHeaderBuffer);
     
@@ -124,8 +124,18 @@ public class BMPFileFormat {
       throw new IOException("Unsupported number of bits per pixel: " + bitCount);
     
     file.close();
-    
+    removeTempImage();
+
     return image;
+  }
+
+  private static void removeTempImage() {
+    File file = new File("./temp.bmp");
+    if (file.exists()) {
+      if (file.delete()) {
+        System.out.println("Temporary file deleted.");
+      } else System.out.println("Unable to delete temporary file.");
+    }
   }
   
   private static RGBAImage read24BitImageBits(RandomAccessFile file,

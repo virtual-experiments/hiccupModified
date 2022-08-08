@@ -212,12 +212,22 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         add(scrollPane, BorderLayout.CENTER);
 
         addWindowListener(new WindowAdapter() {
+          @Override
           public void windowClosing(WindowEvent e) {
             dispose();
             inspectorFrame = null;
             inspector = null;
           }
         });
+
+        addComponentListener(new ComponentAdapter() {
+          @Override
+          public void componentResized(ComponentEvent e) {
+            super.componentResized(e);
+            inspector.setSize(imageWidth, imageHeight);
+          }
+        });
+
         pack();
       }
     }
@@ -226,7 +236,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       if (inspectorFrame == null)
         inspectorFrame = new InspectorFrame();
       inspectorFrame.setVisible(true);
-      inspectorFrame.setResizable(false);
     }
 
     public ImageNodeView(SplitView parent, ClassNode classNode) {
@@ -238,20 +247,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
 
     SplitView createChild() {
-      return new SplitView(new NodeViewFactory() {
-        public NodeView createNodeView(SplitView parent, ClassNode classNode) {
-          return new ImageNodeView(parent, classNode);
-        }
-      }, this, getClassNode().getChild(), parameterNames);
+      return new SplitView(ImageNodeView::new, this, getClassNode().getChild(), parameterNames);
     }
 
     protected void addNodePopupMenuItems(PopupMenu popupMenu) {
       final MenuItem inspectMenuItem = new MenuItem("Inspect");
-      inspectMenuItem.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          inspect();
-        }
-      });
+      inspectMenuItem.addActionListener(e -> inspect());
       popupMenu.add(inspectMenuItem);
     }
 
@@ -293,11 +294,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     viewMenu.setLabel("View");
     viewMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     viewChooseImageMenuItem.setLabel("Choose Image...");
-    viewChooseImageMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        chooseImage(ImagePointsSourceProvider.this.client.getFrame());
-      }
-    });
+    viewChooseImageMenuItem.addActionListener(e -> chooseImage(ImagePointsSourceProvider.this.client.getFrame()));
 
     {
       RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
@@ -334,20 +331,14 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
     viewZoomMenuItem.add(zoomAutomaticMenuItem);
     zoomAutomaticMenuItem.setLabel("Automatic");
-    zoomAutomaticMenuItem.addActionListener(e -> {
-      setAutomaticZoom();
-    });
+    zoomAutomaticMenuItem.addActionListener(e -> setAutomaticZoom());
     viewZoomMenuItem.addSeparator();
 
     for (int i = 0; i < zoomMenuItems.length; i++) {
       MenuItem item = new MenuItem(Float.toString(zoomFactors[i]));
       viewZoomMenuItem.add(item);
       final int index = i;
-      item.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          setZoomFactor(zoomFactors[index]);
-        }
-      });
+      item.addActionListener(e -> setZoomFactor(zoomFactors[index]));
     }
 
     viewZoomMenuItem.setLabel("Zoom");
@@ -355,11 +346,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     viewZoomMenuItem.add(zoomCustomMenuItem);
 
     zoomCustomMenuItem.setLabel("Custom factor...");
-    zoomCustomMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        chooseCustomZoomFactor();
-      }
-    });
+    zoomCustomMenuItem.addActionListener(e -> chooseCustomZoomFactor());
 
     generateDefaultImage();
     classTree = new ClassTree(tree, points);
@@ -408,7 +395,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
   private void chooseImage(Component c) {
     FileDialog dialog = new FileDialog(client.getFrame(), "Choose an Image", FileDialog.LOAD);
-    dialog.show();
+    dialog.setVisible(true);
     String file = dialog.getFile();
     if (file != null) {
       chosenImageFile = new File(dialog.getDirectory(), file).toString();
@@ -470,24 +457,18 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     buttonsPanel.add(okButton);
     buttonsPanel.add(cancelButton);
 
-    cancelButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        dialog.dispose();
-      }
-    });
-    okButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        try {
-          float newZoomFactor = Float.valueOf(textField.getText()).floatValue();
-          if (zoomFactor <= 0.0f)
-            MessageBox.showMessage(client.getFrame(), "The zoom factor must be greater than zero.", "Interactive Hicupp");
-          else {
-            setZoomFactor(newZoomFactor);
-            dialog.dispose();
-          }
-        } catch (NumberFormatException ex) {
-          MessageBox.showMessage(client.getFrame(), "What you entered is not a number.", "Interactive Hicupp");
+    cancelButton.addActionListener(e -> dialog.dispose());
+    okButton.addActionListener(e -> {
+      try {
+        float newZoomFactor = Float.parseFloat(textField.getText());
+        if (zoomFactor <= 0.0f)
+          MessageBox.showMessage(client.getFrame(), "The zoom factor must be greater than zero.", "Interactive Hicupp");
+        else {
+          setZoomFactor(newZoomFactor);
+          dialog.dispose();
         }
+      } catch (NumberFormatException ex) {
+        MessageBox.showMessage(client.getFrame(), "What you entered is not a number.", "Interactive Hicupp");
       }
     });
 
