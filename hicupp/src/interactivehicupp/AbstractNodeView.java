@@ -107,6 +107,7 @@ abstract class AbstractNodeView implements NodeView {
       public void run() {
         try {
           axis = Clusterer.findAxis(client.getProjectionIndex(),
+                                    client.getAlgorithmIndex(),
                                     classNode,
                                     monitorDialog);
         } catch (Exception e) {

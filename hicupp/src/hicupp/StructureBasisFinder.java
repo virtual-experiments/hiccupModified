@@ -26,6 +26,7 @@ public class StructureBasisFinder {
       return new Matrix(1, 1, 1);
     
     double[] axis = Clusterer.findAxis(projectionIndex,
+                                       FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX,
                                        new MatrixSetOfPoints(points),
                                        monitor);
     if (dimensionCount > 1) {

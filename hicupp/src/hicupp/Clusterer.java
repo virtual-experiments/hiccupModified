@@ -9,18 +9,21 @@ public class Clusterer {
    * Returns the coordinates for the best projection axis for clustering
    * <code>points</code>.
    * @param projectionIndex See class {@link ProjectionIndexFunction}.
+   * @param algorithmIndex See class {@link FunctionMaximizer}
    * @param monitor If not <code>null</code>,
    * this object is notified of milestones of the computation.
    * Also, this object can cancel the computation.
    * @exception CancellationException Thrown originally by the monitor object.
    */
   public static double[] findAxis(int projectionIndex,
+                                  int algorithmIndex,
                                   SetOfPoints points,
                                   Monitor monitor)
       throws NoConvergenceException, CancellationException {
     Function projectionIndexFunction = new ProjectionIndexFunction(projectionIndex,
                                                                    points);
     double[] arguments = FunctionMaximizer.maximize(projectionIndexFunction,
+                                                    algorithmIndex,
                                                     monitor);
     double[] axis = new double[points.getDimensionCount()];
     double sumOfSquares = 0.0;

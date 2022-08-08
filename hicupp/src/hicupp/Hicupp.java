@@ -107,7 +107,7 @@ public class Hicupp extends Frame {
       }
       double[] matrix = MatrixFileFormat.readMatrix(dataFileTextField.getText(), false, columns);
       SetOfPoints points = new ArraySetOfPoints(columns.length, matrix);
-      double[] axis = Clusterer.findAxis(ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX, points, null);
+      double[] axis = Clusterer.findAxis(ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX, FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX, points, null);
       StringBuffer buffer = new StringBuffer();
       buffer.append(axis[0]);
       for (int i = 1; i < axis.length; i++) {

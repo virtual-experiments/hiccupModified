@@ -21,6 +21,16 @@ public final class FunctionMaximizer {
     return algorithmIndices;
   }
 
+  public static double[] maximize(Function function, int algorithmIndex, Monitor monitor)
+          throws NoConvergenceException, CancellationException {
+    return switch (algorithmIndex) {
+      case 1 -> annealing(function, monitor);
+      case 2 -> genetic(function, monitor);
+      case 3 -> gradient(function, monitor);
+      default -> simplex(function, monitor);
+    };
+  }
+
   /**
    * Maximize a function using the Simplex method of Nelder and Mead.
    * <p>Reference:<br />
@@ -44,7 +54,7 @@ public final class FunctionMaximizer {
    * @exception CancellationException Passed through from the <code>monitor</code>'s
    * {@link Monitor#continuing()} method.
    */
-  public static double[] maximize(Function function, Monitor monitor)
+  private static double[] simplex(Function function, Monitor monitor)
       throws NoConvergenceException, CancellationException {
     final double RFACT = 1.0;
     final double CFACT  = 0.5;
@@ -198,7 +208,7 @@ public final class FunctionMaximizer {
           if (fxref > fxmin) {
             
             // We have a new worst point.
-            
+
             for (int j = 0; j < n; j++)
               x[low][j] = xref[j];
             fx[low] = fxref;
@@ -260,7 +270,25 @@ public final class FunctionMaximizer {
 		
     return x[k];
   }
-  
+
+  private static double[] annealing(Function function, Monitor monitor)
+      throws NoConvergenceException, CancellationException {
+
+    throw new CancellationException("Simulated annealing chosen.");
+  }
+
+  private static double[] genetic(Function function, Monitor monitor)
+          throws NoConvergenceException, CancellationException {
+
+    throw new CancellationException("Genetic algorithm chosen.");
+  }
+
+  private static double[] gradient(Function function, Monitor monitor)
+          throws NoConvergenceException, CancellationException {
+
+    throw new CancellationException("Gradient descent chosen.");
+  }
+
   private static String argumentArrayToString(double[] arguments) {
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
