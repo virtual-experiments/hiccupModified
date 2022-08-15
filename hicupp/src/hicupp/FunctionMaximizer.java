@@ -2,6 +2,8 @@ package hicupp;
 
 import interactivehicupp.TextTools;
 
+import java.util.Random;
+
 /**
  * Holds a method for maximizing a function using the Simplex method of Nelder and Mead.
  */
@@ -271,10 +273,167 @@ public final class FunctionMaximizer {
     return x[k];
   }
 
+  /**
+   * Maximise a function using the Simulated Annealing method
+   * @param monitor If not <code>null</code>, this object will be notified
+   *                of milestones within the computation. The object is also
+   *                given a chance to cancel the computation.
+   * @return An argument list for which the function is (sufficiently) maximal.
+   * @exception NoConvergenceException If the algorithm fails to find a maximum.
+   * @exception CancellationException Passed through from the <code>monitor</code>'s
+   * {@link Monitor#continuing()} method.
+   */
   private static double[] annealing(Function function, Monitor monitor)
       throws NoConvergenceException, CancellationException {
+    // Simulated annealing variables
+    double temperature = 1;
+    final double coolingRate = 0.001;
 
-    throw new CancellationException("Simulated annealing chosen.");
+    final MonitoringFunctionWrapper wrapper =
+            new MonitoringFunctionWrapper(new CloningFunctionWrapper(function), monitor);
+    final int n = function.getArgumentCount();
+    final int np1 = n + 1;
+
+    // Initial random
+    double[][] x = new double[np1][n];
+    for (int i = 0; i < np1; i++) {
+      double sum_square_root = 0;
+      for (int j = 0; j < n; j++) {
+        double v = 2 * Math.random() - 1;
+        sum_square_root += v * v;
+        x[i][j] = v;
+      }
+
+      double norm = Math.sqrt(sum_square_root);
+      for (int j = 0; j < n; j++)
+        x[i][j] /= norm;
+    }
+
+    // Compute function values
+    double[] fx = new double[np1];
+    for (int i = 0; i < np1; i++)
+      fx[i] = wrapper.evaluate(x[i]);
+
+    // Track best guess
+    double[][] x_best = new double[np1][n];
+    double[] fx_best = new double[n];
+    double fx_best_max = fx[0];
+
+    int iteration = 0;
+    while (true) {
+      iteration++;
+
+      for (int i = 0; i < x.length; i++) {
+        double[] y = x[i];
+        for (double v : y) System.out.print(v + " ");
+        System.out.println(" => " + fx[i]);
+      }
+      System.out.println();
+
+      if (monitor != null) {
+        monitor.continuing();
+        monitor.iterationStarted(iteration);
+      }
+
+      // Generate new vector
+      double[][] vector = new double[np1][n];
+      for (int i = 0; i < np1; i++) {
+        double sum_square_root = 0;
+        for (int j = 0; j < n; j++) {
+          double v = 2 * Math.random() - 1;
+          sum_square_root += v * v;
+          x[i][j] = v;
+        }
+
+        double norm = Math.sqrt(sum_square_root);
+        for (int j = 0; j < n; j++)
+          vector[i][j] /= norm;
+      }
+
+      // Create new candidate
+      double[][] x_candidate = x.clone();
+      for (int i = 0; i < np1; i++) {
+        for (int j = 0; j < n; j ++) {
+          x_candidate[i][j] += vector[i][j];
+
+          // Cap to 1
+          if (x_candidate[i][j] > 1) x_candidate[i][j] = 1;
+        }
+      }
+
+      // Compute new fx
+      double[] fx_new = new double[np1];
+      for (int i = 0; i < np1; i++)
+        fx_new[i] = wrapper.evaluate(x_candidate[i]);
+
+      // Check if accept
+      double fx_max = fx[0];
+      double fx_new_max = fx_new[0];
+      double fx_new_min = fx_new[0];
+      int high = 0;
+      int low = 0;
+
+      for (int i = 1; i < np1; i++) {
+        if (fx[i] > fx_max) fx_max = fx[i];
+        if (fx_new[i] > fx_new_max) {
+          fx_new_max = fx_new[i];
+          high = i;
+        }
+        if (fx_new[i] < fx_new_min) {
+          fx_new_min = fx_new[i];
+          low = i;
+        }
+      }
+
+      if (fx_new_max > fx_max) { // accept new maximum
+        fx = fx_new;
+        x = x_candidate;
+
+        // Track of best
+        if (fx_best_max < fx_new_max) {
+          fx_best_max = fx_new_max;
+          fx_best = fx;
+          x_best = x;
+        }
+      } else {  // check with temperature
+        Random random = new Random();
+        double r = random.nextInt(1000) / 1000.0; // random probability 0 <= 1
+
+        if (r < Math.exp(-(fx_new_max - fx_max) / temperature)) { // accept worse guess
+          fx = fx_new;
+          x = x_candidate;
+        }
+      }
+
+      double convrg = 2 * Math.abs(fx[high] - fx[low]) /
+              (Math.abs(fx[high]) + Math.abs(fx[low]));
+
+      if (monitor != null)
+        monitor.writeLine("(iter = " + iteration +
+                ") (fx[high] = " + TextTools.formatScientific(fx[high]) +
+                ") (convrg = " + TextTools.formatScientific(convrg) +
+                ") (x[high] = {" + argumentArrayToString(x[high]) + "})");
+
+      if (convrg <= 1e-4)
+        break;
+      // decrease temperature
+      temperature *= 1 - coolingRate;
+    }
+
+    x = x_best;
+    fx = fx_best;
+
+    int k = 1;
+    double f = fx[1];
+    for (int i = 0; i < np1; i++) {
+      if (fx[i] > f) {
+        f = fx[i];
+        k = i;
+      }
+    }
+
+    System.out.println("Optimal value " + f);
+    return x[k];
   }
 
   private static double[] genetic(Function function, Monitor monitor)
