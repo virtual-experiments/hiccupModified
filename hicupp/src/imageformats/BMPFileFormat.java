@@ -1,6 +1,7 @@
 package imageformats;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 
@@ -27,7 +28,7 @@ public class BMPFileFormat {
                        
     byte[] header = new byte[BITMAPFILEHEADER.size + BITMAPCOREHEADER.size];
     fileHeader.write(header, 0);
-    coreHeader.write(header, fileHeader.size);
+    coreHeader.write(header, BITMAPFILEHEADER.size);
     
     RandomAccessFile f = new RandomAccessFile(filename, "rw");
     f.write(header);
@@ -51,14 +52,37 @@ public class BMPFileFormat {
   }
 
   public static RandomAccessFile convertImage(String filename) throws IOException {
-    File file = new File(filename);
-    BufferedImage bufferedImage = ImageIO.read(file);
+    BufferedImage original = ImageIO.read(new File(filename));
+    if (original == null) throw new IOException("Loaded a non image file.");
 
-    if (bufferedImage == null) throw new IOException("Loaded a non image file.");
+    if (filename.contains("png")) {
+      System.out.println("Attempting to convert PNG.");
+
+      BufferedImage output = new BufferedImage(
+              original.getWidth(),
+              original.getHeight(),
+              BufferedImage.TYPE_INT_RGB);
+
+      // replace transparent with white background
+      output.createGraphics()
+              .drawImage(original,
+                      0,
+                      0,
+                      Color.WHITE,
+                      null);
+
+      original = output;
+    }
 
     System.out.println("Attempting to convert image.");
-    ImageIO.write(bufferedImage, "bmp", new File("./temp.bmp"));
-    System.out.println("BMP written successfully.");
+    ImageIO.write(original, "bmp", new File("./temp.bmp"));
+
+    File output = new File("./temp.bmp");
+
+    if (output.exists())
+      System.out.println("BMP written successfully.");
+    else
+      throw  new IOException("Unable to convert to BMP file.");
 
     return new RandomAccessFile("./temp.bmp", "r");
   }
@@ -70,7 +94,6 @@ public class BMPFileFormat {
     file.readFully(fileHeaderBuffer);
     
     if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0)) { // convert first
-//      throw new IOException("The file is not a BMP file.");
       file = convertImage(filename);
       fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
       file.readFully(fileHeaderBuffer);
