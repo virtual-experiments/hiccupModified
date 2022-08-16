@@ -48,6 +48,19 @@ abstract class AbstractNodeView implements NodeView {
       } else if (info == "Prune") {
         this.splitProjection = "N/A";
         this.splitNoOfIterations = 0;
+
+        // hide children info
+        if (child != null) {
+          DocumentFrame.hideAllInfo(child.getLeftChild());
+          DocumentFrame.hideAllInfo(child.getRightChild());
+        }
+
+        // reset info
+        if (infoTextArea != null) {
+          hideInfo();
+          showInfo();
+        }
+
         child = null;
       } else if (info == "New Points") {
         newPoints();
@@ -147,7 +160,10 @@ abstract class AbstractNodeView implements NodeView {
     split.setOptimisationAlgorithmIndex(client.getAlgorithmIndex());
     split.setSplitIterations(splitNoOfIterations);
 
-    if (infoTextArea != null) updateInfo();
+    if (infoTextArea != null) {
+      hideInfo();
+      showInfo();
+    }
   }
   
   public void newPoints() {
@@ -209,7 +225,7 @@ abstract class AbstractNodeView implements NodeView {
     }
 
     if (!this.splitProjection.equals("N/A")) {
-      infoTextArea.setRows(classNode.getDimensionCount() + 6);
+      infoTextArea.setRows(classNode.getDimensionCount() + 7);
       info.append("\n\n   Split info\n");
       info.append("Projection index: ").append(splitProjection).append("\n");
       StringBuilder algorithm = new StringBuilder();
