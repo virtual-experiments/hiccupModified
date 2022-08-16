@@ -31,9 +31,10 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private final Menu viewMenu = new Menu();
   private final MenuItem viewChooseImageMenuItem = new MenuItem();
   private final Menu viewZoomMenuItem = new Menu();
-  private final MenuItem zoomAutomaticMenuItem = new MenuItem();
-  private final MenuItem[] zoomMenuItems = new MenuItem[zoomFactors.length];
-  private final MenuItem zoomCustomMenuItem = new MenuItem();
+  private final CheckboxMenuItem zoomAutomaticMenuItem = new CheckboxMenuItem();
+  private final CheckboxMenuItem[] zoomMenuItems = new CheckboxMenuItem[zoomFactors.length];
+  private final CheckboxMenuItem zoomCustomMenuItem = new CheckboxMenuItem();
+  private final CheckboxMenuItem viewAutomaticColor = new CheckboxMenuItem();
   private final MenuItem viewOldMaskColorMenuItem;
   private final MenuItem viewNewMaskColorMenuItem;
 
@@ -54,6 +55,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
   private String chosenImageFile = null;
   private String metadata = "N/A\nN/A";
+  private boolean automaticColor = false;
+  private int[] averageColor;
 
   private final SetOfPoints points = new SetOfPoints() {
     public int getDimensionCount() {
@@ -331,14 +334,27 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
     viewZoomMenuItem.add(zoomAutomaticMenuItem);
     zoomAutomaticMenuItem.setLabel("Automatic");
-    zoomAutomaticMenuItem.addActionListener(e -> setAutomaticZoom());
+    zoomAutomaticMenuItem.setState(false);
+    zoomAutomaticMenuItem.addItemListener(e -> setAutomaticZoom());
     viewZoomMenuItem.addSeparator();
 
     for (int i = 0; i < zoomMenuItems.length; i++) {
-      MenuItem item = new MenuItem(Float.toString(zoomFactors[i]));
+      CheckboxMenuItem item = new CheckboxMenuItem(Float.toString(zoomFactors[i]));
       viewZoomMenuItem.add(item);
+      zoomMenuItems[i] = item;
       final int index = i;
-      item.addActionListener(e -> setZoomFactor(zoomFactors[index]));
+
+      if (zoomFactors[i] == 1.0f) item.setState(true);  // initial zoom
+
+      item.addItemListener(e -> {
+        for (int j = 0; j < zoomMenuItems.length; j++) {
+          CheckboxMenuItem currentItem = zoomMenuItems[j];
+          currentItem.setState(index == j);
+        }
+
+        resetCustomZoomLabel();
+        setZoomFactor(zoomFactors[index]);
+      });
     }
 
     viewZoomMenuItem.setLabel("Zoom");
@@ -346,7 +362,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     viewZoomMenuItem.add(zoomCustomMenuItem);
 
     zoomCustomMenuItem.setLabel("Custom factor...");
-    zoomCustomMenuItem.addActionListener(e -> chooseCustomZoomFactor());
+    zoomCustomMenuItem.setState(false);
+    zoomCustomMenuItem.addItemListener(e -> chooseCustomZoomFactor());
 
     generateDefaultImage();
     classTree = new ClassTree(tree, points);
@@ -408,6 +425,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     try {
       imageformats.RGBAImage image = imageformats.BMPFileFormat.readImage(file);
       imagePixels = image.getPixels();
+      averageColor = image.getAverageColor();
+      setAutomaticMaskColor();
       imageWidth = image.getWidth();
       imageHeight = image.getHeight();
       classTree.setPoints(points);
@@ -418,6 +437,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private void setZoomFactor(float value) {
+    zoomAutomaticMenuItem.setState(false);
+
     zoomFactor = value;
     displayImageWidth = (int) (zoomFactor * (float) imageWidth);
     displayImageHeight = (int) (zoomFactor * (float) imageHeight);
@@ -428,18 +449,18 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private void setAutomaticZoom() {
+    zoomAutomaticMenuItem.setState(true);
+    resetCustomZoomLabel();
+    uncheckZoomItems();
+
     Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
     displayImageHeight = Math.round(screenSize.height / 4.0f);
-    double factor = (double)  imageWidth / imageHeight;
+    double factor = (double) imageWidth / imageHeight;
     displayImageWidth = (int) Math.round(factor * displayImageHeight);
     updateImageSource();
     root.newImageSource();
     client.layoutTree();
     hideAllInfo();
-  }
-
-  private void hideAllInfo() {
-    DocumentFrame.hideAllInfo(root);
   }
 
   private void chooseCustomZoomFactor() {
@@ -464,6 +485,9 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         if (zoomFactor <= 0.0f)
           MessageBox.showMessage(client.getFrame(), "The zoom factor must be greater than zero.", "Interactive Hicupp");
         else {
+          uncheckZoomItems();
+          zoomCustomMenuItem.setState(true);
+          zoomCustomMenuItem.setLabel("Custom factor: " + newZoomFactor);
           setZoomFactor(newZoomFactor);
           dialog.dispose();
         }
@@ -533,5 +557,22 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       metadata = "N/A\nN/A";
       e.printStackTrace();
     }
+  }
+
+  private void setAutomaticMaskColor() {
+
+  }
+
+  private void uncheckZoomItems() {
+    for (CheckboxMenuItem zoomMenuItem : zoomMenuItems) zoomMenuItem.setState(false);
+  }
+
+  private void resetCustomZoomLabel() {
+    zoomCustomMenuItem.setState(false);
+    zoomCustomMenuItem.setLabel("Custom factor...");
+  }
+
+  private void hideAllInfo() {
+    DocumentFrame.hideAllInfo(root);
   }
 }
