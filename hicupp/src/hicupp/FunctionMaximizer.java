@@ -315,12 +315,13 @@ public final class FunctionMaximizer {
       fx[i] = wrapper.evaluate(x[i]);
 
     // Track best guess
-    double[][] x_best = new double[np1][n];
-    double[] fx_best = new double[n];
+    double[][] x_best = x.clone();
+    double[] fx_best = fx.clone();
     double fx_best_max = fx[0];
+    double convrg = 1;
 
     int iteration = 0;
-    while (true) {
+    while (temperature > 0.1) {
       iteration++;
 
       for (int i = 0; i < x.length; i++) {
@@ -335,7 +336,7 @@ public final class FunctionMaximizer {
         monitor.iterationStarted(iteration);
       }
 
-      // Generate new vector
+      // Generate new vector from -1 to 1
       double[][] vector = new double[np1][n];
       for (int i = 0; i < np1; i++) {
         double sum_square_root = 0;
@@ -354,10 +355,11 @@ public final class FunctionMaximizer {
       double[][] x_candidate = x.clone();
       for (int i = 0; i < np1; i++) {
         for (int j = 0; j < n; j ++) {
-          x_candidate[i][j] += vector[i][j];
+          x_candidate[i][j] += vector[i][j] * temperature;
 
-          // Cap to 1
+          // Cap to abs 1
           if (x_candidate[i][j] > 1) x_candidate[i][j] = 1;
+          if (x_candidate[i][j] < -1) x_candidate[i][j] = -1;
         }
       }
 
@@ -397,7 +399,7 @@ public final class FunctionMaximizer {
         }
       } else {  // check with temperature
         Random random = new Random();
-        double r = random.nextInt(1000) / 1000.0; // random probability 0 <= 1
+        double r = random.nextInt(1000) / 1000.0; // random probability 0 <= r <= 1
 
         if (r < Math.exp(-(fx_new_max - fx_max) / temperature)) { // accept worse guess
           fx = fx_new;
@@ -405,20 +407,25 @@ public final class FunctionMaximizer {
         }
       }
 
-      double convrg = 2 * Math.abs(fx[high] - fx[low]) /
-              (Math.abs(fx[high]) + Math.abs(fx[low]));
+      convrg = 2 * Math.abs(fx_best[high] - fx_best[low]) /
+              (Math.abs(fx_best[high]) + Math.abs(fx_best[low]));
 
       if (monitor != null)
         monitor.writeLine("(iter = " + iteration +
-                ") (fx[high] = " + TextTools.formatScientific(fx[high]) +
+                ") (fx[high] = " + TextTools.formatScientific(fx_best[high]) +
                 ") (convrg = " + TextTools.formatScientific(convrg) +
-                ") (x[high] = {" + argumentArrayToString(x[high]) + "})");
+                ") (x[high] = {" + argumentArrayToString(x_best[high]) + "})");
 
       if (convrg <= 1e-4)
         break;
+
       // decrease temperature
       temperature *= 1 - coolingRate;
+      System.out.println("Temperature: " + temperature);
     }
+
+    if (convrg > 1e-4)
+      throw new NoConvergenceException("Solution did not converge");
 
     x = x_best;
     fx = fx_best;
@@ -432,7 +439,7 @@ public final class FunctionMaximizer {
       }
     }
 
-    System.out.println("Optimal value " + f);
+    System.out.println("Optimal value: " + f);
     return x[k];
   }
 
