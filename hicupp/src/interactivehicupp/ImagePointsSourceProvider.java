@@ -12,6 +12,7 @@ import java.util.Optional;
 import hicupp.*;
 import hicupp.classify.*;
 import hicupp.trees.*;
+import imageformats.RGBAImage;
 
 public class ImagePointsSourceProvider implements PointsSourceProvider {
   private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
@@ -34,7 +35,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private final CheckboxMenuItem zoomAutomaticMenuItem = new CheckboxMenuItem();
   private final CheckboxMenuItem[] zoomMenuItems = new CheckboxMenuItem[zoomFactors.length];
   private final CheckboxMenuItem zoomCustomMenuItem = new CheckboxMenuItem();
-  private final CheckboxMenuItem viewAutomaticColor = new CheckboxMenuItem();
+  private final CheckboxMenuItem viewAutomaticMaskColor = new CheckboxMenuItem();
   private final MenuItem viewOldMaskColorMenuItem;
   private final MenuItem viewNewMaskColorMenuItem;
 
@@ -52,11 +53,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private MemoryImageSource imageSource;
   private int oldMaskColor = colors[initialOldMaskColorIndex].getRGB();
   private int newMaskColor = colors[initialNewMaskColorIndex].getRGB();
+  private int oldMaskIndex = initialOldMaskColorIndex;
+  private int newMaskIndex = initialNewMaskColorIndex;
 
   private String chosenImageFile = null;
   private String metadata = "N/A\nN/A";
-  private boolean automaticColor = false;
-  private int[] averageColor;
+  private boolean automaticColor;
 
   private final SetOfPoints points = new SetOfPoints() {
     public int getDimensionCount() {
@@ -124,10 +126,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     private void updateImage(Component c) {
       ClassNode classNode = getClassNode();
       ClassNode parentClassNode;
+
       int oldMaskColor;
       if (classNode.getParent() == null) {
         parentClassNode = classNode;
         oldMaskColor = newMaskColor;
+        ImagePointsSourceProvider.this.setAutomaticMaskColor();
       } else {
         parentClassNode = classNode.getParent().getParent();
         oldMaskColor = ImagePointsSourceProvider.this.oldMaskColor;
@@ -135,9 +139,9 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       int[] pixels = new int[imageWidth * imageHeight];
       for (int i = 0; i < pixels.length; i++) {
         int color = parentClassNode.containsPointAtIndex(i) ?
-                classNode.containsPointAtIndex(i) ?
+                (classNode.containsPointAtIndex(i) ?
                         imagePixels[i] :
-                        newMaskColor :
+                        newMaskColor) :
                 oldMaskColor;
         pixels[i] = color;
       }
@@ -293,18 +297,26 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   public ImagePointsSourceProvider(PointsSourceClient client,
                                    Tree tree) {
     this.client = client;
+    generateDefaultImage();
+    classTree = new ClassTree(tree, points);
+    this.root = new ImageNodeView(null, classTree.getRoot());
+    zoomFactor = 1.0f;
+    displayImageWidth = imageWidth;
+    displayImageHeight = imageHeight;
+    updateImageSource();
 
+    // main
     viewMenu.setLabel("View");
     viewMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     viewChooseImageMenuItem.setLabel("Choose Image...");
     viewChooseImageMenuItem.addActionListener(e -> chooseImage(ImagePointsSourceProvider.this.client.getFrame()));
 
+    // mask color
     {
-      RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
-        public void itemChosen(int index) {
-          oldMaskColor = colors[index].getRGB();
-          root.newMaskColors();
-        }
+      RadioMenuTools.RadioMenuEventListener listener = index -> {
+        oldMaskIndex = index;
+        oldMaskColor = colors[index].getRGB();
+        root.newMaskColors();
       };
 
       viewOldMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
@@ -314,11 +326,10 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
 
     {
-      RadioMenuTools.RadioMenuEventListener listener = new RadioMenuTools.RadioMenuEventListener() {
-        public void itemChosen(int index) {
-          newMaskColor = colors[index].getRGB();
-          root.newMaskColors();
-        }
+      RadioMenuTools.RadioMenuEventListener listener = index -> {
+        newMaskIndex = index;
+        newMaskColor = colors[index].getRGB();
+        root.newMaskColors();
       };
 
       viewNewMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
@@ -327,11 +338,23 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       viewNewMaskColorMenuItem.setLabel("New Mask Color");
     }
 
+    {
+      viewAutomaticMaskColor.addItemListener(e -> {
+        automaticColor = !automaticColor;
+        setAutomaticMaskColor();
+      });
+      viewAutomaticMaskColor.setState(false);
+      automaticColor = false;
+      viewAutomaticMaskColor.setLabel("Automatic Mask Color");
+    }
+
     viewMenu.add(viewChooseImageMenuItem);
     viewMenu.add(viewZoomMenuItem);
+    viewMenu.add(viewAutomaticMaskColor);
     viewMenu.add(viewOldMaskColorMenuItem);
     viewMenu.add(viewNewMaskColorMenuItem);
 
+    // zoom
     viewZoomMenuItem.add(zoomAutomaticMenuItem);
     zoomAutomaticMenuItem.setLabel("Automatic");
     zoomAutomaticMenuItem.setState(false);
@@ -364,14 +387,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     zoomCustomMenuItem.setLabel("Custom factor...");
     zoomCustomMenuItem.setState(false);
     zoomCustomMenuItem.addItemListener(e -> chooseCustomZoomFactor());
-
-    generateDefaultImage();
-    classTree = new ClassTree(tree, points);
-    this.root = new ImageNodeView(null, classTree.getRoot());
-    zoomFactor = 1.0f;
-    displayImageWidth = imageWidth;
-    displayImageHeight = imageHeight;
-    updateImageSource();
   }
 
   @Override
@@ -425,14 +440,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     try {
       imageformats.RGBAImage image = imageformats.BMPFileFormat.readImage(file);
       imagePixels = image.getPixels();
-      averageColor = image.getAverageColor();
-      setAutomaticMaskColor();
       imageWidth = image.getWidth();
       imageHeight = image.getHeight();
       classTree.setPoints(points);
       setAutomaticZoom();
     } catch (IOException e) {
-      MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e.toString(), "Interactive Hicupp");
+      MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e, "Interactive Hicupp");
     }
   }
 
@@ -535,8 +548,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
               displayImageWidth);
       try {
         pixelGrabber.grabPixels();
-      } catch (InterruptedException e) {
-      }
+      } catch (InterruptedException ignored) { }
       imageSource = new MemoryImageSource(displayImageWidth, displayImageHeight, scaledImagePixels, 0, displayImageWidth);
     }
   }
@@ -559,10 +571,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
   }
 
-  private void setAutomaticMaskColor() {
-
-  }
-
   private void uncheckZoomItems() {
     for (CheckboxMenuItem zoomMenuItem : zoomMenuItems) zoomMenuItem.setState(false);
   }
@@ -574,5 +582,44 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
   private void hideAllInfo() {
     DocumentFrame.hideAllInfo(root);
+  }
+
+  private void setAutomaticMaskColor() {
+    viewAutomaticMaskColor.setState(automaticColor);
+    viewOldMaskColorMenuItem.setEnabled(!automaticColor);
+    viewNewMaskColorMenuItem.setEnabled(!automaticColor);
+
+    if (automaticColor) {
+      ClassNode classNode = root.getClassNode();
+
+      // old mask
+      {
+        int red = (int) (0xff - Math.round(classNode.getMean(0)));
+        int green = (int) (0xff - Math.round(classNode.getMean(1)));
+        int blue = (int) (0xff - Math.round(classNode.getMean(2)));
+
+        Color color = new Color(red, green, blue);
+        oldMaskColor = color.getRGB();
+        viewOldMaskColorMenuItem.setLabel("Old Mask Color: " + ColorUtils.getColorNameFromColor(color));
+      }
+
+      // new mask
+      {
+        int red = (int) (0xff - (Math.round(classNode.getMean(0)) + RGBAImage.getRed(oldMaskColor)) / 2);
+        int green = (int) (0xff - (Math.round(classNode.getMean(1)) + RGBAImage.getRed(oldMaskColor)) / 2);
+        int blue = (int) (0xff - (Math.round(classNode.getMean(2)) + RGBAImage.getRed(oldMaskColor)) / 2);
+
+        Color color = new Color(red, green, blue);
+        newMaskColor = color.getRGB();
+        viewNewMaskColorMenuItem.setLabel("New Mask Color: " + ColorUtils.getColorNameFromColor(color));
+      }
+    } else {
+      oldMaskColor = colors[oldMaskIndex].getRGB();
+      newMaskColor = colors[newMaskIndex].getRGB();
+      viewOldMaskColorMenuItem.setLabel("Old Mask Color");
+      viewNewMaskColorMenuItem.setLabel("New Mask Color");
+    }
+
+    root.newMaskColors();
   }
 }

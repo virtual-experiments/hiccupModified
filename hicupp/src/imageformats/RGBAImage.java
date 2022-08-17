@@ -51,27 +51,4 @@ public final class RGBAImage {
   public int getHeight() {
     return pixels.length / width;
   }
-
-  public int[] getAverageColor() {
-    int red = 0, green = 0, blue = 0;
-    int sum = 0;
-
-    for (int i = 0; i < width; i++) {
-      for (int j = 0; j < getHeight(); j++) {
-        int pixel = getPixel(i, j);
-
-        red += getRed(pixel);
-        blue += getBlue(pixel);
-        green += getGreen(pixel);
-
-        sum++;
-      }
-    }
-
-    red /= sum;
-    blue /= sum;
-    green /= sum;
-
-    return new int[]{red, blue, green};
-  }
 }
