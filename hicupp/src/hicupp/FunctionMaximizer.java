@@ -2,7 +2,11 @@ package hicupp;
 
 import interactivehicupp.TextTools;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Holds a method for maximizing a function using the Simplex method of Nelder and Mead.
@@ -443,10 +447,203 @@ public final class FunctionMaximizer {
     return x[k];
   }
 
+  /**
+   * Maximise a function using the Genetic Algorithm method
+   * @param monitor If not <code>null</code>, this object will be notified
+   *                of milestones within the computation. The object is also
+   *                given a chance to cancel the computation.
+   * @return An argument list for which the function is (sufficiently) maximal.
+   * @exception NoConvergenceException If the algorithm fails to find a maximum.
+   * @exception CancellationException Passed through from the <code>monitor</code>'s
+   * {@link Monitor#continuing()} method.
+   */
   private static double[] genetic(Function function, Monitor monitor)
           throws NoConvergenceException, CancellationException {
+    // genetic parameters
+    final int population_size = 50;
+    final int generations = 20;
+    final int mutations = 10;
+    final int spawns = 50;
+    Random random = new Random();
 
-    throw new CancellationException("Genetic algorithm chosen.");
+    final MonitoringFunctionWrapper wrapper =
+            new MonitoringFunctionWrapper(new CloningFunctionWrapper(function), monitor);
+    final int n = function.getArgumentCount();
+
+    // Initial random population
+    ArrayList<Chromosome> population = new ArrayList<>(Chromosome.generateChromosomes(population_size, n, wrapper));
+
+    // keep track of fittest
+    Chromosome fittest = population.get(0);
+
+    for (int generation = 0; generation < generations; generation++) {
+      double[] y = fittest.getX();
+      for (double v : y) System.out.print(v + " ");
+      System.out.println(" => " + fittest.getFx());
+      System.out.println();
+
+      if (monitor != null) {
+        monitor.continuing();
+        monitor.iterationStarted(generation);
+      }
+
+      // crossover population
+      for (int j = 0; j < population_size; j++) {
+        Chromosome father = population.get(random.nextInt(population_size));
+        Chromosome mother = population.get(random.nextInt(population_size));
+
+        while (father.equals(mother)) mother = population.get(random.nextInt(population_size));
+
+        Chromosome child = Chromosome.crossover(father, mother, wrapper);
+        population.add(child);
+      }
+
+      // mutate
+      for (int j = 0; j < mutations; j++) {
+        population.get(random.nextInt(population_size)).mutate(wrapper);
+      }
+
+      // spawn
+      population.addAll(Chromosome.generateChromosomes(spawns, n, wrapper));
+
+      // selection
+      population.sort(Comparator.comparingDouble(Chromosome::getFx).reversed());
+      population = population.stream()
+              .limit(population_size)
+              .collect(Collectors.toCollection(ArrayList::new));
+
+      // find fittest
+      Chromosome oldFittest = fittest;
+      fittest = population.get(0);
+
+      if (monitor != null)
+        monitor.writeLine("(gen = " + generation + ")"
+                + fittest.toString());
+
+      // converging
+      if (fittest.getFx() - oldFittest.getFx() <= 1e-4) break;
+    }
+
+    System.out.println("Optimal value: " + fittest.getFx());
+    return fittest.getX();
+  }
+
+  private static class Chromosome {
+    private double[] x;
+    private double fx;
+
+    public Chromosome(double[] x ) {
+      this.x = x;
+    }
+
+    public double[] getX() {
+      return x;
+    }
+
+    public double getFx() {
+      return fx;
+    }
+
+    public void evaluate(MonitoringFunctionWrapper wrapper) throws CancellationException {
+      fx = wrapper.evaluate(x);
+    }
+
+    /**
+      * Create new random axis for chromosome
+     */
+    public void mutate(MonitoringFunctionWrapper wrapper) throws CancellationException {
+      double sum_square_root = 0;
+      double[] x_new = new double[x.length];
+
+      for (int j = 0; j < x.length; j++) {
+        double v = 2 * Math.random() - 1;
+        sum_square_root += v * v;
+        x_new[j] = v;
+      }
+
+      double norm = Math.sqrt(sum_square_root);
+      for (int j = 0; j < x.length; j++)
+        x_new[j] /= norm;
+
+      x = x_new;
+      evaluate(wrapper);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof Chromosome) {
+        double[] comparison = ((Chromosome) obj).getX();
+        return Arrays.equals(x, comparison);
+      } return false;
+    }
+
+    @Override
+    public Chromosome clone() {
+      return new Chromosome(x);
+    }
+
+    @Override
+    public String toString() {
+      return "(fx[high] = " + TextTools.formatScientific(fx) +
+              ") (x[high] = {" + argumentArrayToString(x) + "})";
+    }
+
+    /**
+     * Generate random chromosomes
+     * @param amount number of chromosomes generated
+     * @param n argument
+     * @param wrapper wrapper of function
+     * @return array list of random chromosomes
+     * @throws CancellationException throws when wrapper cancel called
+     */
+    public static ArrayList<Chromosome> generateChromosomes(int amount, int n, MonitoringFunctionWrapper wrapper)
+            throws CancellationException {
+      ArrayList<Chromosome> population = new ArrayList<>();
+
+      for (int i = 0; i < amount; i++) {
+        double sum_square_root = 0;
+        double[] x_new = new double[n];
+
+        for (int j = 0; j < n; j++) {
+          double v = 2 * Math.random() - 1;
+          sum_square_root += v * v;
+          x_new[j] = v;
+        }
+
+        double norm = Math.sqrt(sum_square_root);
+        for (int j = 0; j < n; j++)
+          x_new[j] /= norm;
+
+        Chromosome chromosome = new Chromosome(x_new);
+        chromosome.evaluate(wrapper);
+
+        population.add(chromosome);
+      }
+
+      return population;
+    }
+
+    /**
+     * Crossover 2 chromosomes at random point
+     * @param father chromosome 1
+     * @param mother chromosome 2
+     * @return child chromosome
+     * @throws CancellationException thrown when monitor is cancelled
+     */
+    public static Chromosome crossover(Chromosome father, Chromosome mother, MonitoringFunctionWrapper wrapper)
+            throws CancellationException {
+      int n = father.getX().length;
+      if (n != mother.getX().length) throw new RuntimeException("Mismatch gene length.");
+
+      Random random = new Random();
+      int crossoverPoint = random.nextInt(n);
+
+      Chromosome child = mother.clone();
+      child.evaluate(wrapper);
+      System.arraycopy(father.getX(), 0, child.getX(), 0, crossoverPoint);
+
+      return child;
+    }
   }
 
   private static double[] gradient(Function function, Monitor monitor)
