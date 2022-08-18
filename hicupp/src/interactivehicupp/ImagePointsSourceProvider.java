@@ -18,11 +18,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
   private static final String[] parameterNames = {"R", "G", "B"};
 
-  private static final Color[] colors = {
+  public static final Color[] colors = {
           Color.black, Color.red, Color.green, Color.blue, Color.yellow, Color.cyan, Color.magenta, Color.white
   };
 
-  private static final String[] colorNames = {
+  public static final String[] colorNames = {
           "Black", "Red", "Green", "Blue", "Yellow", "Cyan", "Magenta", "White"
   };
 
@@ -304,6 +304,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     displayImageWidth = imageWidth;
     displayImageHeight = imageHeight;
     updateImageSource();
+    ColorUtils.initColorList();
 
     // main
     viewMenu.setLabel("View");
@@ -599,8 +600,15 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         int blue = (int) (0xff - Math.round(classNode.getMean(2)));
 
         Color color = new Color(red, green, blue);
-        oldMaskColor = color.getRGB();
-        viewOldMaskColorMenuItem.setLabel("Old Mask Color: " + ColorUtils.getColorNameFromColor(color));
+        String colorName = ColorUtils.getColorNameFromColor(color);
+        if (colorName == null) {
+          automaticMaskFail();
+          return;
+        } else {
+          viewOldMaskColorMenuItem.setLabel("Old Mask Color: " + colorName);
+          color = ColorUtils.getColorFromColorName(colorName);
+          oldMaskColor = color.getRGB();
+        }
       }
 
       // new mask
@@ -610,9 +618,22 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         int blue = (int) (0xff - (Math.round(classNode.getMean(2)) + RGBAImage.getRed(oldMaskColor)) / 2);
 
         Color color = new Color(red, green, blue);
-        newMaskColor = color.getRGB();
-        viewNewMaskColorMenuItem.setLabel("New Mask Color: " + ColorUtils.getColorNameFromColor(color));
+        String colorName = ColorUtils.getColorNameFromColor(color);
+        if (colorName == null) {
+          automaticMaskFail();
+          return;
+        } else {
+          viewNewMaskColorMenuItem.setLabel("New Mask Color: " + colorName);
+          color = ColorUtils.getColorFromColorName(colorName);
+          newMaskColor = color.getRGB();
+        }
       }
+
+      if (newMaskColor == oldMaskColor) {
+        automaticMaskFail();
+        return;
+      }
+
     } else {
       oldMaskColor = colors[oldMaskIndex].getRGB();
       newMaskColor = colors[newMaskIndex].getRGB();
@@ -621,5 +642,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
 
     root.newMaskColors();
+  }
+
+  private void automaticMaskFail() {
+    automaticColor = false;
+    MessageBox.showMessage(client.getFrame(), "Unable to determine mask colors.", "Interactive Hicupp");
+    setAutomaticMaskColor();
   }
 }
