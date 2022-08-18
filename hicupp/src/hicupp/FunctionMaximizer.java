@@ -287,7 +287,7 @@ public final class FunctionMaximizer {
       throws NoConvergenceException, CancellationException {
     // Simulated annealing variables
     double temperature = 1;
-    final double coolingRate = 0.001;
+    final double coolingRate = 0.01;
 
     final MonitoringFunctionWrapper wrapper =
             new MonitoringFunctionWrapper(new CloningFunctionWrapper(function), monitor);
@@ -343,7 +343,7 @@ public final class FunctionMaximizer {
         for (int j = 0; j < n; j++) {
           double v = 2 * Math.random() - 1;
           sum_square_root += v * v;
-          x[i][j] = v;
+          vector[i][j] = v;
         }
 
         double norm = Math.sqrt(sum_square_root);
