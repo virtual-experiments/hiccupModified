@@ -21,7 +21,7 @@ final class GeneticAlgorithmFunctions {
         ArrayList<Chromosome> population = new ArrayList<>();
 
         for (int i = 0; i < amount; i++) {
-            double[] x_new = AlgorithmUtilities.generateRandomAxis(n);
+            double[] x_new = AlgorithmUtilities.generateRandomArguments(n, 1);
 
             Chromosome chromosome = new Chromosome(x_new);
             evaluate(wrapper, chromosome);
@@ -68,7 +68,7 @@ final class GeneticAlgorithmFunctions {
      * @throws CancellationException thrown when monitor is cancelled
      */
     public static void mutate(MonitoringFunctionWrapper wrapper, Chromosome chromosome) throws CancellationException {
-        chromosome.setX(AlgorithmUtilities.generateRandomAxis(chromosome.getX().length));
+        chromosome.setX(AlgorithmUtilities.generateRandomArguments(chromosome.getX().length, 1));
         evaluate(wrapper, chromosome);
     }
 

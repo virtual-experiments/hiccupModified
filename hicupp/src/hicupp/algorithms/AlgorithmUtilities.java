@@ -4,7 +4,13 @@ import interactivehicupp.TextTools;
 
 public final class AlgorithmUtilities {
 
-    public static double[] generateRandomAxis(int n) {
+    /**
+     * Generate a random number between -scalar and scalar to an array sized n
+     * @param n number of arguments
+     * @param scalar scalar of argument
+     * @return 1D array with length n containing numbers between -scalar and scalar
+     */
+    public static double[] generateRandomArguments(int n, double scalar) {
         double sumsq = 0;
         double[] x = new double[n];
 
@@ -15,8 +21,10 @@ public final class AlgorithmUtilities {
         }
 
         double norm = Math.sqrt(sumsq);
-        for (int j = 0; j < n; j++)
+        for (int j = 0; j < n; j++) {
             x[j] /= norm;
+            x[j] *= scalar;
+        }
 
         return x;
     }

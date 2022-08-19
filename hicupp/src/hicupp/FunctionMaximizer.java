@@ -1,13 +1,10 @@
 package hicupp;
 
 import hicupp.algorithms.ga.GeneticAlgorithm;
+import hicupp.algorithms.sa.SimulatedAnnealing;
 import interactivehicupp.TextTools;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 /**
  * Holds a method for maximizing a function using the Simplex method of Nelder and Mead.
@@ -31,9 +28,8 @@ public final class FunctionMaximizer {
   public static double[] maximize(Function function, int algorithmIndex, Monitor monitor)
           throws NoConvergenceException, CancellationException {
     return switch (algorithmIndex) {
-      case 1 -> annealing(function, monitor);
-//      case 2 -> genetic(function, monitor);
-      case 2 -> GeneticAlgorithm.genetic(function, monitor);
+      case 1 -> SimulatedAnnealing.maximize(function, monitor);
+      case 2 -> GeneticAlgorithm.maximize(function, monitor);
       case 3 -> gradient(function, monitor);
       default -> simplex(function, monitor);
     };

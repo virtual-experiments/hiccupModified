@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public final class GeneticAlgorithm {
 
     /**
-     * Maximise a function using the Genetic Algorithm method. A random population will
+     * Maximize a function using the Genetic Algorithm method. A random population will
      * cross over, mutate, spawn, and selected.
      * @param monitor If not <code>null</code>, this object will be notified
      *                of milestones within the computation. The object is also
@@ -21,7 +21,7 @@ public final class GeneticAlgorithm {
      * @exception CancellationException Passed through from the <code>monitor</code>'s
      * {@link Monitor#continuing()} method.
      */
-    public static double[] genetic(Function function, Monitor monitor)
+    public static double[] maximize(Function function, Monitor monitor)
             throws NoConvergenceException, CancellationException {
         // genetic parameters
         final int populationSize = 10;
