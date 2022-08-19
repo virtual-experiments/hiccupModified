@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * @author Xiaoxiao Li
  *
  */
-public class ColorUtils {
+public final class ColorUtils {
 
     public static final ArrayList<ColorName> colorList = new ArrayList<>(ImagePointsSourceProvider.colors.length);
     private static final boolean predefinedList = true;
