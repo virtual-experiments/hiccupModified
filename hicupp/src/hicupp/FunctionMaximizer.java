@@ -1,5 +1,6 @@
 package hicupp;
 
+import hicupp.algorithms.AlgorithmParameters;
 import hicupp.algorithms.ga.GeneticAlgorithm;
 import hicupp.algorithms.sa.SimulatedAnnealing;
 import interactivehicupp.TextTools;
@@ -20,16 +21,19 @@ public final class FunctionMaximizer {
   };
 
   public static final int SIMPLEX_ALGORITHM_INDEX = 0;
+  public static final int ANNEALING_ALGORITHM_INDEX = 1;
+  public static final int GENETIC_ALGORITHM_INDEX = 2;
+  public static final int GRADIENT_ALGORITHM_INDEX = 3;
 
   public static String[] getAlgorithmNames() {
     return algorithmIndices;
   }
 
-  public static double[] maximize(Function function, int algorithmIndex, Monitor monitor)
+  public static double[] maximize(Function function, int algorithmIndex, Monitor monitor, AlgorithmParameters parameters)
           throws NoConvergenceException, CancellationException {
     return switch (algorithmIndex) {
-      case 1 -> SimulatedAnnealing.maximize(function, monitor);
-      case 2 -> GeneticAlgorithm.maximize(function, monitor);
+      case 1 -> SimulatedAnnealing.maximize(function, monitor, parameters);
+      case 2 -> GeneticAlgorithm.maximize(function, monitor, parameters);
       case 3 -> gradient(function, monitor);
       default -> simplex(function, monitor);
     };

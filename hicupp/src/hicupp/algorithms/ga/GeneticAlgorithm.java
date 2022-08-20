@@ -1,6 +1,7 @@
 package hicupp.algorithms.ga;
 
 import hicupp.*;
+import hicupp.algorithms.AlgorithmParameters;
 import hicupp.algorithms.AlgorithmUtilities;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public final class GeneticAlgorithm {
      * @exception CancellationException Passed through from the <code>monitor</code>'s
      * {@link Monitor#continuing()} method.
      */
-    public static double[] maximize(Function function, Monitor monitor)
+    public static double[] maximize(Function function, Monitor monitor, AlgorithmParameters parameters)
             throws NoConvergenceException, CancellationException {
         // genetic parameters
         final int populationSize = 10;

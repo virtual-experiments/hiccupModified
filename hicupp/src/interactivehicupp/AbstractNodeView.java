@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 import hicupp.*;
+import hicupp.algorithms.AlgorithmParameters;
+import hicupp.algorithms.ga.GeneticAlgorithmParameters;
+import hicupp.algorithms.sa.SimulatedAnnealingParameters;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
@@ -113,22 +116,26 @@ abstract class AbstractNodeView implements NodeView {
   public void split() throws NoConvergenceException, CancellationException {
     
     final MonitorDialog monitorDialog = new MonitorDialog(client.getFrame());
-    
+    AlgorithmParameters parameters = client.getAlgorithmParameters();
+
     class Computation implements Runnable {
       public volatile double[] axis;
       public volatile Exception exception;
+
       public void run() {
         try {
-          axis = Clusterer.findAxis(client.getProjectionIndex(),
-                                    client.getAlgorithmIndex(),
-                                    classNode,
-                                    monitorDialog);
+          axis = Clusterer.findAxis(
+                  client.getProjectionIndex(),
+                  client.getAlgorithmIndex(),
+                  classNode,
+                  monitorDialog,
+                  parameters);
         } catch (Exception e) {
           exception = e;
         }
       }
     }
-    
+
     Computation computation = new Computation();
 
     splitProjection = ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()];

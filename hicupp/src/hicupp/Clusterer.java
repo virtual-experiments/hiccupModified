@@ -1,5 +1,7 @@
 package hicupp;
 
+import hicupp.algorithms.AlgorithmParameters;
+
 /**
  * Holds methods for detecting clusters in a set of points using
  * projection pursuit.
@@ -18,13 +20,15 @@ public class Clusterer {
   public static double[] findAxis(int projectionIndex,
                                   int algorithmIndex,
                                   SetOfPoints points,
-                                  Monitor monitor)
+                                  Monitor monitor,
+                                  AlgorithmParameters parameters)
       throws NoConvergenceException, CancellationException {
     Function projectionIndexFunction = new ProjectionIndexFunction(projectionIndex,
                                                                    points);
     double[] arguments = FunctionMaximizer.maximize(projectionIndexFunction,
                                                     algorithmIndex,
-                                                    monitor);
+                                                    monitor,
+                                                    parameters);
     double[] axis = new double[points.getDimensionCount()];
     double sumOfSquares = 0.0;
     for (int j = 0; j < arguments.length; j++) {
@@ -35,7 +39,18 @@ public class Clusterer {
     axis[arguments.length] = sumOfSquares < 1.0 ? Math.sqrt(1.0 - sumOfSquares) : 0.0;
     return axis;
   }
-  
+
+  public static double[] findAxis(int projectionIndex,
+                                  SetOfPoints points,
+                                  Monitor monitor)
+          throws CancellationException, NoConvergenceException {
+    return findAxis(projectionIndex,
+            FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX,
+            points,
+            monitor,
+            null);
+  }
+
   /**
    * Returns the value that separates the two clusters in the given ordered list of points on a line.
    */

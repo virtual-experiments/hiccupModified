@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.io.*;
 
 import hicupp.*;
+import hicupp.algorithms.AlgorithmParameters;
 import hicupp.trees.*;
 
 public class TreeDocument extends Panel implements Document, PointsSourceClient {
@@ -14,6 +15,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private NodeView displayRoot;
   private int projectionIndex = ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX;
   private int algorithmIndex = FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX;
+  private AlgorithmParameters algorithmParameters;
 
   private DocumentChangeListener changeListener;
 
@@ -39,8 +41,16 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return projectionIndex;
   }
 
-  public int getAlgorithmIndex() {
+  int getAlgorithmIndex() {
     return algorithmIndex;
+  }
+
+  public AlgorithmParameters getAlgorithmParameters() {
+    return algorithmParameters;
+  }
+
+  public void setAlgorithmParameters(AlgorithmParameters parameters) {
+    algorithmParameters = parameters;
   }
 
   public Frame getFrame() {
@@ -71,7 +81,10 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
               projectionIndex,
               projectionIndexListener);
 
-      RadioMenuTools.RadioMenuEventListener algorithmIndexListener = index -> algorithmIndex = index;
+      RadioMenuTools.RadioMenuEventListener algorithmIndexListener = index -> {
+        algorithmIndex = index;
+        chooseParameters();
+      };
       String[] optimisationLabel = FunctionMaximizer.getAlgorithmNames();
       optimisationAlgorithmMenu = RadioMenuTools.createRadioMenu(
               optimisationLabel,
@@ -193,8 +206,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
           repaint();
         } catch (NoConvergenceException ex) {
           MessageBox.showMessage(getFrameAncestor(TreeDocument.this), "Could not split the node: " + ex.toString(), "Interactive Hicupp");
-        } catch (CancellationException ex) {
-        }
+        } catch (CancellationException ignored) { }
       }
     });
     pruneMenuItem.setLabel("Prune");
@@ -301,5 +313,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   PointsSourceProvider getPointsSourceProvider() {
     return pointsSourceProvider;
+  }
+
+  private void chooseParameters() {
+    AlgorithmParametersUI.createParams(this);
   }
 }

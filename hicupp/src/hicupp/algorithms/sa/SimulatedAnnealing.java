@@ -1,6 +1,7 @@
 package hicupp.algorithms.sa;
 
 import hicupp.*;
+import hicupp.algorithms.AlgorithmParameters;
 import hicupp.algorithms.AlgorithmUtilities;
 import interactivehicupp.TextTools;
 
@@ -18,12 +19,16 @@ public class SimulatedAnnealing {
      * @exception CancellationException Passed through from the <code>monitor</code>'s
      * {@link Monitor#continuing()} method.
      */
-    public static double[] maximize(Function function, Monitor monitor)
+    public static double[] maximize(Function function, Monitor monitor, AlgorithmParameters parameters)
             throws NoConvergenceException, CancellationException {
+        if (!(parameters instanceof SimulatedAnnealingParameters simulatedAnnealingParameters))
+            throw new RuntimeException("Wrong parameters");
+
         // Simulated annealing variables
         double temperature = 1;
-        final double coolingRate = 0.001;
-        final int maxEquals = 200;
+        final int numberOfIterations = simulatedAnnealingParameters.numberOfIterations();
+        final boolean convergeAtMaxEquals = simulatedAnnealingParameters.convergeAtMaxEquals();
+        final int maxEquals = simulatedAnnealingParameters.maxEquals();
 
         final MonitoringFunctionWrapper wrapper =
                 new MonitoringFunctionWrapper(new CloningFunctionWrapper(function), monitor);
@@ -41,10 +46,7 @@ public class SimulatedAnnealing {
         double delta = Double.MAX_VALUE;
         int numberOfEquals = 0;
 
-        int iteration = 0;
-        while (temperature > 0.1) {
-            iteration++;
-
+        for (int iteration = 1; iteration <= numberOfIterations; iteration++) {
             System.out.println();
             AlgorithmUtilities.printAxis(x_best, fx_best);
 
@@ -91,10 +93,12 @@ public class SimulatedAnnealing {
             delta = fx_best - fx_best_old;
             System.out.println("Delta: " + delta);
 
-            if (delta <= 1e-4) numberOfEquals++;
-            else numberOfEquals = 0;
+            if (convergeAtMaxEquals) {
+                if (delta <= 1e-4) numberOfEquals++;
+                else numberOfEquals = 0;
 
-            if (numberOfEquals >= maxEquals) break;
+                if (numberOfEquals >= maxEquals) break;
+            }
 
             // log
             if (monitor != null)
@@ -104,7 +108,7 @@ public class SimulatedAnnealing {
                         ") (x_best = {" + AlgorithmUtilities.argumentArrayToString(x_best) + "})");
 
             // decrease temperature
-            temperature *= 1 - coolingRate;
+            temperature *= (1.0f - ((double) (iteration + 1)) / (double) numberOfIterations);
             System.out.println("Temperature: " + temperature);
         }
 
@@ -114,8 +118,7 @@ public class SimulatedAnnealing {
         x = x_best;
         fx = fx_best;
 
-        System.out.println("Optimal value: " + fx);
+        System.out.println("\nOptimal value: " + fx);
         return x;
     }
-
 }
