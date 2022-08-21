@@ -22,6 +22,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private final Menu toolsMenu = new Menu();
   private final Menu projectionIndexMenu;
   private final Menu optimisationAlgorithmMenu;
+  private final MenuItem configureAlgorithmMenu = new MenuItem();
   private final Menu goMenu = new Menu();
   private final MenuItem goToRootMenuItem = new MenuItem();
   private final MenuItem goToParentMenuItem = new MenuItem();
@@ -90,15 +91,26 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
               optimisationLabel,
               algorithmIndex,
               algorithmIndexListener);
+
+      configureAlgorithmMenu.addActionListener(e -> {
+        if (algorithmIndex == FunctionMaximizer.SIMPLEX_ALGORITHM_INDEX)
+          MessageBox.showMessage(getFrame(), "No configuration for the simplex algorithm.",
+                  "Interactive Hicupp");
+        else
+          chooseParameters();
+      });
     }
 
     projectionIndexMenu.setLabel("Projection Index");
-    optimisationAlgorithmMenu.setLabel("Optimisation Algorithm");
+    optimisationAlgorithmMenu.setLabel("Optimization Algorithm");
+    configureAlgorithmMenu.setLabel("Configure Optimization Algorithm");
 
     toolsMenu.setLabel("Tools");
     toolsMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     toolsMenu.add(projectionIndexMenu);
     toolsMenu.add(optimisationAlgorithmMenu);
+    toolsMenu.addSeparator();
+    toolsMenu.add(configureAlgorithmMenu);
 
     goMenu.setLabel("Go");
     goMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
