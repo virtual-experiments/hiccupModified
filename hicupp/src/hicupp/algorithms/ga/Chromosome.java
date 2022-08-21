@@ -5,7 +5,7 @@ import interactivehicupp.TextTools;
 
 import java.util.Arrays;
 
-class Chromosome implements Cloneable{
+class Chromosome implements Cloneable {
     private double[] x;
     private double fx;
 
@@ -58,7 +58,7 @@ class Chromosome implements Cloneable{
 
     @Override
     public String toString() {
-        return "(fx[high] = " + TextTools.formatScientific(fx) +
-                ") (x[high] = {" + AlgorithmUtilities.argumentArrayToString(x) + "})";
+        return "(fx = " + TextTools.formatScientific(fx) +
+                ") (x = {" + AlgorithmUtilities.argumentArrayToString(x) + "})";
     }
 }

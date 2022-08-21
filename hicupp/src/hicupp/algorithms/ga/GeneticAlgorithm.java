@@ -3,6 +3,7 @@ package hicupp.algorithms.ga;
 import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
 import hicupp.algorithms.AlgorithmUtilities;
+import interactivehicupp.TextTools;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,11 +26,15 @@ public final class GeneticAlgorithm {
     public static double[] maximize(Function function, Monitor monitor, AlgorithmParameters parameters)
             throws NoConvergenceException, CancellationException {
         // genetic parameters
-        final int populationSize = 10;
-        final int maxGenerations = 200;
-        final int mutationsPerGen = 2;
-        final int spawnsPerGen = 10;
-        final int maxEquals = 3;
+        if (!(parameters instanceof GeneticAlgorithmParameters algorithmParameters))
+            throw new RuntimeException("Wrong parameters type.");
+
+        final int populationSize = algorithmParameters.populationSize();
+        final int maxGenerations = algorithmParameters.maxGenerations();
+        final int mutationsPerGen = algorithmParameters.mutationsPerGen();
+        final int spawnsPerGen = algorithmParameters.spawnsPerGen();
+        final boolean convergeAtMaxEquals = algorithmParameters.convergeAtMaxEquals();
+        final int maxEquals = algorithmParameters.maxEquals();
 
         Random random = new Random();
         int noOfEquals = 0;
@@ -48,7 +53,7 @@ public final class GeneticAlgorithm {
 
 
         for (int generation = 1; generation <= maxGenerations; generation++) {
-            System.out.println();
+            System.out.println("\nGeneration " + generation);
             {
                 final double[] x = fittest.getX();
                 double fx = fittest.getFx();
@@ -61,35 +66,49 @@ public final class GeneticAlgorithm {
             }
 
             // crossover population
+            System.out.println("Crossover population.");
             for (int j = 0; j < populationSize; j++) {
                 Chromosome father = population.get(random.nextInt(populationSize));
                 Chromosome mother = population.get(random.nextInt(populationSize));
 
-                while (father.equals(mother)) mother = population.get(random.nextInt(populationSize));
+                int counter = 0;
+                while (father.equals(mother) && counter < populationSize) {
+                    mother = population.get(random.nextInt(populationSize));
+                    counter++;
+                }
 
-                Chromosome child = GeneticAlgorithmFunctions.crossover(father, mother, wrapper);
-                population.add(child);
+                if (father.equals(mother)) {
+                    System.out.println("Could not find another unique chromosome, generating a random child.");
+                    population.addAll(GeneticAlgorithmFunctions.generateChromosomes(1, n, wrapper));
+                } else {
+                    Chromosome child = GeneticAlgorithmFunctions.crossover(father, mother, wrapper);
+                    population.add(child);
+                }
             }
+            System.out.println("Population size " + population.size());
 
             // mutate
             for (int j = 0; j < mutationsPerGen; j++) {
                 GeneticAlgorithmFunctions.mutate(wrapper, population.get(random.nextInt(populationSize)));
             }
+            System.out.println("Mutated " + mutationsPerGen + " chromosomes.");
 
             // spawn
             population.addAll(GeneticAlgorithmFunctions.generateChromosomes(spawnsPerGen, n, wrapper));
+            System.out.println("Spawned new chromosomes. Now population " + population.size());
 
             // selection
-            population.sort(Comparator.comparingDouble(Chromosome::getFx).reversed());
+            population.sort(Comparator.comparingDouble(Chromosome::getFx).reversed());  // sort in descending fx
             population = population.stream()
                     .limit(populationSize)
                     .collect(Collectors.toCollection(ArrayList::new));
+            System.out.println("Selected fittest population. Now size " + population.size());
 
             // find fittest
             Chromosome oldFittest = fittest.clone();
-            fittest = population.get(0);
+            fittest = population.get(0).clone();
             boolean equal = fittest.equals(oldFittest);
-            double delta =  fittest.getFx() - oldFittest.getFx();
+            double delta = fittest.getFx() - oldFittest.getFx();
 
             System.out.println("Old fittest " + oldFittest +
                     " New fittest: " + fittest +
@@ -98,21 +117,18 @@ public final class GeneticAlgorithm {
             if (monitor != null)
                 monitor.writeLine("(gen = " + generation + ")"
                         + fittest +
-                        "(delta = " + delta + ")");
+                        "(delta = " + TextTools.formatScientific(delta) + ")");
 
             // converging
             if (equal) noOfEquals++;
             else noOfEquals = 0;
 
-            if ((noOfEquals == maxEquals) ||        // fittest stayed the same after multiple generations
+            if ((noOfEquals == maxEquals && convergeAtMaxEquals) || // fittest stayed the same after multiple generations
                     (!equal) && (delta <= 1e-4))    // converged
                 break;
-            else if (generation == maxGenerations)
-                throw new NoConvergenceException("Does not converge after " + maxGenerations + " generations.");
         }
 
         System.out.println("\nOptimal value: " + fittest.getFx());
         return fittest.getX();
     }
-    
 }
