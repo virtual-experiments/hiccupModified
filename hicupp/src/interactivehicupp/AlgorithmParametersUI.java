@@ -41,14 +41,13 @@ public final class AlgorithmParametersUI {
         dialog.setLayout(new SpringLayout());
 
         final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
-        final TextField fieldIterations = new TextField(Integer.toString(initNumberOfIterations));
+        final TextField fieldIterations = new TextField(Integer.toString(initNumberOfIterations),29);
 
-        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve", true);
-        checkboxConverge.setState(initConverge);
+        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
 
         final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
         labelMaxEquals.setEnabled(initConverge);
-        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals));
+        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
         fieldMaxEquals.setEnabled(initConverge);
 
         final Button ok = new Button("Ok");
@@ -103,8 +102,8 @@ public final class AlgorithmParametersUI {
         // organisation
         dialog.add(labelIterations);
         dialog.add(fieldIterations);
-        dialog.add(new Label()); // keeps checkbox to the right
         dialog.add(checkboxConverge);
+        dialog.add(new Label()); // keeps checkbox to the left
         dialog.add(labelMaxEquals);
         dialog.add(fieldMaxEquals);
         dialog.add(ok);
@@ -150,23 +149,22 @@ public final class AlgorithmParametersUI {
         dialog.setLayout(new SpringLayout());
 
         final Label labelPopulation = new Label("Population size: ", Label.RIGHT);
-        final TextField fieldPopulation = new TextField(Integer.toString(initPop));
+        final TextField fieldPopulation = new TextField(Integer.toString(initPop), 29);
 
         final Label labelGens = new Label("Number of generations: ", Label.RIGHT);
-        final TextField fieldGens = new TextField(Integer.toString(initGens));
+        final TextField fieldGens = new TextField(Integer.toString(initGens), 29);
 
         final Label labelMutations = new Label("Mutations per generation: ", Label.RIGHT);
-        final TextField fieldMutations = new TextField(Integer.toString(initMutations));
+        final TextField fieldMutations = new TextField(Integer.toString(initMutations), 29);
 
         final Label labelSpawns = new Label("Spawns per generation: ", Label.RIGHT);
-        final TextField fieldSpawns = new TextField(Integer.toString(initSpawns));
+        final TextField fieldSpawns = new TextField(Integer.toString(initSpawns), 29);
 
-        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve");
-        checkboxConverge.setState(initConverge);
+        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
 
         final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
         labelMaxEquals.setEnabled(initConverge);
-        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals));
+        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
         fieldMaxEquals.setEnabled(initConverge);
 
         final Button ok = new Button("Ok");
@@ -240,8 +238,8 @@ public final class AlgorithmParametersUI {
         dialog.add(fieldMutations);
         dialog.add(labelSpawns);
         dialog.add(fieldSpawns);
-        dialog.add(new Label()); // keeps checkbox on the right
         dialog.add(checkboxConverge);
+        dialog.add(new Label()); // keeps checkbox on the left
         dialog.add(labelMaxEquals);
         dialog.add(fieldMaxEquals);
         dialog.add(ok);
