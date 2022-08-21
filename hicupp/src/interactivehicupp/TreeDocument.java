@@ -108,8 +108,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     toolsMenu.setLabel("Tools");
     toolsMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     toolsMenu.add(projectionIndexMenu);
-    toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.addSeparator();
+    toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.add(configureAlgorithmMenu);
 
     goMenu.setLabel("Go");
