@@ -14,6 +14,7 @@ public class SimulatedAnnealing {
      * @param monitor If not <code>null</code>, this object will be notified
      *                of milestones within the computation. The object is also
      *                given a chance to cancel the computation.
+     * @param parameters must be an instance of {@link SimulatedAnnealingParameters}
      * @return An argument list for which the function is (sufficiently) maximal.
      * @exception NoConvergenceException If the algorithm fails to find a maximum.
      * @exception CancellationException Passed through from the <code>monitor</code>'s

@@ -1,9 +1,9 @@
 package hicupp;
 
-import hicupp.algorithms.AlgorithmParameters;
-import hicupp.algorithms.Simplex;
-import hicupp.algorithms.ga.GeneticAlgorithm;
-import hicupp.algorithms.sa.SimulatedAnnealing;
+import hicupp.algorithms.*;
+import hicupp.algorithms.ga.*;
+import hicupp.algorithms.gd.GradientDescent;
+import hicupp.algorithms.sa.*;
 
 /**
  * Holds a method for maximizing a function using the Simplex method of Nelder and Mead.
@@ -32,7 +32,7 @@ public final class FunctionMaximizer {
     return switch (algorithmIndex) {
       case 1 -> SimulatedAnnealing.maximize(function, monitor, parameters);
       case 2 -> GeneticAlgorithm.maximize(function, monitor, parameters);
-//      case 3 -> gradient(function, monitor);
+      case 3 -> GradientDescent.maximize(function, monitor);
       default -> Simplex.maximize(function, monitor);
     };
   }
