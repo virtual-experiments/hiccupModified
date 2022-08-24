@@ -1,6 +1,7 @@
 package hicupp.algorithms.gd;
 
 import hicupp.*;
+import hicupp.algorithms.AlgorithmParameters;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,13 +18,16 @@ public final class GradientDescent {
      * @exception CancellationException Passed through from the <code>monitor</code>'s
      * {@link Monitor#continuing()} method.
      */
-    public static double[] maximize(Function function, Monitor monitor)
+    public static double[] maximize(Function function, Monitor monitor, AlgorithmParameters parameters)
             throws NoConvergenceException, CancellationException {
+        if (!(parameters instanceof GradientDescentParameters gradientDescentParameters))
+            throw new RuntimeException("Wrong parameters");
+
         // parameters
-        final int maxIterations = 100;
-        final int numberOfSolutions = 15;
-        final int maxEquals = 10;
-        final boolean convergeAtMaxEquals = true;
+        final int maxIterations = gradientDescentParameters.maxIterations();
+        final int numberOfSolutions = gradientDescentParameters.numberOfSolutions();
+        final boolean convergeAtMaxEquals = gradientDescentParameters.convergeAtMaxEquals();
+        final int maxEquals = gradientDescentParameters.maxEquals();
 
         final double precision = 1e-4;
         final double h = 1e-4;
@@ -116,8 +120,10 @@ public final class GradientDescent {
                     .clone();
 
             if (bestSolution.equals(newBest)) numberOfEquals++;
-            else numberOfEquals = 0;
-
+            else {
+                numberOfEquals = 0;
+                if (newBest.getFx() > bestSolution.getFx()) bestSolution = newBest;
+            }
             if (monitor != null)
                 monitor.writeLine("(iter = " + iteration + ") " + bestSolution);
 

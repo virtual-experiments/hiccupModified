@@ -2,6 +2,7 @@ package interactivehicupp;
 
 import hicupp.FunctionMaximizer;
 import hicupp.algorithms.ga.*;
+import hicupp.algorithms.gd.GradientDescentParameters;
 import hicupp.algorithms.sa.*;
 
 import javax.swing.*;
@@ -109,10 +110,7 @@ public final class AlgorithmParametersUI {
         dialog.add(ok);
         dialog.add(cancel);
 
-        makeCompactGrid(dialog,
-                4, 2,
-                6, 6,
-                6, 6);
+        makeCompactGrid(dialog,4);
 
         showDialog(dialog, frame);
     }
@@ -245,16 +243,124 @@ public final class AlgorithmParametersUI {
         dialog.add(ok);
         dialog.add(cancel);
 
-        makeCompactGrid(dialog,
-                7,2,
-                6,6,
-                6,6);
+        makeCompactGrid(dialog, 7);
 
         showDialog(dialog, frame);
     }
 
     private static void gradientUI(TreeDocument treeDocument) {
+        Frame frame = treeDocument.getFrame();
 
+        // initial variables
+        final int initIterations;
+        final int initSolutions;
+        final boolean initConverge;
+        final int initMaxEquals;
+
+        if (treeDocument.getAlgorithmParameters() instanceof GradientDescentParameters parameters) {
+            initIterations = parameters.maxIterations();
+            initSolutions = parameters.numberOfSolutions();
+            initConverge = parameters.convergeAtMaxEquals();
+            initMaxEquals = parameters.maxEquals();
+        } else {
+            initIterations = 100;
+            initSolutions = 15;
+            initConverge = true;
+            initMaxEquals = 10;
+        }
+
+        // UI
+        final Dialog dialog = new Dialog(frame, "Gradient Descent", true);
+        dialog.setLayout(new SpringLayout());
+
+        final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
+        final TextField fieldIterations = new TextField(Integer.toString(initIterations), 29);
+
+        final Label labelSolutions = new Label("Number of solutions: ", Label.RIGHT);
+        final TextField fieldSolutions = new TextField(Integer.toString(initSolutions), 29);
+
+        final Checkbox checkboxConverge =
+                new Checkbox("Stop when the solution does not improve", initConverge);
+
+        final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+        labelMaxEquals.setEnabled(initConverge);
+        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+        fieldMaxEquals.setEnabled(initConverge);
+
+        final Button ok = new Button("Ok");
+        final Button cancel = new Button("Cancel");
+
+        // events
+        cancel.addActionListener(e -> {
+            dialog.dispose();
+
+            treeDocument.setAlgorithmParameters(
+                    new GradientDescentParameters(
+                            initIterations,
+                            initSolutions,
+                            initConverge,
+                            initMaxEquals
+            ));
+        });
+
+        checkboxConverge.addItemListener(e -> {
+            labelMaxEquals.setEnabled(checkboxConverge.getState());
+            fieldMaxEquals.setEnabled(checkboxConverge.getState());
+        });
+
+        ok.addActionListener(e -> {
+            try {
+                final int iterations = Integer.parseInt(fieldIterations.getText());
+                final int numberOfSolutions = Integer.parseInt(fieldSolutions.getText());
+                final boolean converge = checkboxConverge.getState();
+                final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+
+                if (iterations <= 0 || numberOfSolutions <= 0)
+                    MessageBox.showMessage(frame,
+                            "Number of iterations / solutions must be greater than 0.",
+                            "Interactive Hicupp");
+                else if (converge && maxEquals <= 0)
+                    MessageBox.showMessage(frame,
+                            "All parameters need to be positive.",
+                            "Interactive Hicupp");
+                else if (converge && iterations <= maxEquals)
+                    MessageBox.showMessage(frame,
+                            "The number of iterations the solution stayed the same must be smaller than the " +
+                                    "number of total iterations.",
+                            "Interactive Hicupp");
+                else {
+                    treeDocument.setAlgorithmParameters(
+                            new GradientDescentParameters(
+                                    iterations,
+                                    numberOfSolutions,
+                                    converge,
+                                    maxEquals
+                            )
+                    );
+
+                    dialog.dispose();
+                }
+            } catch (NumberFormatException exception) {
+                MessageBox.showMessage(frame, "What you entered is not a full number.",
+                        "Interactive Hicupp");
+            }
+        });
+
+        // organisation
+        dialog.add(labelIterations);
+        dialog.add(fieldIterations);
+        dialog.add(labelSolutions);
+        dialog.add(fieldSolutions);
+        dialog.add(checkboxConverge);
+        dialog.add(new Label());    // keeps checkbox on the left
+        dialog.add(labelMaxEquals);
+        dialog.add(fieldMaxEquals);
+        dialog.add(ok);
+        dialog.add(cancel);
+
+        makeCompactGrid(dialog, 5);
+
+        showDialog(dialog, frame);
     }
 
     private static void showDialog(Dialog dialog, Frame frame) {
@@ -299,12 +405,9 @@ public final class AlgorithmParametersUI {
      */
 
     /* Used by makeCompactGrid. */
-    private static SpringLayout.Constraints getConstraintsForCell(
-            int row, int col,
-            Container parent,
-            int cols) {
+    private static SpringLayout.Constraints getConstraintsForCell(int row, int col, Container parent) {
         SpringLayout layout = (SpringLayout) parent.getLayout();
-        Component c = parent.getComponent(row * cols + col);
+        Component c = parent.getComponent(row * 2 + col);
         return layout.getConstraints(c);
     }
 
@@ -315,18 +418,10 @@ public final class AlgorithmParametersUI {
      * preferred width of the components in that column;
      * height is similarly determined for each row.
      * The parent is made just big enough to fit them all.
-     *
      * @param rows number of rows
-     * @param cols number of columns
-     * @param initialX x location to start the grid at
-     * @param initialY y location to start the grid at
-     * @param xPad x padding between cells
-     * @param yPad y padding between cells
+     *
      */
-    private static void makeCompactGrid(Container parent,
-                                       int rows, int cols,
-                                       int initialX, int initialY,
-                                       int xPad, int yPad) {
+    private static void makeCompactGrid(Container parent, int rows) {
         SpringLayout layout;
         try {
             layout = (SpringLayout) parent.getLayout();
@@ -336,39 +431,39 @@ public final class AlgorithmParametersUI {
         }
 
         //Align all cells in each column and make them the same width.
-        Spring x = Spring.constant(initialX);
-        for (int c = 0; c < cols; c++) {
+        Spring x = Spring.constant(6);
+        for (int c = 0; c < 2; c++) {
             Spring width = Spring.constant(0);
             for (int r = 0; r < rows; r++) {
                 width = Spring.max(width,
-                        getConstraintsForCell(r, c, parent, cols).
+                        getConstraintsForCell(r, c, parent).
                                 getWidth());
             }
             for (int r = 0; r < rows; r++) {
                 SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
+                        getConstraintsForCell(r, c, parent);
                 constraints.setX(x);
                 constraints.setWidth(width);
             }
-            x = Spring.sum(x, Spring.sum(width, Spring.constant(xPad)));
+            x = Spring.sum(x, Spring.sum(width, Spring.constant(6)));
         }
 
         //Align all cells in each row and make them the same height.
-        Spring y = Spring.constant(initialY);
+        Spring y = Spring.constant(6);
         for (int r = 0; r < rows; r++) {
             Spring height = Spring.constant(0);
-            for (int c = 0; c < cols; c++) {
+            for (int c = 0; c < 2; c++) {
                 height = Spring.max(height,
-                        getConstraintsForCell(r, c, parent, cols).
+                        getConstraintsForCell(r, c, parent).
                                 getHeight());
             }
-            for (int c = 0; c < cols; c++) {
+            for (int c = 0; c < 2; c++) {
                 SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
+                        getConstraintsForCell(r, c, parent);
                 constraints.setY(y);
                 constraints.setHeight(height);
             }
-            y = Spring.sum(y, Spring.sum(height, Spring.constant(yPad)));
+            y = Spring.sum(y, Spring.sum(height, Spring.constant(6)));
         }
 
         //Set the parent's size.

@@ -32,7 +32,7 @@ public final class FunctionMaximizer {
     return switch (algorithmIndex) {
       case 1 -> SimulatedAnnealing.maximize(function, monitor, parameters);
       case 2 -> GeneticAlgorithm.maximize(function, monitor, parameters);
-      case 3 -> GradientDescent.maximize(function, monitor);
+      case 3 -> GradientDescent.maximize(function, monitor, parameters);
       default -> Simplex.maximize(function, monitor);
     };
   }
