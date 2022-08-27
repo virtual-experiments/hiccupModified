@@ -125,7 +125,7 @@ public final class GeneticAlgorithm {
             else noOfEquals = 0;
 
             if ((noOfEquals == maxEquals && convergeAtMaxEquals) || // fittest stayed the same after multiple generations
-                    (!equal) && (delta <= 1e-4))    // converged
+                    (!equal) && (Math.abs(delta) <= 1e-4))    // converged
                 break;
         }
 

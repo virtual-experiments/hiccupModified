@@ -13,7 +13,7 @@ public final class AlgorithmParametersUI {
     public static void createParams(TreeDocument treeDocument) {
         switch (treeDocument.getAlgorithmIndex()) {
             case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.annealingUI(treeDocument);
-            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> geneticUI(treeDocument);
+            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.geneticUI(treeDocument);
             case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> gradientUI(treeDocument);
             default -> treeDocument.setAlgorithmParameters(null);
         }
@@ -70,19 +70,17 @@ public final class AlgorithmParametersUI {
             fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
             fieldMaxEquals.setEnabled(initConverge);
 
-            {
-                String minEvaluations = (initConverge) ? Integer.toString(initMaxEquals + 1) : "N/A";
-                labelMinEvaluations = new Label("Minimum number of evaluations: " + minEvaluations, Label.RIGHT);
+            String minEvaluations = (initConverge) ? Integer.toString(initMaxEquals + 1) : "N/A";
+            labelMinEvaluations = new Label("Minimum number of evaluations: " + minEvaluations, Label.RIGHT);
 
-                String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
-                labelMinTime = new Label("Minimum time required: " + minTime + " s", Label.LEFT);
+            String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
+            labelMinTime = new Label("Minimum time required: " + minTime + " s", Label.LEFT);
 
-                String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
-                labelMaxEvaluations = new Label("Maximum number of evaluations: " + maxEvaluations, Label.RIGHT);
+            String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
+            labelMaxEvaluations = new Label("Maximum number of evaluations: " + maxEvaluations, Label.RIGHT);
 
-                String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
-                labelMaxTime = new Label("Maximum time required: " + maxTime + " s", Label.LEFT);
-            }
+            String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
+            labelMaxTime = new Label("Maximum time required: " + maxTime + " s", Label.LEFT);
 
             final Button ok = new Button("Ok");
             final Button cancel = new Button("Cancel");
@@ -193,137 +191,228 @@ public final class AlgorithmParametersUI {
         }
     }
 
-    private static void geneticUI(TreeDocument treeDocument) {
-        Frame frame = treeDocument.getFrame();
+    private static final class GeneticUI {
 
-        // initial variables
-        final int initPop;
-        final int initGens;
-        final int initMutations;
-        final int initSpawns;
-        final boolean initConverge;
-        final int initMaxEquals;
+        private static Dialog dialog;
 
-        if (treeDocument.getAlgorithmParameters() instanceof GeneticAlgorithmParameters parameters) {
-            initPop = parameters.populationSize();
-            initGens = parameters.maxGenerations();
-            initMutations = parameters.mutationsPerGen();
-            initSpawns = parameters.spawnsPerGen();
-            initConverge = parameters.convergeAtMaxEquals();
-            initMaxEquals = parameters.maxEquals();
-        } else {
-            initPop = 20;
-            initGens = 30;
-            initMutations = 5;
-            initSpawns = 10;
-            initConverge = false;
-            initMaxEquals = 5;
-        }
+        private static TextField fieldPopulation;
+        private static TextField fieldGens;
+        private static TextField fieldMutations;
+        private static TextField fieldSpawns;
 
-        // UI
-        final Dialog dialog = new Dialog(frame, "Genetic Algorithm", true);
-        dialog.setLayout(new SpringLayout());
+        private static Checkbox checkboxConverge;
 
-        final Label labelPopulation = new Label("Population size: ", Label.RIGHT);
-        final TextField fieldPopulation = new TextField(Integer.toString(initPop), 29);
+        private static Label labelMaxEquals;
+        private static TextField fieldMaxEquals;
 
-        final Label labelGens = new Label("Number of generations: ", Label.RIGHT);
-        final TextField fieldGens = new TextField(Integer.toString(initGens), 29);
+        private static Label labelMinEvaluations;
+        private static Label labelMinTime;
+        private static Label labelMaxEvaluations;
+        private static Label labelMaxTime;
 
-        final Label labelMutations = new Label("Mutations per generation: ", Label.RIGHT);
-        final TextField fieldMutations = new TextField(Integer.toString(initMutations), 29);
+        private static int evaluationsPerIteration = -1;
+        private static double evaluationTime = -1;
 
-        final Label labelSpawns = new Label("Spawns per generation: ", Label.RIGHT);
-        final TextField fieldSpawns = new TextField(Integer.toString(initSpawns), 29);
+        private static void geneticUI(TreeDocument treeDocument) {
+            Frame frame = treeDocument.getFrame();
+            evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
-        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
+            // initial variables
+            final int initPop;
+            final int initGens;
+            final int initMutations;
+            final int initSpawns;
+            final boolean initConverge;
+            final int initMaxEquals;
 
-        final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
-        labelMaxEquals.setEnabled(initConverge);
-        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
-        fieldMaxEquals.setEnabled(initConverge);
+            if (treeDocument.getAlgorithmParameters() instanceof GeneticAlgorithmParameters parameters) {
+                initPop = parameters.populationSize();
+                initGens = parameters.maxGenerations();
+                initMutations = parameters.mutationsPerGen();
+                initSpawns = parameters.spawnsPerGen();
+                initConverge = parameters.convergeAtMaxEquals();
+                initMaxEquals = parameters.maxEquals();
+            } else {
+                initPop = 20;
+                initGens = 30;
+                initMutations = 5;
+                initSpawns = 10;
+                initConverge = false;
+                initMaxEquals = 5;
+            }
 
-        final Button ok = new Button("Ok");
-        final Button cancel = new Button("Cancel");
+            // UI
+            dialog = new Dialog(frame, "Genetic Algorithm", true);
+            dialog.setLayout(new SpringLayout());
 
-        // events
-        cancel.addActionListener(e -> {
-            dialog.dispose();
+            Label labelPopulation = new Label("Population size: ", Label.RIGHT);
+            fieldPopulation = new TextField(Integer.toString(initPop), 29);
 
-            treeDocument.setAlgorithmParameters(
-                    new GeneticAlgorithmParameters(
-                            initPop,
-                            initGens,
-                            initMutations,
-                            initSpawns,
-                            initConverge,
-                            initMaxEquals));
-        });
+            Label labelGens = new Label("Number of generations: ", Label.RIGHT);
+            fieldGens = new TextField(Integer.toString(initGens), 29);
 
-        checkboxConverge.addItemListener(e -> {
+            Label labelMutations = new Label("Mutations per generation: ", Label.RIGHT);
+            fieldMutations = new TextField(Integer.toString(initMutations), 29);
+
+            Label labelSpawns = new Label("Spawns per generation: ", Label.RIGHT);
+            fieldSpawns = new TextField(Integer.toString(initSpawns), 29);
+
+            checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
+
+            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals.setEnabled(initConverge);
+            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals.setEnabled(initConverge);
+
+            labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
+            labelMinTime = new Label("Minimum time required: s", Label.LEFT);
+
+            labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
+            labelMaxTime = new Label("Maximum time required: s", Label.LEFT);
+
+            getEstimates();
+
+            final Button ok = new Button("Ok");
+            final Button cancel = new Button("Cancel");
+
+            // events
+            fieldPopulation.addTextListener(e -> getEstimates());
+            fieldGens.addTextListener(e -> getEstimates());
+            fieldMutations.addTextListener(e -> getEstimates());
+            fieldSpawns.addTextListener(e -> getEstimates());
+            fieldMaxEquals.addTextListener(e -> getEstimates());
+
+            cancel.addActionListener(e -> {
+                dialog.dispose();
+
+                treeDocument.setAlgorithmParameters(
+                        new GeneticAlgorithmParameters(
+                                initPop,
+                                initGens,
+                                initMutations,
+                                initSpawns,
+                                initConverge,
+                                initMaxEquals));
+            });
+
+            checkboxConverge.addItemListener(e -> {
                 fieldMaxEquals.setEnabled(checkboxConverge.getState());
                 labelMaxEquals.setEnabled(checkboxConverge.getState());
-        });
+                getEstimates();
+            });
 
-        ok.addActionListener(e -> {
-            try {
-                final int popSize = Integer.parseInt(fieldPopulation.getText());
-                final int gens = Integer.parseInt(fieldGens.getText());
-                final int mutations = Integer.parseInt(fieldMutations.getText());
-                final int spawns = Integer.parseInt(fieldSpawns.getText());
-                final boolean converge = checkboxConverge.getState();
-                final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+            ok.addActionListener(e -> {
+                try {
+                    final int popSize = Integer.parseInt(fieldPopulation.getText());
+                    final int gens = Integer.parseInt(fieldGens.getText());
+                    final int mutations = Integer.parseInt(fieldMutations.getText());
+                    final int spawns = Integer.parseInt(fieldSpawns.getText());
+                    final boolean converge = checkboxConverge.getState();
+                    final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
 
-                if (popSize <= 0 || gens <= 0)
-                    MessageBox.showMessage(frame,
-                            "Number of generations / population size must be greater than 0.",
-                            "Interactive Hicupp");
-                else if (mutations < 0 || spawns < 0 || maxEquals < 0)
-                    MessageBox.showMessage(frame,
-                            "All parameters need to be positive.",
-                            "Interactive Hicupp");
-                else if (converge && popSize < maxEquals)
-                    MessageBox.showMessage(frame,
-                            "The number of generations the fittest stayed the same must be smaller than the " +
-                                    "number of total generations.",
-                            "Interactive Hicupp");
-                else {
-                    treeDocument.setAlgorithmParameters(
-                            new GeneticAlgorithmParameters(
-                                    popSize,
-                                    gens,
-                                    mutations,
-                                    spawns,
-                                    converge,
-                                    maxEquals));
+                    if (popSize <= 0 || gens <= 0)
+                        MessageBox.showMessage(frame,
+                                "Number of generations / population size must be greater than 0.",
+                                "Interactive Hicupp");
+                    else if (mutations < 0 || spawns < 0 || maxEquals < 0)
+                        MessageBox.showMessage(frame,
+                                "All parameters need to be positive.",
+                                "Interactive Hicupp");
+                    else if (converge && popSize < maxEquals)
+                        MessageBox.showMessage(frame,
+                                "The number of generations the fittest stayed the same must be smaller than the " +
+                                        "number of total generations.",
+                                "Interactive Hicupp");
+                    else {
+                        treeDocument.setAlgorithmParameters(
+                                new GeneticAlgorithmParameters(
+                                        popSize,
+                                        gens,
+                                        mutations,
+                                        spawns,
+                                        converge,
+                                        maxEquals));
 
-                    dialog.dispose();
+                        dialog.dispose();
+                    }
+                } catch (NumberFormatException exception) {
+                    MessageBox.showMessage(frame, "What you entered is not a full number.",
+                            "Interactive Hicupp");
                 }
-            } catch (NumberFormatException exception) {
-                MessageBox.showMessage(frame, "What you entered is not a full number.",
-                        "Interactive Hicupp");
+            });
+
+            // organisation
+            dialog.add(labelPopulation);
+            dialog.add(fieldPopulation);
+            dialog.add(labelGens);
+            dialog.add(fieldGens);
+            dialog.add(labelMutations);
+            dialog.add(fieldMutations);
+            dialog.add(labelSpawns);
+            dialog.add(fieldSpawns);
+            dialog.add(checkboxConverge);
+            dialog.add(new Label()); // keeps checkbox on the left
+            dialog.add(labelMaxEquals);
+            dialog.add(fieldMaxEquals);
+            dialog.add(labelMinEvaluations);
+            dialog.add(labelMinTime);
+            dialog.add(labelMaxEvaluations);
+            dialog.add(labelMaxTime);
+            dialog.add(ok);
+            dialog.add(cancel);
+
+            makeCompactGrid(dialog, 9);
+
+            showDialog(dialog, frame);
+        }
+
+        private static void calculateEvaluationsPerIteration() {
+            try {
+                int populationSize = Integer.parseInt(fieldPopulation.getText());
+                int mutations = Integer.parseInt(fieldMutations.getText());
+                int spawns = Integer.parseInt(fieldSpawns.getText());
+
+                evaluationsPerIteration = populationSize +  // crossover
+                        mutations +       // 1 mutation costs 1 evaluation
+                        spawns;           // 1 spawn costs 1 evaluation
+            } catch (NumberFormatException e) {
+                evaluationsPerIteration = -1;
             }
-        });
+        }
 
-        // organisation
-        dialog.add(labelPopulation);
-        dialog.add(fieldPopulation);
-        dialog.add(labelGens);
-        dialog.add(fieldGens);
-        dialog.add(labelMutations);
-        dialog.add(fieldMutations);
-        dialog.add(labelSpawns);
-        dialog.add(fieldSpawns);
-        dialog.add(checkboxConverge);
-        dialog.add(new Label()); // keeps checkbox on the left
-        dialog.add(labelMaxEquals);
-        dialog.add(fieldMaxEquals);
-        dialog.add(ok);
-        dialog.add(cancel);
+        private static void getEstimates() {
+            String minEvaluations = "N/A";
+            String minTime = "N/A";
+            String maxEvaluations = "N/A";
+            String maxTime = "N/A";
 
-        makeCompactGrid(dialog, 7);
+            try {
+                calculateEvaluationsPerIteration();
+                if (evaluationsPerIteration == -1) throw new NumberFormatException();
 
-        showDialog(dialog, frame);
+                if (checkboxConverge.getState()) {
+                    int min =
+                            Integer.parseInt(fieldPopulation.getText())  +  // initial random population
+                            evaluationsPerIteration * Integer.parseInt(fieldMaxEquals.getText()); // total evaluations
+
+                    minEvaluations = Integer.toString(min);
+                    minTime = Double.toString(min * evaluationTime / 1000d);
+                }
+
+                int max =
+                        Integer.parseInt(fieldPopulation.getText())  +  // initial random population
+                        evaluationsPerIteration * Integer.parseInt(fieldGens.getText());    // total evaluations
+
+                maxEvaluations = Integer.toString(max);
+                maxTime = Double.toString(max * evaluationTime / 1000d);
+            } catch (NumberFormatException ignore) { }
+            finally {
+                labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
+                labelMinTime.setText("Minimum time: " + minTime + " s");
+                labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
+                labelMaxTime.setText("Maximum time: " + maxTime + " s");
+            }
+        }
     }
 
     private static void gradientUI(TreeDocument treeDocument) {

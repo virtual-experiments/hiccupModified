@@ -261,6 +261,7 @@ abstract class AbstractNodeView implements NodeView {
   }
 
   public void setEvaluationTime() {
-    this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
+    if (parent == null)
+      this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
   }
 }
