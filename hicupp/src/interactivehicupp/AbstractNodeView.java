@@ -5,6 +5,7 @@ import java.awt.event.*;
 
 import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
+import hicupp.algorithms.AlgorithmUtilities;
 import hicupp.algorithms.ga.GeneticAlgorithmParameters;
 import hicupp.algorithms.sa.SimulatedAnnealingParameters;
 import hicupp.classify.*;
@@ -21,6 +22,8 @@ abstract class AbstractNodeView implements NodeView {
   private String splitProjection;
   private String optimisationAlgorithm;
   private int splitNoOfIterations;
+
+  private long evaluationTime;
   
   AbstractNodeView(PointsSourceClient client, SplitView parent, ClassNode classNode) {
     this.client = (TreeDocument) client;
@@ -70,6 +73,10 @@ abstract class AbstractNodeView implements NodeView {
       } else
         throw new RuntimeException("Unexpected info object: " + info);
     });
+
+    if (parent == null) { // root
+      this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
+    }
   }
   
   void initChild() {
@@ -247,5 +254,13 @@ abstract class AbstractNodeView implements NodeView {
   
   public boolean infoIsShowing() {
     return infoFrame != null;
+  }
+
+  public long getEvaluationTime() {
+    return evaluationTime;
+  }
+
+  public void setEvaluationTime() {
+    this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
   }
 }

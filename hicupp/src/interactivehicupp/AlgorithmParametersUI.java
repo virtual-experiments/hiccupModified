@@ -12,107 +12,185 @@ public final class AlgorithmParametersUI {
 
     public static void createParams(TreeDocument treeDocument) {
         switch (treeDocument.getAlgorithmIndex()) {
-            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> annealingUI(treeDocument);
+            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.annealingUI(treeDocument);
             case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> geneticUI(treeDocument);
             case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> gradientUI(treeDocument);
             default -> treeDocument.setAlgorithmParameters(null);
         }
     }
 
-    private static void annealingUI(TreeDocument treeDocument) {
-        Frame frame = treeDocument.getFrame();
+    private static final class AnnealingUI {
 
-        // initial variables
-        final int initNumberOfIterations;
-        final boolean initConverge;
-        final int initMaxEquals;
+        private static Dialog dialog;
 
-        if (treeDocument.getAlgorithmParameters() instanceof SimulatedAnnealingParameters parameters) {
-            initNumberOfIterations = parameters.numberOfIterations();
-            initConverge = parameters.convergeAtMaxEquals();
-            initMaxEquals = parameters.maxEquals();
-        } else {
-            initNumberOfIterations = 100;
-            initConverge = true;
-            initMaxEquals = 20;
+        private static TextField fieldIterations;
+
+        private static Checkbox checkboxConverge;
+
+        private static Label labelMaxEquals;
+        private static TextField fieldMaxEquals;
+
+        private static Label labelMinEvaluations;
+        private static Label labelMinTime;
+        private static Label labelMaxEvaluations;
+        private static Label labelMaxTime;
+
+        private static long evaluationTime;
+
+        private static void annealingUI(TreeDocument treeDocument) {
+            Frame frame = treeDocument.getFrame();
+            evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
+
+            // initial variables
+            final int initNumberOfIterations;
+            final boolean initConverge;
+            final int initMaxEquals;
+
+            if (treeDocument.getAlgorithmParameters() instanceof SimulatedAnnealingParameters parameters) {
+                initNumberOfIterations = parameters.numberOfIterations();
+                initConverge = parameters.convergeAtMaxEquals();
+                initMaxEquals = parameters.maxEquals();
+            } else {
+                initNumberOfIterations = 100;
+                initConverge = true;
+                initMaxEquals = 20;
+            }
+
+            // UI
+            dialog = new Dialog(frame, "Simulated Annealing", true);
+            dialog.setLayout(new SpringLayout());
+
+            Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
+            fieldIterations = new TextField(Integer.toString(initNumberOfIterations), 29);
+
+            checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
+
+            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals.setEnabled(initConverge);
+            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals.setEnabled(initConverge);
+
+            {
+                String minEvaluations = (initConverge) ? Integer.toString(initMaxEquals + 1) : "N/A";
+                labelMinEvaluations = new Label("Minimum number of evaluations: " + minEvaluations, Label.RIGHT);
+
+                String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
+                labelMinTime = new Label("Minimum time required: " + minTime + " s", Label.LEFT);
+
+                String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
+                labelMaxEvaluations = new Label("Maximum number of evaluations: " + maxEvaluations, Label.RIGHT);
+
+                String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
+                labelMaxTime = new Label("Maximum time required: " + maxTime + " s", Label.LEFT);
+            }
+
+            final Button ok = new Button("Ok");
+            final Button cancel = new Button("Cancel");
+
+            // events
+            fieldIterations.addTextListener(e -> getMaximumEstimates());
+
+            fieldMaxEquals.addTextListener(e -> getMinimumEstimates());
+
+            cancel.addActionListener(e -> {
+                dialog.dispose();
+
+                treeDocument.setAlgorithmParameters(
+                        new SimulatedAnnealingParameters(
+                                initNumberOfIterations,
+                                initConverge,
+                                initMaxEquals
+                        ));
+            });
+
+            checkboxConverge.addItemListener(e -> {
+                fieldMaxEquals.setEnabled(checkboxConverge.getState());
+                labelMaxEquals.setEnabled(checkboxConverge.getState());
+
+                getMinimumEstimates();
+            });
+
+            ok.addActionListener(e -> {
+                try {
+                    final int numberOfIterations = Integer.parseInt(fieldIterations.getText());
+                    final boolean convergeAtMaxEquals = checkboxConverge.getState();
+                    final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+
+                    if (numberOfIterations <= 0 || maxEquals < 0) {
+                        MessageBox.showMessage(frame, "Number of iterations/converges must be greater than 0.",
+                                "Interactive Hicupp");
+                    } else if (numberOfIterations < maxEquals && convergeAtMaxEquals) {
+                        MessageBox.showMessage(frame,
+                                "The number of iterations the solution stayed the same must be smaller than the " +
+                                        "number of total iterations.",
+                                "Interactive Hicupp");
+                    } else {
+                        treeDocument.setAlgorithmParameters(
+                                new SimulatedAnnealingParameters(
+                                        numberOfIterations,
+                                        convergeAtMaxEquals,
+                                        maxEquals));
+
+                        dialog.dispose();
+                    }
+                } catch (NumberFormatException exception) {
+                    MessageBox.showMessage(frame, "What you entered is not a full number.",
+                            "Interactive Hicupp");
+                }
+            });
+
+            // organisation
+            dialog.add(labelIterations);
+            dialog.add(fieldIterations);
+            dialog.add(checkboxConverge);
+            dialog.add(new Label()); // keeps checkbox to the left
+            dialog.add(labelMaxEquals);
+            dialog.add(fieldMaxEquals);
+            dialog.add(labelMinEvaluations);
+            dialog.add(labelMinTime);
+            dialog.add(labelMaxEvaluations);
+            dialog.add(labelMaxTime);
+            dialog.add(ok);
+            dialog.add(cancel);
+
+            makeCompactGrid(dialog, 6);
+
+            showDialog(dialog, frame);
         }
 
-        // UI
-        final Dialog dialog = new Dialog(frame, "Simulated Annealing", true);
-        dialog.setLayout(new SpringLayout());
-
-        final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
-        final TextField fieldIterations = new TextField(Integer.toString(initNumberOfIterations),29);
-
-        final Checkbox checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
-
-        final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
-        labelMaxEquals.setEnabled(initConverge);
-        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
-        fieldMaxEquals.setEnabled(initConverge);
-
-        final Button ok = new Button("Ok");
-        final Button cancel = new Button("Cancel");
-
-        // events
-        cancel.addActionListener(e -> {
-            dialog.dispose();
-
-            treeDocument.setAlgorithmParameters(
-                    new SimulatedAnnealingParameters(
-                            initNumberOfIterations,
-                            initConverge,
-                            initMaxEquals
-                    ));
-        });
-
-        checkboxConverge.addItemListener(e -> {
-            fieldMaxEquals.setEnabled(checkboxConverge.getState());
-            labelMaxEquals.setEnabled(checkboxConverge.getState());
-        });
-
-        ok.addActionListener(e -> {
+        private static void getMinimumEstimates() {
+            String minEvaluations = "N/A";
+            String minTime = "N/A";
             try {
-                final int numberOfIterations = Integer.parseInt(fieldIterations.getText());
-                final boolean convergeAtMaxEquals = checkboxConverge.getState();
-                final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+                if (checkboxConverge.getState()) {
+                    int maxEquals = Integer.parseInt(fieldMaxEquals.getText()) + 1;
+                    double time = maxEquals * evaluationTime / 1000d;
 
-                if (numberOfIterations <= 0 || maxEquals < 0) {
-                    MessageBox.showMessage(frame, "Number of iterations/converges must be greater than 0.",
-                            "Interactive Hicupp");
-                } else if (numberOfIterations < maxEquals && convergeAtMaxEquals) {
-                    MessageBox.showMessage(frame,
-                            "The number of iterations the solution stayed the same must be smaller than the " +
-                                    "number of total iterations.",
-                            "Interactive Hicupp");
-                } else {
-                    treeDocument.setAlgorithmParameters(
-                            new SimulatedAnnealingParameters(
-                                    numberOfIterations,
-                                    convergeAtMaxEquals,
-                                    maxEquals));
-
-                    dialog.dispose();
+                    minEvaluations = Integer.toString(maxEquals);
+                    minTime = Double.toString(time);
                 }
-            } catch (NumberFormatException exception) {
-                MessageBox.showMessage(frame, "What you entered is not a full number.",
-                        "Interactive Hicupp");
+            } catch (NumberFormatException ignore) { }
+            finally {
+                labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
+                labelMinTime.setText("Minimum time required: " + minTime + " s");
             }
-        });
+        }
 
-        // organisation
-        dialog.add(labelIterations);
-        dialog.add(fieldIterations);
-        dialog.add(checkboxConverge);
-        dialog.add(new Label()); // keeps checkbox to the left
-        dialog.add(labelMaxEquals);
-        dialog.add(fieldMaxEquals);
-        dialog.add(ok);
-        dialog.add(cancel);
+        private static void getMaximumEstimates() {
+            String maxEvaluations = "N/A";
+            String maxTime = "N/A";
+            try {
+                int iterations = Integer.parseInt(fieldIterations.getText()) + 1;
+                double time = iterations * evaluationTime / 1000d;
 
-        makeCompactGrid(dialog,4);
-
-        showDialog(dialog, frame);
+                maxEvaluations = Integer.toString(iterations);
+                maxTime = Double.toString(time);
+            } catch (NumberFormatException ignore) {
+            } finally {
+                labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
+                labelMaxTime.setText("Maximum time required: " + maxTime + " s");
+            }
+        }
     }
 
     private static void geneticUI(TreeDocument treeDocument) {

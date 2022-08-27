@@ -126,6 +126,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     private void updateImage(Component c) {
       ClassNode classNode = getClassNode();
       ClassNode parentClassNode;
+      setEvaluationTime();
 
       int oldMaskColor;
       if (classNode.getParent() == null) {

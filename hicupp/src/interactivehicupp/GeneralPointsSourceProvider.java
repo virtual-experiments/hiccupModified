@@ -45,6 +45,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     
     public void newPoints() {
       super.newPoints();
+      setEvaluationTime();
       component.setText(getClassNode().getPointCount() + " points");
     }
   }
@@ -69,7 +70,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     if (loadMatrixDialog == null)
       loadMatrixDialog = new LoadMatrixDialog(client.getFrame(),
                                               "Load Points from ASCII File");
-    loadMatrixDialog.show();
+    loadMatrixDialog.setVisible(true);
     double[] coords = loadMatrixDialog.getCoords();
     if (coords != null) {
       int ndims = loadMatrixDialog.getColumnsCount();

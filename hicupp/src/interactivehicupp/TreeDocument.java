@@ -75,7 +75,10 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
 
     {
-      RadioMenuTools.RadioMenuEventListener projectionIndexListener = index -> projectionIndex = index;
+      RadioMenuTools.RadioMenuEventListener projectionIndexListener = index -> {
+        projectionIndex = index;
+        ((AbstractNodeView) pointsSourceProvider.getRoot()).setEvaluationTime();
+      };
       String[] projectionLabels = ProjectionIndexFunction.getProjectionIndexNames();
       projectionIndexMenu = RadioMenuTools.createRadioMenu(
               projectionLabels,
