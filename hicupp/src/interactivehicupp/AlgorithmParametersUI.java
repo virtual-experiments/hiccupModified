@@ -551,13 +551,13 @@ public final class AlgorithmParametersUI {
     public static void evaluationTime(int projectionIndex, AbstractNodeView nodeView) {
         Function projectionIndexFunction = new ProjectionIndexFunction(projectionIndex, nodeView.getClassNode());
 
-        Runnable runnable = () -> {
+        Thread thread = new Thread(() -> {
             long total = 0;
             int counter = 0;
 
-            while (counter < 10 && total < 5000) {
-                double[] x = AlgorithmUtilities.generateRandomArguments(projectionIndexFunction.getArgumentCount(),
-                                                                        1);
+            while (counter < 10 && total < 10000) {
+                double[] x = AlgorithmUtilities
+                        .generateRandomArguments(projectionIndexFunction.getArgumentCount(), 1);
 
                 long start = System.currentTimeMillis();
                 projectionIndexFunction.evaluate(x);
@@ -566,18 +566,18 @@ public final class AlgorithmParametersUI {
                 long duration = end - start;
 
                 if (duration != 0) {
+                    nodeView.setEvaluationTime(duration);
                     counter++;
                     total += duration;
-                    System.out.println("Current picture single evaluation time (ms): " + duration);
+                    System.out.print(duration + " ");
                 }
             }
 
             long average = Math.round((double) total / (double) counter);
-            System.out.println("Count: " + counter + " Average (ms): " + average);
+            System.out.println("\nCount: " + counter + " Average (ms): " + average);
             nodeView.setEvaluationTime(average);
-        };
+        });
 
-        Thread thread = new Thread(runnable);
         thread.start();
     }
 
