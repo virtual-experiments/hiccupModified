@@ -17,7 +17,7 @@ public final class AlgorithmParametersUI {
         switch (treeDocument.getAlgorithmIndex()) {
             case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.annealingUI(treeDocument);
             case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.geneticUI(treeDocument);
-            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> gradientUI(treeDocument);
+            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.gradientUI(treeDocument);
             default -> treeDocument.setAlgorithmParameters(null);
         }
     }
@@ -418,119 +418,208 @@ public final class AlgorithmParametersUI {
         }
     }
 
-    private static void gradientUI(TreeDocument treeDocument) {
-        Frame frame = treeDocument.getFrame();
+    private static final class GradientUI {
 
-        // initial variables
-        final int initIterations;
-        final int initSolutions;
-        final boolean initConverge;
-        final int initMaxEquals;
+        private static Dialog dialog;
 
-        if (treeDocument.getAlgorithmParameters() instanceof GradientDescentParameters parameters) {
-            initIterations = parameters.maxIterations();
-            initSolutions = parameters.numberOfSolutions();
-            initConverge = parameters.convergeAtMaxEquals();
-            initMaxEquals = parameters.maxEquals();
-        } else {
-            initIterations = 100;
-            initSolutions = 15;
-            initConverge = true;
-            initMaxEquals = 10;
+        private static TextField fieldIterations;
+        private static TextField fieldSolutions;
+        private static Checkbox checkboxConverge;
+        private static Label labelMaxEquals;
+        private static TextField fieldMaxEquals;
+
+        private static Label labelMinEvaluations;
+        private static Label labelMinTime;
+        private static Label labelMaxEvaluations;
+        private static Label labelMaxTime;
+
+        private static long evaluationTime;
+        private static int argumentCount;
+
+        private static void gradientUI(TreeDocument treeDocument) {
+            Frame frame = treeDocument.getFrame();
+
+            AbstractNodeView nodeView = (AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot();
+            evaluationTime = nodeView.getEvaluationTime();
+            argumentCount = nodeView.getClassNode().getDimensionCount() - 1;
+
+            // initial variables
+            final int initIterations;
+            final int initSolutions;
+            final boolean initConverge;
+            final int initMaxEquals;
+
+            if (treeDocument.getAlgorithmParameters() instanceof GradientDescentParameters parameters) {
+                initIterations = parameters.maxIterations();
+                initSolutions = parameters.numberOfSolutions();
+                initConverge = parameters.convergeAtMaxEquals();
+                initMaxEquals = parameters.maxEquals();
+            } else {
+                initIterations = 100;
+                initSolutions = 15;
+                initConverge = true;
+                initMaxEquals = 10;
+            }
+
+            // UI
+            dialog = new Dialog(frame, "Gradient Descent", true);
+            dialog.setLayout(new SpringLayout());
+
+            final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
+            fieldIterations = new TextField(Integer.toString(initIterations), 29);
+
+            final Label labelSolutions = new Label("Number of solutions: ", Label.RIGHT);
+            fieldSolutions = new TextField(Integer.toString(initSolutions), 29);
+
+            checkboxConverge =
+                    new Checkbox("Stop when the solution does not improve", initConverge);
+
+            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals.setEnabled(initConverge);
+            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals.setEnabled(initConverge);
+
+            labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
+            labelMinTime = new Label("Minimum time required: s", Label.LEFT);
+
+            labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
+            labelMaxTime = new Label("Maximum time required: s", Label.LEFT);
+
+            getMinimumEstimates();
+            getMaximumEstimates();
+
+            final Button ok = new Button("Ok");
+            final Button cancel = new Button("Cancel");
+
+            // events
+            fieldIterations.addTextListener(e -> getMaximumEstimates());
+            fieldSolutions.addTextListener(e -> {
+                getMinimumEstimates();
+                getMaximumEstimates();
+            });
+            fieldMaxEquals.addTextListener(e -> getMinimumEstimates());
+
+            cancel.addActionListener(e -> {
+                dialog.dispose();
+
+                treeDocument.setAlgorithmParameters(
+                        new GradientDescentParameters(
+                                initIterations,
+                                initSolutions,
+                                initConverge,
+                                initMaxEquals
+                        ));
+            });
+
+            checkboxConverge.addItemListener(e -> {
+                labelMaxEquals.setEnabled(checkboxConverge.getState());
+                fieldMaxEquals.setEnabled(checkboxConverge.getState());
+
+                getMinimumEstimates();
+            });
+
+            ok.addActionListener(e -> {
+                try {
+                    final int iterations = Integer.parseInt(fieldIterations.getText());
+                    final int numberOfSolutions = Integer.parseInt(fieldSolutions.getText());
+                    final boolean converge = checkboxConverge.getState();
+                    final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+
+                    if (iterations <= 0 || numberOfSolutions <= 0)
+                        MessageBox.showMessage(frame,
+                                "Number of iterations / solutions must be greater than 0.",
+                                "Interactive Hicupp");
+                    else if (converge && maxEquals <= 0)
+                        MessageBox.showMessage(frame,
+                                "All parameters need to be positive.",
+                                "Interactive Hicupp");
+                    else if (converge && iterations <= maxEquals)
+                        MessageBox.showMessage(frame,
+                                "The number of iterations the solution stayed the same must be smaller than the " +
+                                        "number of total iterations.",
+                                "Interactive Hicupp");
+                    else {
+                        treeDocument.setAlgorithmParameters(
+                                new GradientDescentParameters(
+                                        iterations,
+                                        numberOfSolutions,
+                                        converge,
+                                        maxEquals
+                                )
+                        );
+
+                        dialog.dispose();
+                    }
+                } catch (NumberFormatException exception) {
+                    MessageBox.showMessage(frame, "What you entered is not a full number.",
+                            "Interactive Hicupp");
+                }
+            });
+
+            // organisation
+            dialog.add(labelIterations);
+            dialog.add(fieldIterations);
+            dialog.add(labelSolutions);
+            dialog.add(fieldSolutions);
+            dialog.add(checkboxConverge);
+            dialog.add(new Label());    // keeps checkbox on the left
+            dialog.add(labelMaxEquals);
+            dialog.add(fieldMaxEquals);
+            dialog.add(labelMinEvaluations);
+            dialog.add(labelMinTime);
+            dialog.add(labelMaxEvaluations);
+            dialog.add(labelMaxTime);
+            dialog.add(ok);
+            dialog.add(cancel);
+
+            makeCompactGrid(dialog, 7);
+
+            showDialog(dialog, frame);
         }
 
-        // UI
-        final Dialog dialog = new Dialog(frame, "Gradient Descent", true);
-        dialog.setLayout(new SpringLayout());
+        private static int evaluationsPerIteration(int iterations, int solutions) {
+            int evaluations = solutions * 2 * argumentCount +   // finding gradient, worst case scenario
+                              solutions;                        // calculate new position
 
-        final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
-        final TextField fieldIterations = new TextField(Integer.toString(initIterations), 29);
+            return evaluations * iterations;
+        }
 
-        final Label labelSolutions = new Label("Number of solutions: ", Label.RIGHT);
-        final TextField fieldSolutions = new TextField(Integer.toString(initSolutions), 29);
+        private static void getMinimumEstimates() {
+            String minEvaluations = "N/A";
+            String minTime = "N/A";
 
-        final Checkbox checkboxConverge =
-                new Checkbox("Stop when the solution does not improve", initConverge);
+            if (checkboxConverge.getState()) {
+                try {
+                    int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
+                    int solutions = Integer.parseInt(fieldSolutions.getText());
+                    int evaluations = solutions + evaluationsPerIteration(maxEquals, solutions);
 
-        final Label labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
-        labelMaxEquals.setEnabled(initConverge);
-        final TextField fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
-        fieldMaxEquals.setEnabled(initConverge);
-
-        final Button ok = new Button("Ok");
-        final Button cancel = new Button("Cancel");
-
-        // events
-        cancel.addActionListener(e -> {
-            dialog.dispose();
-
-            treeDocument.setAlgorithmParameters(
-                    new GradientDescentParameters(
-                            initIterations,
-                            initSolutions,
-                            initConverge,
-                            initMaxEquals
-            ));
-        });
-
-        checkboxConverge.addItemListener(e -> {
-            labelMaxEquals.setEnabled(checkboxConverge.getState());
-            fieldMaxEquals.setEnabled(checkboxConverge.getState());
-        });
-
-        ok.addActionListener(e -> {
-            try {
-                final int iterations = Integer.parseInt(fieldIterations.getText());
-                final int numberOfSolutions = Integer.parseInt(fieldSolutions.getText());
-                final boolean converge = checkboxConverge.getState();
-                final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
-
-                if (iterations <= 0 || numberOfSolutions <= 0)
-                    MessageBox.showMessage(frame,
-                            "Number of iterations / solutions must be greater than 0.",
-                            "Interactive Hicupp");
-                else if (converge && maxEquals <= 0)
-                    MessageBox.showMessage(frame,
-                            "All parameters need to be positive.",
-                            "Interactive Hicupp");
-                else if (converge && iterations <= maxEquals)
-                    MessageBox.showMessage(frame,
-                            "The number of iterations the solution stayed the same must be smaller than the " +
-                                    "number of total iterations.",
-                            "Interactive Hicupp");
-                else {
-                    treeDocument.setAlgorithmParameters(
-                            new GradientDescentParameters(
-                                    iterations,
-                                    numberOfSolutions,
-                                    converge,
-                                    maxEquals
-                            )
-                    );
-
-                    dialog.dispose();
-                }
-            } catch (NumberFormatException exception) {
-                MessageBox.showMessage(frame, "What you entered is not a full number.",
-                        "Interactive Hicupp");
+                    minEvaluations = Integer.toString(evaluations);
+                    minTime = Double.toString(evaluations * evaluationTime / 1000d);
+                } catch (NumberFormatException ignore) { }
             }
-        });
 
-        // organisation
-        dialog.add(labelIterations);
-        dialog.add(fieldIterations);
-        dialog.add(labelSolutions);
-        dialog.add(fieldSolutions);
-        dialog.add(checkboxConverge);
-        dialog.add(new Label());    // keeps checkbox on the left
-        dialog.add(labelMaxEquals);
-        dialog.add(fieldMaxEquals);
-        dialog.add(ok);
-        dialog.add(cancel);
+            labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
+            labelMinTime.setText("Minimum time required: " + minTime + " s");
+        }
 
-        makeCompactGrid(dialog, 5);
+        private static void getMaximumEstimates() {
+            String maxEvaluations = "N/A";
+            String maxTime = "N/A";
 
-        showDialog(dialog, frame);
+            try {
+                int iterations = Integer.parseInt(fieldIterations.getText());
+                int solutions = Integer.parseInt(fieldSolutions.getText());
+                int evaluations = solutions + evaluationsPerIteration(iterations, solutions);
+
+                maxEvaluations = Integer.toString(evaluations);
+                maxTime = Double.toString(evaluations * evaluationTime / 1000d);
+            } catch (NumberFormatException ignore) { }
+            finally {
+                labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
+                labelMaxTime.setText("Maximum time required: " + maxTime + " s");
+            }
+        }
     }
 
     private static void showDialog(Dialog dialog, Frame frame) {
