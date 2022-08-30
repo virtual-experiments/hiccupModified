@@ -31,7 +31,7 @@ public final class GradientDescent {
 
         final double precision = 1e-4;
         final double h = 1e-4;
-        final double learningRate = 0.01;
+        final double learningRate = 1e-15;
 
         // function variables
         final MonitoringFunctionWrapper wrapper =
@@ -60,13 +60,12 @@ public final class GradientDescent {
                      .forEach(System.out::println);
             System.out.println("Converges: " + solutions.stream().filter(Solution::isConverged).count() + "\n");
 
-            // find gradient unit vector
+            // find gradient
             for (Solution solution : solutions) {
                 if (!solution.isConverged()) {
                     final double[] x_current = solution.getX().clone();
                     final double fx_current = solution.getFx();
                     double[] gradient_current = new double[n];
-                    double sum_of_squares = 0.0f;
 
                     for (int j = 0; j < n; j++) { // each axis
                         double[] x_new = x_current.clone();
@@ -80,12 +79,8 @@ public final class GradientDescent {
 
                         double gradient_axis = (fx_new - fx_current) / h;
                         gradient_current[j] = gradient_axis;
-                        sum_of_squares += gradient_axis * gradient_axis;
                     }
 
-                    for (int j = 0; j < n; j++) {   // normalise
-                        gradient_current[j] = gradient_current[j] / Math.sqrt(sum_of_squares);
-                    }
                     solution.setGradient(gradient_current);
                 }
             }
@@ -119,11 +114,12 @@ public final class GradientDescent {
                     .orElseThrow()
                     .clone();
 
-            if (bestSolution.equals(newBest)) numberOfEquals++;
+            if (bestSolution.equals(newBest) || bestSolution.getFx() < newBest.getFx()) numberOfEquals++;
             else {
                 numberOfEquals = 0;
                 if (newBest.getFx() > bestSolution.getFx()) bestSolution = newBest;
             }
+
             if (monitor != null)
                 monitor.writeLine("(iter = " + iteration + ") " + bestSolution);
 
