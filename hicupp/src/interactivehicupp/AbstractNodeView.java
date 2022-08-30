@@ -144,10 +144,18 @@ abstract class AbstractNodeView implements NodeView {
     splitProjection = ProjectionIndexFunction.getProjectionIndexNames()[client.getProjectionIndex()];
     optimisationAlgorithm = FunctionMaximizer.getAlgorithmNames()[client.getAlgorithmIndex()];
 
+    if (!client.getLogTextArea().getText().equals(""))
+      client.getLogTextArea().append("__________________________________________________________________________________\n\n");
+
     client.getLogTextArea().append("Splitting node " + getClassNode().getNode().getSerialNumber() +
                                    " using projection index " + splitProjection +
-                                   " with algorithm " + optimisationAlgorithm + "...\n");
+                                   " with algorithm " + optimisationAlgorithm + ".\n");
+
+    AlgorithmParametersUI.logParameters(client);
+
+    long start = System.currentTimeMillis();
     monitorDialog.show(computation, client.getLogTextArea());
+    double duration = (System.currentTimeMillis() - start) / 1000d;
 
     if (computation.exception != null) {
       if (computation.exception instanceof NoConvergenceException)
@@ -161,9 +169,9 @@ abstract class AbstractNodeView implements NodeView {
     classNode.split(axis);
 
     splitNoOfIterations = monitorDialog.getIterationCount();
-    client.getLogTextArea().append("Node " + getClassNode().getNode().getSerialNumber() +
+    client.getLogTextArea().append("\nNode " + getClassNode().getNode().getSerialNumber() +
             " split using projection index " + splitProjection + " with " +
-            splitNoOfIterations + " iterations.\n");
+            splitNoOfIterations + " iterations in " + duration + " seconds.\n");
 
     Split split = classNode.getNode().getChild();
     split.setSplitProjectionIndex(client.getProjectionIndex());

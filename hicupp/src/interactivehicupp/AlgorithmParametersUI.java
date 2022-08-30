@@ -3,6 +3,7 @@ package interactivehicupp;
 import hicupp.Function;
 import hicupp.FunctionMaximizer;
 import hicupp.ProjectionIndexFunction;
+import hicupp.algorithms.AlgorithmParameters;
 import hicupp.algorithms.AlgorithmUtilities;
 import hicupp.algorithms.ga.*;
 import hicupp.algorithms.gd.GradientDescentParameters;
@@ -15,10 +16,26 @@ public final class AlgorithmParametersUI {
 
     public static void createParams(TreeDocument treeDocument) {
         switch (treeDocument.getAlgorithmIndex()) {
-            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.annealingUI(treeDocument);
-            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.geneticUI(treeDocument);
-            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.gradientUI(treeDocument);
+            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.show(treeDocument);
+            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.show(treeDocument);
+            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.show(treeDocument);
             default -> treeDocument.setAlgorithmParameters(null);
+        }
+    }
+
+    public static void logParameters(TreeDocument treeDocument) {
+        TextArea log = treeDocument.getLogTextArea();
+        AlgorithmParameters parameters = treeDocument.getAlgorithmParameters();
+
+        if (log != null) {
+            log.append("Parameters: ");
+
+            switch (treeDocument.getAlgorithmIndex()) {
+                case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.log(log, parameters);
+                case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.log(log, parameters);
+                case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.log(log, parameters);
+                default -> log.append("Not applicable.\n\n");
+            }
         }
     }
 
@@ -40,7 +57,7 @@ public final class AlgorithmParametersUI {
 
         private static long evaluationTime;
 
-        private static void annealingUI(TreeDocument treeDocument) {
+        public static void show(TreeDocument treeDocument) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -192,6 +209,16 @@ public final class AlgorithmParametersUI {
                 labelMaxTime.setText("Maximum time required: " + maxTime + " s");
             }
         }
+
+        public static void log(TextArea log, AlgorithmParameters parameters) {
+            if (parameters instanceof SimulatedAnnealingParameters params) {
+                log.append("Iterations - " + params.numberOfIterations() +
+                           ((params.convergeAtMaxEquals())? (", Stop when solution does not improve after number of " +
+                                   "iterations - " + params.maxEquals()) : "") +
+                           "\n\n"
+                );
+            } else throw new RuntimeException("Wrong parameters type.");
+        }
     }
 
     private static final class GeneticUI {
@@ -216,7 +243,7 @@ public final class AlgorithmParametersUI {
         private static int evaluationsPerIteration = -1;
         private static double evaluationTime = -1;
 
-        private static void geneticUI(TreeDocument treeDocument) {
+        static void show(TreeDocument treeDocument) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -416,6 +443,19 @@ public final class AlgorithmParametersUI {
                 labelMaxTime.setText("Maximum time: " + maxTime + " s");
             }
         }
+
+        public static void log(TextArea log, AlgorithmParameters parameters) {
+            if (parameters instanceof GeneticAlgorithmParameters params) {
+                log.append("Population size - " + params.populationSize() + ", " +
+                        "Number of generations - " + params.maxGenerations() + ", " +
+                        "Mutations per generation - " + params.mutationsPerGen() + ", " +
+                        "Spawns per generation - " + params.spawnsPerGen() +
+                        ((params.convergeAtMaxEquals())? (", Stop when solution does not improve after number of " +
+                                "iterations - " + params.maxEquals()) : "") +
+                        "\n\n"
+                );
+            } else throw new RuntimeException("Wrong parameters type.");
+        }
     }
 
     private static final class GradientUI {
@@ -436,7 +476,7 @@ public final class AlgorithmParametersUI {
         private static long evaluationTime;
         private static int argumentCount;
 
-        private static void gradientUI(TreeDocument treeDocument) {
+        static void show(TreeDocument treeDocument) {
             Frame frame = treeDocument.getFrame();
 
             AbstractNodeView nodeView = (AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot();
@@ -468,7 +508,7 @@ public final class AlgorithmParametersUI {
             final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
             fieldIterations = new TextField(Integer.toString(initIterations), 29);
 
-            final Label labelSolutions = new Label("Number of solutions: ", Label.RIGHT);
+            final Label labelSolutions = new Label("Number of initial random solutions: ", Label.RIGHT);
             fieldSolutions = new TextField(Integer.toString(initSolutions), 29);
 
             checkboxConverge =
@@ -619,6 +659,17 @@ public final class AlgorithmParametersUI {
                 labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
                 labelMaxTime.setText("Maximum time required: " + maxTime + " s");
             }
+        }
+
+        public static void log(TextArea log, AlgorithmParameters parameters) {
+            if (parameters instanceof GradientDescentParameters params) {
+                log.append("Iterations - " + params.maxIterations() + ", " +
+                        "Number of initial random solutions - " + params.numberOfSolutions() +
+                        ((params.convergeAtMaxEquals())? (", Stop when solution does not improve after number of " +
+                                "iterations - " + params.maxEquals()) : "") +
+                        "\n\n"
+                );
+            } else throw new RuntimeException("Wrong parameters type.");
         }
     }
 

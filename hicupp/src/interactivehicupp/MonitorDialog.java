@@ -64,12 +64,10 @@ public class MonitorDialog extends Dialog implements Monitor {
     
     addWindowListener(new WindowAdapter() {
       public void windowOpened(WindowEvent e) {
-        new Thread() {
-          public void run() {
-            computation.run();
-            postEvent(doneEventID);
-          }
-        }.start();
+        new Thread(() -> {
+          computation.run();
+          postEvent(doneEventID);
+        }).start();
       }
     });
   }
@@ -100,7 +98,7 @@ public class MonitorDialog extends Dialog implements Monitor {
     this.computation = computation;
     this.logTextArea = logTextArea;
     
-    show();
+    setVisible(true);
   }
   
   private void postEvent(int id) {

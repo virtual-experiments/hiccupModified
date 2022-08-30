@@ -8,6 +8,8 @@ import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
 import hicupp.trees.*;
 
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 public class TreeDocument extends Panel implements Document, PointsSourceClient {
 
   private final PointsSourceProvider pointsSourceProvider;
@@ -34,7 +36,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   private static Frame getFrameAncestor(Component c) {
     while (!(c instanceof Frame))
-      c = c.getParent();
+      if (c == null) return null;
+      else c = c.getParent();
     return (Frame) c;
   }
 
@@ -139,16 +142,20 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
     {
       logFrame.add(logTextArea, BorderLayout.CENTER);
+      logTextArea.setEditable(false);
       logFrame.setTitle("Log Window - Interactive Hicupp");
       MenuBar menuBar = new MenuBar();
       Menu fileMenu = new Menu("File");
+      fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
       MenuItem save = new MenuItem("Save...");
       save.addActionListener(e -> {
         FileDialog fileDialog = new FileDialog(getFrame(), "Save Log As", FileDialog.SAVE);
-        fileDialog.show();
+        fileDialog.setVisible(true);
         if (fileDialog.getFile() != null) {
           try {
-            Writer writer = new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile()));
+            String filename = fileDialog.getFile();
+            if (!filename.endsWith(".txt")) filename += ".txt";
+            Writer writer = new FileWriter(new File(fileDialog.getDirectory(), filename));
             writer.write(logTextArea.getText());
             writer.close();
           } catch (IOException ex) {
@@ -158,6 +165,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       });
       fileMenu.add(save);
       Menu menu = new Menu("Edit");
+      menu.setFont(new Font("MenuFont", Font.PLAIN, 14));
       MenuItem clear = new MenuItem("Clear");
       menuBar.add(fileMenu);
       menuBar.add(menu);
@@ -165,7 +173,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       clear.addActionListener(e -> logTextArea.setText(""));
       logFrame.setMenuBar(menuBar);
       logFrame.pack();
-      logFrame.show();
+      logFrame.setVisible(true);
     }
 
     setBackground(Color.white);
