@@ -1,4 +1,5 @@
 /bin/
+/classes/
 *.app
 *.zip
 /temp.bmp

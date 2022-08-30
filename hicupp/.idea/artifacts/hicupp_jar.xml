@@ -1,5 +1,5 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="hicupp:jar">
+  <artifact type="jar" build-on-make="true" name="hicupp:jar">
     <output-path>$PROJECT_DIR$/classes/artifacts/hicupp_jar</output-path>
     <root id="archive" name="hicupp.jar">
       <element id="module-output" name="hicupp" />

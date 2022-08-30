@@ -51,7 +51,7 @@ public class BMPFileFormat {
     f.close();
   }
 
-  public static RandomAccessFile convertImage(String filename) throws IOException {
+  private static RandomAccessFile convertImage(String filename) throws IOException {
     BufferedImage original = ImageIO.read(new File(filename));
     if (original == null) throw new IOException("Loaded a non image file.");
 
@@ -74,8 +74,13 @@ public class BMPFileFormat {
       original = output;
     }
 
-    System.out.println("Attempting to convert image.");
-    ImageIO.write(original, "bmp", new File("./temp.bmp"));
+    try {
+      System.out.println("Attempting to convert image.");
+      ImageIO.write(original, "bmp", new File("./temp.bmp"));
+    } catch (IOException exception) {
+      throw new IOException("Please run the program in a different directory or as administrator " +
+              "as the program don't have the permission to create a file here.");
+    }
 
     File output = new File("./temp.bmp");
 
