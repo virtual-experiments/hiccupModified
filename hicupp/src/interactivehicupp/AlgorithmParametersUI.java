@@ -1,6 +1,9 @@
 package interactivehicupp;
 
+import hicupp.Function;
 import hicupp.FunctionMaximizer;
+import hicupp.ProjectionIndexFunction;
+import hicupp.algorithms.AlgorithmUtilities;
 import hicupp.algorithms.ga.*;
 import hicupp.algorithms.gd.GradientDescentParameters;
 import hicupp.algorithms.sa.*;
@@ -538,6 +541,44 @@ public final class AlgorithmParametersUI {
         dialog.setLocation((screenSize.width - dialogSize.width) / 2,
                 (screenSize.height - dialogSize.height) / 2);
         dialog.setVisible(true);
+    }
+
+    /**
+     * Find the evaluation time of given set of points with chosen projection index
+     * @param projectionIndex chosen projection index
+     * @param nodeView node to be evaluated
+     */
+    public static void evaluationTime(int projectionIndex, AbstractNodeView nodeView) {
+        Function projectionIndexFunction = new ProjectionIndexFunction(projectionIndex, nodeView.getClassNode());
+
+        Runnable runnable = () -> {
+            long total = 0;
+            int counter = 0;
+
+            while (counter < 10 && total < 5000) {
+                double[] x = AlgorithmUtilities.generateRandomArguments(projectionIndexFunction.getArgumentCount(),
+                                                                        1);
+
+                long start = System.currentTimeMillis();
+                projectionIndexFunction.evaluate(x);
+                long end = System.currentTimeMillis();
+
+                long duration = end - start;
+
+                if (duration != 0) {
+                    counter++;
+                    total += duration;
+                    System.out.println("Current picture single evaluation time (ms): " + duration);
+                }
+            }
+
+            long average = Math.round((double) total / (double) counter);
+            System.out.println("Count: " + counter + " Average (ms): " + average);
+            nodeView.setEvaluationTime(average);
+        };
+
+        Thread thread = new Thread(runnable);
+        thread.start();
     }
 
     /*

@@ -73,10 +73,6 @@ abstract class AbstractNodeView implements NodeView {
       } else
         throw new RuntimeException("Unexpected info object: " + info);
     });
-
-    if (parent == null) { // root
-      this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
-    }
   }
   
   void initChild() {
@@ -262,6 +258,10 @@ abstract class AbstractNodeView implements NodeView {
 
   public void setEvaluationTime() {
     if (parent == null)
-      this.evaluationTime = AlgorithmUtilities.evaluationTime(this.client.getProjectionIndex(), this.classNode);
+      AlgorithmParametersUI.evaluationTime(this.client.getProjectionIndex(), this);
+  }
+
+  public void setEvaluationTime(long time) {
+    this.evaluationTime = time;
   }
 }

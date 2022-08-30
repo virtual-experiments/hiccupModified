@@ -47,25 +47,4 @@ public final class AlgorithmUtilities {
         for (double v : x) System.out.print(v + " ");
         System.out.println(" => " + fx);
     }
-
-    /**
-     * Find the evaluation time of given set of points with chosen projection index
-     * @param projectionIndex chosen projection index
-     * @param points set of points of the node
-     * @return time it takes to evaluate a single random input in milliseconds
-     */
-    public static long evaluationTime(int projectionIndex, SetOfPoints points) {
-        Function projectionIndexFunction = new ProjectionIndexFunction(projectionIndex, points);
-        double[] x = generateRandomArguments(projectionIndexFunction.getArgumentCount(), 1);
-
-        long start = System.currentTimeMillis();
-        projectionIndexFunction.evaluate(x);
-        long end = System.currentTimeMillis();
-
-        long duration = end - start;
-
-        System.out.println("Current picture single evaluation time (ms): " + duration);
-
-        return duration;
-    }
 }
