@@ -3,8 +3,6 @@ package interactivehicupp;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.*;
-import java.util.Observable;
-import java.util.Observer;
 
 import hicupp.*;
 import hicupp.classify.*;
@@ -20,6 +18,8 @@ public class SplitView extends Label {
   private final HistogramView histogramView;
   private final String[] parameterNames;
   private PointsPlotFrame pointsPlotFrame;
+  private DecisionRule decisionRule;
+
 
   public void showPointsPlot() {
     if (pointsPlotFrame == null) {
@@ -32,7 +32,24 @@ public class SplitView extends Label {
         }
       });
     }
-    pointsPlotFrame.show();
+    pointsPlotFrame.setVisible(true);
+  }
+
+  public void showDecisionRule() {
+    if (decisionRule == null) {
+      decisionRule = new DecisionRule(parent.getClassNode().getNode().getSerialNumber());
+      decisionRule.setTextArea(parameterNames, classSplit.getSplit());
+      decisionRule.setVisible(true);
+
+      decisionRule.addWindowListener(new WindowAdapter() {
+        @Override
+        public void windowClosing(WindowEvent e) {
+          super.windowClosing(e);
+          decisionRule.setVisible(false);
+          decisionRule = null;
+        }
+      });
+    }
   }
 
   private void updatePointsPlotCoords() {
@@ -73,27 +90,41 @@ public class SplitView extends Label {
     });
 
     addMouseListener(new MouseAdapter() {
+      @Override
       public void mouseReleased(MouseEvent e) {
         Dimension size = getSize();
         int x = e.getX();
         int y = e.getY();
+
         boolean inComponent = 0 <= x &&
                 x <= size.width &&
                 0 <= y &&
                 y <= size.height;
-        if (inComponent && (e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0) {
-          PopupMenu popupMenu = new PopupMenu();
-          MenuItem showPointsPlotMenuItem = new MenuItem("Show Points Plot");
-          showPointsPlotMenuItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent actionEvent) {
-              showPointsPlot();
-            }
-          });
+
+        if (inComponent && (e.getButton() == MouseEvent.BUTTON3)) {
+          final PopupMenu popupMenu = new PopupMenu();
+          popupMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
+
+          final MenuItem showPointsPlotMenuItem = new MenuItem();
+          final MenuItem showDecisionRuleMenuItem = new MenuItem();
+
+          {
+            showPointsPlotMenuItem.setLabel("Show Points Plot");
+            showPointsPlotMenuItem.addActionListener(event -> showPointsPlot());
+          }
+
+          {
+            showDecisionRuleMenuItem.setLabel("Show Decision Rule");
+            showDecisionRuleMenuItem.addActionListener(event -> showDecisionRule());
+          }
+
           popupMenu.add(showPointsPlotMenuItem);
+          popupMenu.add(showDecisionRuleMenuItem);
+
           getParent().add(popupMenu);
-          popupMenu.show(SplitView.this, e.getX(), e.getY());
+          popupMenu.show(SplitView.this, x, y);
           getParent().remove(popupMenu);
-        }
+        } else if (inComponent && (e.getButton() == MouseEvent.BUTTON1)) showDecisionRule();
       }
     });
   }
@@ -111,7 +142,7 @@ public class SplitView extends Label {
   private static final NumberFormat equationNumberFormat = new DecimalFormat("##0.00");
 
   private String getEquationString(Split split) {
-    StringBuffer buffer = new StringBuffer();
+    StringBuilder buffer = new StringBuilder();
     double[] axis = split.getAxis();
     for (int i = 0; i < axis.length; i++) {
       if (i != 0)

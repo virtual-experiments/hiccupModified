@@ -3,7 +3,7 @@ package interactivehicupp;
 import java.io.IOException;
 
 public class TreeDocumentType implements DocumentType {
-  private PointsSourceType pointsSourceType;
+  private final PointsSourceType pointsSourceType;
   
   public TreeDocumentType(PointsSourceType pointsSourceType) {
     this.pointsSourceType = pointsSourceType;

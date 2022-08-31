@@ -8,8 +8,6 @@ import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
 import hicupp.trees.*;
 
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 public class TreeDocument extends Panel implements Document, PointsSourceClient {
 
   private final PointsSourceProvider pointsSourceProvider;
@@ -210,6 +208,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   public PopupMenu createNodePopupMenu(final NodeView selectedNode) {
     nodePopupMenu.removeAll();
+    nodePopupMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
+
     final MenuItem splitMenuItem = new MenuItem();
     final MenuItem pruneMenuItem = new MenuItem();
     final MenuItem goToNodeMenuItem = new MenuItem();
@@ -219,44 +219,34 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
     splitMenuItem.setLabel("Split");
     splitMenuItem.setEnabled(split);
-    splitMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        try {
-          selectedNode.split();
-          rebuildComponentStructure();
-          layoutTree();
-          updateGoMenu();
-          repaint();
-        } catch (NoConvergenceException ex) {
-          MessageBox.showMessage(getFrameAncestor(TreeDocument.this), "Could not split the node: " + ex.toString(), "Interactive Hicupp");
-        } catch (CancellationException ignored) { }
-      }
-    });
-    pruneMenuItem.setLabel("Prune");
-    pruneMenuItem.setEnabled(!split);
-    pruneMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        selectedNode.getClassNode().getNode().prune();
+    splitMenuItem.addActionListener(e -> {
+      try {
+        selectedNode.split();
         rebuildComponentStructure();
         layoutTree();
         updateGoMenu();
         repaint();
-      }
+      } catch (NoConvergenceException ex) {
+        MessageBox.showMessage(getFrameAncestor(TreeDocument.this), "Could not split the node: " + ex.toString(), "Interactive Hicupp");
+      } catch (CancellationException ignored) { }
+    });
+    pruneMenuItem.setLabel("Prune");
+    pruneMenuItem.setEnabled(!split);
+    pruneMenuItem.addActionListener(e -> {
+      selectedNode.getClassNode().getNode().prune();
+      rebuildComponentStructure();
+      layoutTree();
+      updateGoMenu();
+      repaint();
     });
     goToNodeMenuItem.setLabel("Go To Node");
-    goToNodeMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        goTo(selectedNode);
-      }
-    });
+    goToNodeMenuItem.addActionListener(e -> goTo(selectedNode));
     showInfoMenuItem.setLabel(selectedNode.infoIsShowing() ? "Hide Info" : "Show Info");
-    showInfoMenuItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        if (selectedNode.infoIsShowing())
-          selectedNode.hideInfo();
-        else
-          selectedNode.showInfo();
-      }
+    showInfoMenuItem.addActionListener(e -> {
+      if (selectedNode.infoIsShowing())
+        selectedNode.hideInfo();
+      else
+        selectedNode.showInfo();
     });
 
     nodePopupMenu.add(splitMenuItem);
