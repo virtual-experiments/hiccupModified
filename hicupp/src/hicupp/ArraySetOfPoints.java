@@ -1,9 +1,9 @@
 package hicupp;
 
 public class ArraySetOfPoints implements SetOfPoints {
-  private int dimensionCount;
-  private int pointCount;
-  private double[] matrix;
+  private final int dimensionCount;
+  private final int pointCount;
+  private final double[] matrix;
   
   public ArraySetOfPoints(int dimensionCount, double[] matrix) {
     this.dimensionCount = dimensionCount;

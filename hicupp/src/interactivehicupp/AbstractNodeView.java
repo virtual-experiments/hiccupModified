@@ -105,8 +105,7 @@ abstract class AbstractNodeView implements NodeView {
     });
   }    
 
-  protected void addNodePopupMenuItems(PopupMenu popupMenu) {
-  }
+  abstract void addNodePopupMenuItems(PopupMenu popupMenu);
   
   public SplitView getParentSplitView() {
     return parent;
