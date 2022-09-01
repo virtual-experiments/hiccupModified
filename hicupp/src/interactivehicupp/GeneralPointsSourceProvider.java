@@ -55,6 +55,8 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       super.newPoints();
       setEvaluationTime();
       component.setText(getClassNode().getPointCount() + " points");
+
+      if (inspector != null) inspector.setTextArea(matrixToString());
     }
 
     @Override
@@ -65,6 +67,14 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     }
 
     private void inspect() {
+      if (inspector == null) {
+        inspector = new Inspector(getClassNode().getNode().getSerialNumber());
+        inspector.setTextArea(matrixToString());
+        inspector.setVisible(true);
+      }
+    }
+
+    private String[][] matrixToString() {
       int pointCount = points.getPointCount();
       String[][] pointsString = new String[ndims][pointCount];
       NumberFormat format = new DecimalFormat("##0.00");
@@ -77,11 +87,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
         }
       }
 
-      if (inspector == null) {
-        inspector = new Inspector(getClassNode().getNode().getSerialNumber());
-        inspector.setTextArea(pointsString);
-        inspector.setVisible(true);
-      }
+      return pointsString;
     }
 
     private class Inspector extends Frame {
