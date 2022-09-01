@@ -17,7 +17,6 @@ import hicupp.trees.*;
 public class GeneralPointsSourceProvider implements PointsSourceProvider {
   private final Menu pointsMenu = new Menu();
   private final Menu viewMenu = new Menu();
-  private final MenuItem pointsLoadPointsMenuItem = new MenuItem();
   private LoadMatrixDialog loadMatrixDialog;
   
   private final PointsSourceClient client;
@@ -31,6 +30,9 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
 
   private String chosenFile = null;
   private String metadata = "N/A\nN/A";
+
+  private int numberOfDigitsAfterDecimal = 2;
+  private int numberOfTermsLimit = -1;
   
   private class GeneralNodeView extends AbstractNodeView {
     private final Label component = new Label();
@@ -42,9 +44,14 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       initComponent();
       newPoints();
     }
-    
+
+    @Override
     SplitView createChild() {
-      return new SplitView(GeneralNodeView::new, this, getClassNode().getChild(), parameterNames);
+      SplitView splitView = new SplitView(GeneralNodeView::new, this, getClassNode().getChild(), parameterNames);
+      splitView.setEquationNumberFormat(numberOfDigitsAfterDecimal);
+      splitView.setLimitNumberOfTerms(numberOfTermsLimit);
+
+      return splitView;
     }
     
     public Component getComponent() {
@@ -64,6 +71,11 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       final MenuItem inspectMenuItem = new MenuItem("Inspect");
       inspectMenuItem.addActionListener(e -> inspect());
       popupMenu.add(inspectMenuItem);
+    }
+
+    @Override
+    public void split() throws NoConvergenceException, CancellationException {
+      super.split();
     }
 
     private void inspect() {
@@ -185,13 +197,31 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   
   public GeneralPointsSourceProvider(PointsSourceClient client, Tree tree) {
     this.client = client;
-    
-    pointsMenu.setLabel("Points");
-    pointsMenu.setFont(new Font("Menu", Font.PLAIN, 14));
-    pointsMenu.add(pointsLoadPointsMenuItem);
-    
-    pointsLoadPointsMenuItem.setLabel("Load Points From ASCII File...");
-    pointsLoadPointsMenuItem.addActionListener(e -> loadPoints());
+
+    {
+      pointsMenu.setLabel("Points");
+      pointsMenu.setFont(new Font("Menu", Font.PLAIN, 14));
+
+      MenuItem pointsLoadPointsMenuItem = new MenuItem("Load Points From ASCII File...");
+      pointsLoadPointsMenuItem.addActionListener(e -> loadPoints());
+      pointsMenu.add(pointsLoadPointsMenuItem);
+
+      MenuItem pointsFromCSV = new MenuItem("Load Points From CSV...");
+      pointsMenu.add(pointsFromCSV);
+    }
+
+    {
+      viewMenu.setLabel("View");
+      viewMenu.setFont(new Font("Menu", Font.PLAIN, 14));
+
+      MenuItem numberOfDecimalPointsMenuItem = new MenuItem("Set number of digits after the decimal point");
+      numberOfDecimalPointsMenuItem.addActionListener(e -> setNumberOfDecimalPoints());
+      viewMenu.add(numberOfDecimalPointsMenuItem);
+
+      MenuItem numberOfTermsMenuItem = new MenuItem("Set number of terms in decision tree");
+      numberOfTermsMenuItem.addActionListener(e -> setNumberOfTermsLimit());
+      viewMenu.add(numberOfTermsMenuItem);
+    }
 
     generateDefaultMatrix();
     
@@ -207,6 +237,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   @Override
   public void addMenuBarItems(MenuBar menuBar) {
     menuBar.add(pointsMenu);
+    menuBar.add(viewMenu);
   }
 
   @Override
@@ -244,5 +275,117 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   
   public String[] getParameterNames() {
     return parameterNames;
+  }
+
+  public void setNumberOfTermsLimit() {
+    boolean limit = numberOfTermsLimit != -1;
+
+    // elements
+    final Dialog dialog = new Dialog(client.getFrame(), "Set Terms Limit");
+
+    final Checkbox checkboxLimit = new Checkbox("Limit number of terms in decision tree", limit);
+
+    final TextField fieldLimit = new TextField(Integer.toString((limit)? numberOfTermsLimit : 3));
+    fieldLimit.setEnabled(limit);
+
+    final Button buttonOk = new Button("Ok");
+    final Button buttonCancel = new Button("Cancel");
+
+    // organise
+    final Panel panelButtons = new Panel(new FlowLayout(FlowLayout.RIGHT));
+    panelButtons.add(buttonOk);
+    panelButtons.add(buttonCancel);
+
+    dialog.setLayout(new BorderLayout());
+    dialog.add(checkboxLimit, BorderLayout.NORTH);
+    dialog.add(fieldLimit, BorderLayout.CENTER);
+    dialog.add(panelButtons, BorderLayout.SOUTH);
+
+    // events
+    checkboxLimit.addItemListener(e -> fieldLimit.setEnabled(checkboxLimit.getState()));
+
+    buttonCancel.addActionListener(e -> dialog.dispose());
+
+    buttonOk.addActionListener(e -> {
+      try {
+        int newLimit = Integer.parseInt(fieldLimit.getText());
+        if (newLimit <= 0)
+          MessageBox.showMessage(client.getFrame(),
+                  "Limit must be a positive integer.", "Interactive Hicupp");
+        else {
+          if (checkboxLimit.getState()) numberOfTermsLimit = newLimit;
+          else numberOfTermsLimit = -1;
+
+          if (root.getChild() != null)
+            root.getChild().setLimitNumberOfTerms(numberOfTermsLimit);
+
+          client.layoutTree();
+          dialog.dispose();
+        }
+      } catch (NumberFormatException exception) {
+        MessageBox.showMessage(client.getFrame(),
+                "What you entered is not a full number.", "Interactive Hicupp");
+      }
+    });
+
+    // show
+    dialog.pack();
+    Dimension dialogSize = dialog.getSize();
+    Dimension screenSize = client.getFrame().getToolkit().getScreenSize();
+    dialog.setLocation((screenSize.width - dialogSize.width) / 2,
+            (screenSize.height - dialogSize.height) / 2);
+    dialog.setVisible(true);
+  }
+
+  public void setNumberOfDecimalPoints() {
+    // elements
+    final Dialog dialog = new Dialog(client.getFrame(), "Set Number of Digits After The Decimal Point");
+
+    final Label label = new Label("Number of digits: ");
+
+    final TextField fieldDecimalPoints = new TextField(Integer.toString(numberOfDigitsAfterDecimal));
+
+    final Button buttonOk = new Button("Ok");
+    final Button buttonCancel = new Button("Cancel");
+
+    // organise
+    final Panel panelButtons = new Panel(new FlowLayout(FlowLayout.RIGHT));
+    panelButtons.add(buttonOk);
+    panelButtons.add(buttonCancel);
+
+    dialog.setLayout(new BorderLayout());
+    dialog.add(label, BorderLayout.WEST);
+    dialog.add(fieldDecimalPoints, BorderLayout.CENTER);
+    dialog.add(panelButtons, BorderLayout.SOUTH);
+
+    // events
+    buttonCancel.addActionListener(e -> dialog.dispose());
+
+    buttonOk.addActionListener(e -> {
+      try {
+        int newLimit = Integer.parseInt(fieldDecimalPoints.getText());
+        if (newLimit <= 0) throw new NumberFormatException();
+        else {
+          numberOfDigitsAfterDecimal = newLimit;
+
+          if (root.getChild() != null)
+            root.getChild().setEquationNumberFormat(numberOfDigitsAfterDecimal);
+
+          client.layoutTree();
+          dialog.dispose();
+        }
+      } catch (NumberFormatException exception) {
+        MessageBox.showMessage(client.getFrame(),
+                "What you entered is not a positive integer.", "Interactive Hicupp");
+      }
+    });
+
+    // show
+    dialog.pack();
+    Dimension dialogSize = dialog.getSize();
+    Dimension screenSize = client.getFrame().getToolkit().getScreenSize();
+    dialog.setLocation((screenSize.width - dialogSize.width) / 2,
+            (screenSize.height - dialogSize.height) / 2);
+    dialog.setVisible(true);
   }
 }

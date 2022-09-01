@@ -20,6 +20,8 @@ public class SplitView extends Label {
   private PointsPlotFrame pointsPlotFrame;
   private DecisionRule decisionRule;
 
+  private NumberFormat equationNumberFormat = new DecimalFormat("##0.00");
+  private int limitNumberOfTerms = -1; // -1 for no limit
 
   public void showPointsPlot() {
     if (pointsPlotFrame == null) {
@@ -137,22 +139,29 @@ public class SplitView extends Label {
 
   public void updateText() {
     setText(getEquationString(classSplit.getSplit()));
-  }
 
-  private static final NumberFormat equationNumberFormat = new DecimalFormat("##0.00");
+  }
 
   private String getEquationString(Split split) {
     StringBuilder buffer = new StringBuilder();
     double[] axis = split.getAxis();
-    for (int i = 0; i < axis.length; i++) {
-      if (i != 0)
-        buffer.append(" + ");
+
+    int numberOfTerms = (limitNumberOfTerms == -1 || axis.length < limitNumberOfTerms)?
+            axis.length : limitNumberOfTerms;
+
+    for (int i = 0; i < numberOfTerms; i++) {
+      if (i != 0) buffer.append(" + ");
+
       buffer.append(equationNumberFormat.format(axis[i]));
       buffer.append(" * ");
       buffer.append(parameterNames[i]);
     }
+
+    if (numberOfTerms < axis.length) buffer.append(" + ...");
+
     buffer.append(" < ");
     buffer.append(equationNumberFormat.format(split.getThreshold()));
+
     return buffer.toString();
   }
 
@@ -288,5 +297,34 @@ public class SplitView extends Label {
     SplitView child = nodeView.getChild();
     if (child != null)
       child.paintSubtree(g, nodeView);
+  }
+
+  public void setEquationNumberFormat(int numberOfDecimalPoints) {
+    String zeroes = "0".repeat(numberOfDecimalPoints);
+    updateText();
+    this.equationNumberFormat = new DecimalFormat("##0." + zeroes);
+    if (leftChild != null) {
+      if (leftChild.getChild() != null)
+        leftChild.getChild().setEquationNumberFormat(numberOfDecimalPoints);
+
+      if (rightChild.getChild() != null)
+        rightChild.getChild().setEquationNumberFormat(numberOfDecimalPoints);
+    }
+  }
+
+  /**
+   * Sets the number of terms shown in the decision rule, including its children
+   * @param limitNumberOfTerms Limit, or -1 for no limit
+   */
+  public void setLimitNumberOfTerms(int limitNumberOfTerms) {
+    this.limitNumberOfTerms = limitNumberOfTerms;
+    updateText();
+    if (leftChild != null) {
+      if (leftChild.getChild() != null)
+        leftChild.getChild().setLimitNumberOfTerms(limitNumberOfTerms);
+
+      if (rightChild.getChild() != null)
+        rightChild.getChild().setLimitNumberOfTerms(limitNumberOfTerms);
+    }
   }
 }
