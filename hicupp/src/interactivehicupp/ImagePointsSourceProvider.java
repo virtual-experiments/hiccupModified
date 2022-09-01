@@ -258,7 +258,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       return new SplitView(ImageNodeView::new, this, getClassNode().getChild(), parameterNames);
     }
 
-    protected void addNodePopupMenuItems(PopupMenu popupMenu) {
+    @Override
+    void addNodePopupMenuItems(PopupMenu popupMenu) {
       final MenuItem inspectMenuItem = new MenuItem("Inspect");
       inspectMenuItem.addActionListener(e -> inspect());
       popupMenu.add(inspectMenuItem);
@@ -560,13 +561,13 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       Path path = Paths.get(chosenImageFile);
 
       long kilobytes = Files.size(path) / 1024;
-      String type = Optional.ofNullable(chosenImageFile)
+      String type = Optional.of(chosenImageFile)
               .filter(f -> f.contains("."))
               .map(f -> f.substring(chosenImageFile.lastIndexOf(".") + 1))
               .orElse("N/A");
 
       metadata = kilobytes + "\n" + type;
-    } catch (IOException e) {
+    } catch (IOException | NullPointerException e) {
 
       metadata = "N/A\nN/A";
       e.printStackTrace();
