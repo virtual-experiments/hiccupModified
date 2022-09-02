@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class LoadMatrixDialog extends Dialog {
+public class LoadMatrixDialog extends LoadDialog {
   private final TextField dataFileTextField = new TextField();
   private final Checkbox skipFirstLineCheckbox = new Checkbox();
   private final List columnsList = new List(10);
@@ -14,15 +14,18 @@ public class LoadMatrixDialog extends Dialog {
   private int columnsCount;
   private double[] coords;
   private final Frame parent;
-  
+
+  @Override
   public double[] getCoords() {
     return coords;
   }
 
+  @Override
   public int getColumnsCount() {
     return columnsCount;
   }
-  
+
+  @Override
   public String getFilename() {
     return dataFileTextField.getText();
   }

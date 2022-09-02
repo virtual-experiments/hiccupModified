@@ -17,7 +17,7 @@ import hicupp.trees.*;
 public class GeneralPointsSourceProvider implements PointsSourceProvider {
   private final Menu pointsMenu = new Menu();
   private final Menu viewMenu = new Menu();
-  private LoadMatrixDialog loadMatrixDialog;
+  private LoadDialog loadDialog;
   
   private final PointsSourceClient client;
   private final ClassTree classTree;
@@ -175,14 +175,23 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       parameterNames[i] = "p" + i;
   }
   
-  private void loadPoints() {
-    if (loadMatrixDialog == null)
-      loadMatrixDialog = new LoadMatrixDialog(client.getFrame(),
-                                              "Load Points from ASCII File");
-    loadMatrixDialog.setVisible(true);
-    double[] coords = loadMatrixDialog.getCoords();
+  private void loadPointsASCII() {
+    if (loadDialog == null)
+      loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+    loadDialog.setVisible(true);
+    loadPoints(loadDialog.getCoords());
+  }
+
+  private void loadPointsCSV() {
+    if (loadDialog == null)
+      loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
+    loadDialog.setVisible(true);
+    loadPoints(loadDialog.getCoords());
+  }
+
+  private void loadPoints(double[] coords) {
     if (coords != null) {
-      int ndims = loadMatrixDialog.getColumnsCount();
+      int ndims = loadDialog.getColumnsCount();
       if (classTree.getRoot().getNode().getChild() != null && ndims != this.ndims)
         MessageBox.showMessage(client.getFrame(),
                 "Cannot load points: number of dimensions incompatible with split rules in tree.",
@@ -205,11 +214,12 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       pointsMenu.setFont(new Font("Menu", Font.PLAIN, 14));
 
       MenuItem pointsLoadPointsMenuItem = new MenuItem("Load Points From ASCII File...");
-      pointsLoadPointsMenuItem.addActionListener(e -> loadPoints());
+      pointsLoadPointsMenuItem.addActionListener(e -> loadPointsASCII());
       pointsMenu.add(pointsLoadPointsMenuItem);
 
-      MenuItem pointsFromCSV = new MenuItem("Load Points From CSV...");
-      pointsMenu.add(pointsFromCSV);
+      MenuItem pointsFromCSVMenuItem = new MenuItem("Load Points From CSV...");
+      pointsFromCSVMenuItem.addActionListener(e -> loadPointsCSV());
+      pointsMenu.add(pointsFromCSVMenuItem);
     }
 
     {
