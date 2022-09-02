@@ -16,6 +16,7 @@ public class LoadCSVDialog extends LoadDialog {
     private double[] coords;
     private final Frame parent;
     private CSVFileFormat reader;
+    private String[] parameterNames;
 
     @Override
     public double[] getCoords() {
@@ -30,6 +31,11 @@ public class LoadCSVDialog extends LoadDialog {
     @Override
     public String getFilename() {
         return dataFileTextField.getText();
+    }
+
+    @Override
+    public String[] getParameterNames() {
+        return parameterNames;
     }
 
     public LoadCSVDialog(Frame parent, String title) {
@@ -144,6 +150,7 @@ public class LoadCSVDialog extends LoadDialog {
         }
         columnsCount = columns.length;
         coords = reader.getCoordinatesFromChosenColumns(columns);
+        parameterNames = reader.getChosenParameters(columns);
         setVisible(false);
     }
 }

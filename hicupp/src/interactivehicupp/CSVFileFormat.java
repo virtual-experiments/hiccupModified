@@ -82,4 +82,14 @@ public class CSVFileFormat {
 
         return coordinates.stream().mapToDouble(Double::doubleValue).toArray();
     }
+
+    public String[] getChosenParameters(int[] chosenColumns) {
+        String[] chosen = new String[chosenColumns.length];
+
+        for (int i = 0; i < chosenColumns.length; i++) {
+            chosen[i] = parameters[chosenColumns[i]];
+        }
+
+        return chosen;
+    }
 }

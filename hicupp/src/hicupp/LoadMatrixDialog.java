@@ -29,7 +29,12 @@ public class LoadMatrixDialog extends LoadDialog {
   public String getFilename() {
     return dataFileTextField.getText();
   }
-  
+
+  @Override
+  public String[] getParameterNames() {
+    return null;
+  }
+
   public LoadMatrixDialog(Frame parent, String title) {
     super(parent, title, true);
     

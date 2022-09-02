@@ -88,15 +88,20 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
 
     private String[][] matrixToString() {
       int pointCount = points.getPointCount();
-      String[][] pointsString = new String[pointCount][ndims];
+      String[][] pointsString = new String[pointCount + 1][ndims + 1];
       String digits = "0".repeat(numberOfDigitsAfterDecimal);
       NumberFormat format = new DecimalFormat("##0." + digits);
+
+      System.arraycopy(parameterNames, 0, pointsString[0], 1, ndims);
+      for (int i = 0; i < pointCount + 1; i++) {
+        pointsString[i][0] = (i == 0)? "" : Integer.toString(i);
+      }
 
       for (int i = 0; i < pointCount; i++) {
         for (int j = 0; j < ndims; j++) {
           int index = i + pointCount * j;
-          pointsString[i][j] = (getClassNode().containsPointAtIndex(j))?
-                  format.format(coords[index]) : "N/A";
+          pointsString[i + 1][j + 1] = (getClassNode().containsPointAtIndex(i))?
+                  format.format(coords[index]) : "---";
         }
       }
 
@@ -126,7 +131,6 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       void setTextArea(String[][] pointsString) {
         StringBuilder builder = new StringBuilder();
         int columns = 0;
-        int rows = 0;
 
         for (String[] row : pointsString) {
           StringBuilder newRow = new StringBuilder();
@@ -134,12 +138,10 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
             newRow.append(element).append("\t");
           }
           columns = Math.max(columns, newRow.length());
-          rows++;
           builder.append(newRow).append("\n");
         }
 
-        textArea.setColumns(columns * 2);
-        textArea.setRows(rows + 1);
+        textArea.setColumns(columns * 3/2);
         textArea.setText(builder.toString());
       }
 
@@ -199,8 +201,12 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       else {
         this.ndims = ndims;
         this.coords = coords;
-        points = new ArraySetOfPoints(ndims, coords);
-        generateDefaultParameterNames();
+        this.points = new ArraySetOfPoints(ndims, coords);
+
+        String[] newParameters = loadDialog.getParameterNames();
+        if (newParameters != null) parameterNames = newParameters;
+        else generateDefaultParameterNames();
+
         classTree.setPoints(points);
       }
     }

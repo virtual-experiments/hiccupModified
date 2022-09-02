@@ -10,4 +10,5 @@ public abstract class LoadDialog extends Dialog {
     public abstract int getColumnsCount();
     public abstract double[] getCoords();
     public abstract String getFilename();
+    public abstract String[] getParameterNames();
 }
