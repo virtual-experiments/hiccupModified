@@ -9,6 +9,8 @@ public class MatrixFileFormat {
     
     BufferedReader reader = new BufferedReader(new FileReader(filename));
     StreamTokenizer t = new StreamTokenizer(reader);
+    t.whitespaceChars(',', ',');
+
     t.eolIsSignificant(true);
     if (skipFirstLine) {
       do {

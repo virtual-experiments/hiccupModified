@@ -79,7 +79,7 @@ public class LoadMatrixDialog extends Dialog {
             fileDialog.setDirectory(file.getParent().toString());
           fileDialog.setFile(file.getName());
         }
-        fileDialog.show();
+        fileDialog.setVisible(true);
         if (fileDialog.getFile() != null)
           dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
       }
@@ -102,23 +102,13 @@ public class LoadMatrixDialog extends Dialog {
       columnsList.add("Column " + (i + 1));
     
     addColumnButton.setLabel("Add column");
-    addColumnButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        columnsList.add("Column " + (columnsList.getItemCount() + 1));
-      }
-    });
+    addColumnButton.addActionListener(e -> columnsList.add("Column " + (columnsList.getItemCount() + 1)));
     
-    loadPointsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        loadPoints();
-      }
-    });
+    loadPointsButton.addActionListener(e -> loadPoints());
     
-    cancelButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        coords = null;
-        hide();
-      }
+    cancelButton.addActionListener(e -> {
+      coords = null;
+      setVisible(false);
     });
     
     buttonsPanel.add(loadPointsButton);
@@ -143,7 +133,7 @@ public class LoadMatrixDialog extends Dialog {
                                                     skipFirstLine,
                                                     columns);
       columnsCount = columns.length;
-      hide();
+      setVisible(false);
     } catch (IOException e) {
       MessageBox.showMessage(parent, "Could not read data file: " + e.toString(), getTitle());
     }
