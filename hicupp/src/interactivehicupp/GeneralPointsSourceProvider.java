@@ -88,12 +88,13 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
 
     private String[][] matrixToString() {
       int pointCount = points.getPointCount();
-      String[][] pointsString = new String[ndims][pointCount];
-      NumberFormat format = new DecimalFormat("##0.00");
+      String[][] pointsString = new String[pointCount][ndims];
+      String digits = "0".repeat(numberOfDigitsAfterDecimal);
+      NumberFormat format = new DecimalFormat("##0." + digits);
 
-      for (int i = 0; i < ndims; i++) {
-        for (int j = 0; j < pointCount; j++) {
-          int index = i * pointCount + j;
+      for (int i = 0; i < pointCount; i++) {
+        for (int j = 0; j < ndims; j++) {
+          int index = i + pointCount * j;
           pointsString[i][j] = (getClassNode().containsPointAtIndex(j))?
                   format.format(coords[index]) : "N/A";
         }
@@ -188,6 +189,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
                 "Interactive Hicupp");
       else {
         this.ndims = ndims;
+        this.coords = coords;
         points = new ArraySetOfPoints(ndims, coords);
         generateDefaultParameterNames();
         classTree.setPoints(points);

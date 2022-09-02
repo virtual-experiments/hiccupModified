@@ -7,24 +7,13 @@ import java.awt.event.*;
 import java.io.*;
 
 public class LoadMatrixDialog extends Dialog {
-  private final Panel mainPanel = new Panel();
-  private final Panel dataFilePanel = new Panel();
-  private final Label dataFileLabel = new Label();
   private final TextField dataFileTextField = new TextField();
-  private final Button browseButton = new Button();
   private final Checkbox skipFirstLineCheckbox = new Checkbox();
-  private final Panel columnsPanel = new Panel();
-  private final Panel columnsHeaderPanel = new Panel();
-  private final Label columnsLabel = new Label();
   private final List columnsList = new List(10);
-  private final Button addColumnButton = new Button();
-  private final Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-  private final Button loadPointsButton = new Button("Load Points");
-  private final Button cancelButton = new Button("Cancel");
-  
+
   private int columnsCount;
   private double[] coords;
-  private Frame parent;
+  private final Frame parent;
   
   public double[] getCoords() {
     return coords;
@@ -43,24 +32,30 @@ public class LoadMatrixDialog extends Dialog {
     
     this.parent = parent;
 
+    Panel mainPanel = new Panel();
     LayoutTools.addWithMargin(this, mainPanel, 8);
     
     mainPanel.setLayout(new BorderLayout(6, 6));
+    Panel dataFilePanel = new Panel();
     mainPanel.add(dataFilePanel, BorderLayout.NORTH);
+    Panel columnsPanel = new Panel();
     mainPanel.add(columnsPanel, BorderLayout.CENTER);
+    Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
     mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
     
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         coords = null;
-        hide();
+        setVisible(false);
       }
     });
     setBackground(SystemColor.control);
     
     dataFilePanel.setLayout(new BorderLayout(6, 6));
+    Label dataFileLabel = new Label();
     dataFilePanel.add(dataFileLabel, BorderLayout.WEST);
     dataFilePanel.add(dataFileTextField, BorderLayout.CENTER);
+    Button browseButton = new Button();
     dataFilePanel.add(browseButton, BorderLayout.EAST);
     dataFilePanel.add(skipFirstLineCheckbox, BorderLayout.SOUTH);
     
@@ -68,31 +63,32 @@ public class LoadMatrixDialog extends Dialog {
     dataFileTextField.setColumns(50);
     
     browseButton.setLabel("Browse...");
-    browseButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        FileDialog fileDialog = new FileDialog(LoadMatrixDialog.this.parent,
-                                               "Choose a Data File", FileDialog.LOAD);
-        String filename = dataFileTextField.getText();
-        if (!filename.equals("")) {
-          File file = new File(filename);
-          if (file.getParent() != null)
-            fileDialog.setDirectory(file.getParent().toString());
-          fileDialog.setFile(file.getName());
-        }
-        fileDialog.setVisible(true);
-        if (fileDialog.getFile() != null)
-          dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
+    browseButton.addActionListener(e -> {
+      FileDialog fileDialog = new FileDialog(LoadMatrixDialog.this.parent,
+                                             "Choose a Data File", FileDialog.LOAD);
+      String filename = dataFileTextField.getText();
+      if (!filename.equals("")) {
+        File file = new File(filename);
+        if (file.getParent() != null)
+          fileDialog.setDirectory(file.getParent());
+        fileDialog.setFile(file.getName());
       }
+      fileDialog.setVisible(true);
+      if (fileDialog.getFile() != null)
+        dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
     });
 
     skipFirstLineCheckbox.setLabel("Skip First Line");
     
     columnsPanel.setLayout(new BorderLayout(6, 6));
+    Panel columnsHeaderPanel = new Panel();
     columnsPanel.add(columnsHeaderPanel, BorderLayout.NORTH);
     columnsPanel.add(columnsList, BorderLayout.CENTER);
     
     columnsHeaderPanel.setLayout(new BorderLayout(6, 6));
+    Label columnsLabel = new Label();
     columnsHeaderPanel.add(columnsLabel, BorderLayout.CENTER);
+    Button addColumnButton = new Button();
     columnsHeaderPanel.add(addColumnButton, BorderLayout.EAST);
     
     columnsLabel.setText("Columns:");
@@ -103,9 +99,11 @@ public class LoadMatrixDialog extends Dialog {
     
     addColumnButton.setLabel("Add column");
     addColumnButton.addActionListener(e -> columnsList.add("Column " + (columnsList.getItemCount() + 1)));
-    
+
+    Button loadPointsButton = new Button("Load Points");
     loadPointsButton.addActionListener(e -> loadPoints());
-    
+
+    Button cancelButton = new Button("Cancel");
     cancelButton.addActionListener(e -> {
       coords = null;
       setVisible(false);
@@ -135,7 +133,7 @@ public class LoadMatrixDialog extends Dialog {
       columnsCount = columns.length;
       setVisible(false);
     } catch (IOException e) {
-      MessageBox.showMessage(parent, "Could not read data file: " + e.toString(), getTitle());
+      MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
     }
   }
 }

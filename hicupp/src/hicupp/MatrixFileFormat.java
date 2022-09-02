@@ -5,11 +5,10 @@ import java.util.*;
 
 public class MatrixFileFormat {
   public static double[] readMatrix(String filename, boolean skipFirstLine, int[] columns) throws IOException {
-    Vector lines = new Vector();
+    Vector<double[]> lines = new Vector<>();
     
     BufferedReader reader = new BufferedReader(new FileReader(filename));
     StreamTokenizer t = new StreamTokenizer(reader);
-    t.whitespaceChars(',', ',');
 
     t.eolIsSignificant(true);
     if (skipFirstLine) {
@@ -48,7 +47,7 @@ public class MatrixFileFormat {
     double[] matrix = new double[lines.size() * columns.length];
     int k = 0;
     for (int i = 0; i < lines.size(); i++) {
-      double[] line = (double[]) lines.elementAt(i);
+      double[] line = lines.elementAt(i);
       for (int j = 0; j < columns.length; j++)
         matrix[k++] = line[j];
     }
