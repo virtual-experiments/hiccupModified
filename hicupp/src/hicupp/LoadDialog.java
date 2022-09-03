@@ -11,4 +11,7 @@ public abstract class LoadDialog extends Dialog {
     public abstract double[] getCoords();
     public abstract String getFilename();
     public abstract String[] getParameterNames();
+    public abstract int skipFirstLine();
+    public abstract String printChosenColumns();
+    public abstract void load(String filename, int skipFirstLine, int[] chosenColumns);
 }

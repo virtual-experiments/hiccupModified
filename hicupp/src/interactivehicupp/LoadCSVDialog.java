@@ -38,6 +38,35 @@ public class LoadCSVDialog extends LoadDialog {
         return parameterNames;
     }
 
+    @Override
+    public int skipFirstLine() {
+        return (parameterFirstLineCheckBox.getState())? 1 : 0;
+    }
+
+    @Override
+    public String printChosenColumns() {
+        StringBuilder builder = new StringBuilder();
+
+        for (int column : columnsList.getSelectedIndexes()) {
+            builder.append(column);
+            builder.append(" ");
+        }
+
+        return builder.toString();
+    }
+
+    @Override
+    public void load(String filename, int skipFirstLine, int[] chosenColumns) {
+        try {
+            reader = new CSVFileFormat(filename, skipFirstLine == 1);
+            coords = reader.getCoordinatesFromChosenColumns(chosenColumns);
+            columnsCount = chosenColumns.length;
+            parameterNames = reader.getChosenParameters(chosenColumns);
+        } catch (IOException e) {
+            MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
+        }
+    }
+
     public LoadCSVDialog(Frame parent, String title) {
         super(parent, title, true);
 

@@ -35,6 +35,35 @@ public class LoadMatrixDialog extends LoadDialog {
     return null;
   }
 
+  @Override
+  public int skipFirstLine() {
+    return (skipFirstLineCheckbox.getState())? 1 : 0;
+  }
+
+  @Override
+  public String printChosenColumns() {
+    StringBuilder builder = new StringBuilder();
+
+    for (int column : columnsList.getSelectedIndexes()) {
+      builder.append(column);
+      builder.append(" ");
+    }
+
+    return builder.toString();
+  }
+
+  @Override
+  public void load(String filename, int skipFirstLine, int[] chosenColumns) {
+    try {
+      coords = MatrixFileFormat.readMatrix(dataFileTextField.getText(),
+              skipFirstLine == 1,
+              chosenColumns);
+      columnsCount = chosenColumns.length;
+    } catch (IOException e) {
+      MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
+    }
+  }
+
   public LoadMatrixDialog(Frame parent, String title) {
     super(parent, title, true);
     

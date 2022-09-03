@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Optional;
+import java.util.Random;
 
 import hicupp.*;
 import hicupp.classify.*;
@@ -29,7 +30,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   private String[] parameterNames;
 
   private String chosenFile = null;
-  private String metadata = "N/A\nN/A";
+  private String metadata = "N/A\nN/A\nN/A";
 
   private int numberOfDigitsAfterDecimal = 2;
   private int numberOfTermsLimit = -1;
@@ -161,12 +162,16 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     }
   }
 
-  private void generateDefaultMatrix() {
-    coords = new double[] {
-      0,  0,  1,  0,  0,  1,  1,  1,  2,  2,
-      8,  8,  9,  9,  9,  10, 10, 9,  10, 10
-    };
-    ndims = 2;
+  private void generateDefaultMatrix(int ndims) {
+    coords = new double[ndims * 10];
+    Random random = new Random();
+
+    for (int i = 0; i < ndims * 10; i++) {
+      int j = random.nextInt(11); // 0 to 10
+      coords[i] = j;
+    }
+
+    this.ndims = ndims;
     points = new ArraySetOfPoints(ndims, coords);
     generateDefaultParameterNames();
   }
@@ -177,17 +182,22 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       parameterNames[i] = "p" + i;
   }
   
-  private void loadPointsASCII() {
-    if (loadDialog == null)
-      loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+  private void loadPointsFromFile(boolean csv) {
+    if (loadDialog == null) {
+      if (csv) loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
+      else loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+    }
     loadDialog.setVisible(true);
     loadPoints(loadDialog.getCoords());
   }
 
-  private void loadPointsCSV() {
-    if (loadDialog == null)
+  private void loadPointsFromSaveTree() {
+    if (TreeFileFormat.fileExtension.toString().equals("csv"))
       loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
-    loadDialog.setVisible(true);
+    else
+      loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+
+    loadDialog.load(chosenFile, TreeFileFormat.skipFirstLine, TreeFileFormat.chosenColumns);
     loadPoints(loadDialog.getCoords());
   }
 
@@ -207,7 +217,13 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
         if (newParameters != null) parameterNames = newParameters;
         else generateDefaultParameterNames();
 
+        if (root.getChild() != null)
+          root.getChild().setParameterNames(parameterNames);
+
         classTree.setPoints(points);
+        chosenFile = loadDialog.getFilename();
+        setMetadata();
+        client.layoutTree();
       }
     }
   }
@@ -220,11 +236,11 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       pointsMenu.setFont(new Font("Menu", Font.PLAIN, 14));
 
       MenuItem pointsLoadPointsMenuItem = new MenuItem("Load Points From ASCII File...");
-      pointsLoadPointsMenuItem.addActionListener(e -> loadPointsASCII());
+      pointsLoadPointsMenuItem.addActionListener(e -> loadPointsFromFile(false));
       pointsMenu.add(pointsLoadPointsMenuItem);
 
       MenuItem pointsFromCSVMenuItem = new MenuItem("Load Points From CSV...");
-      pointsFromCSVMenuItem.addActionListener(e -> loadPointsCSV());
+      pointsFromCSVMenuItem.addActionListener(e -> loadPointsFromFile(true));
       pointsMenu.add(pointsFromCSVMenuItem);
     }
 
@@ -241,7 +257,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       viewMenu.add(numberOfTermsMenuItem);
     }
 
-    generateDefaultMatrix();
+    generateDefaultMatrix(tree.getNdims());
     
     classTree = new ClassTree(tree, points);
     root = new GeneralNodeView(null, classTree.getRoot());
@@ -271,7 +287,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   @Override
   public void loadFile(String filename) {
     chosenFile = filename;
-    setMetadata();
+    loadPointsFromSaveTree();
   }
 
   private void setMetadata() {
@@ -284,9 +300,11 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
               .map(f -> f.substring(chosenFile.lastIndexOf(".") + 1))
               .orElse("N/A");
 
-      metadata = kilobytes + "\n" + type;
+      metadata = kilobytes + "\n" +
+              type + "\n" +
+              loadDialog.skipFirstLine() + " " + loadDialog.printChosenColumns();
     } catch (IOException | NullPointerException exception) {
-      metadata = "N/A\nN/A";
+      metadata = "N/A\nN/A\nN/A";
       exception.printStackTrace();
     }
   }

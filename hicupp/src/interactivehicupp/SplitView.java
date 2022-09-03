@@ -16,7 +16,7 @@ public class SplitView extends Label {
   private final NodeView parent;
   private final NodeView leftChild, rightChild;
   private final HistogramView histogramView;
-  private final String[] parameterNames;
+  private String[] parameterNames;
   private PointsPlotFrame pointsPlotFrame;
   private DecisionRule decisionRule;
 
@@ -139,7 +139,6 @@ public class SplitView extends Label {
 
   public void updateText() {
     setText(getEquationString(classSplit.getSplit()));
-
   }
 
   private String getEquationString(Split split) {
@@ -325,6 +324,18 @@ public class SplitView extends Label {
 
       if (rightChild.getChild() != null)
         rightChild.getChild().setLimitNumberOfTerms(limitNumberOfTerms);
+    }
+  }
+
+  public void setParameterNames(String[] parameterNames) {
+    this.parameterNames = parameterNames;
+    updateText();
+    if (leftChild != null) {
+      if (leftChild.getChild() != null)
+        leftChild.getChild().setParameterNames(parameterNames);
+
+      if (rightChild.getChild() != null)
+        rightChild.getChild().setParameterNames(parameterNames);
     }
   }
 }

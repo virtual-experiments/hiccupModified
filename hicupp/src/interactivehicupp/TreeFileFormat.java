@@ -2,12 +2,14 @@ package interactivehicupp;
 
 import hicupp.trees.*;
 import java.io.*;
+import java.util.ArrayList;
 
 public class TreeFileFormat {
   /* save file format
     Input file path
     Input file size
     Input file extension
+    General points data
     Dimensions
     Splits...
    */
@@ -86,6 +88,7 @@ public class TreeFileFormat {
     // data points
     t.nextToken();
     Tree tree = new Tree();
+    tree.setNdims(ndims);
     readSubtree(tree.getRoot(), ndims, 1, t);
     reader.close();
     return tree;
@@ -127,6 +130,8 @@ public class TreeFileFormat {
   public static StringBuilder filename = new StringBuilder();
   public static int fileSize = 0;
   public static StringBuilder fileExtension = new StringBuilder();
+  public static int skipFirstLine = 1;
+  public static int[] chosenColumns;
 
   private static void readMetadata( StreamTokenizer t) throws IOException {
     inputFileExists = false;
@@ -161,6 +166,39 @@ public class TreeFileFormat {
       fileExtension.append(t.sval);
       t.nextToken();
     }
+
+    t.nextToken();
+    if (t.ttype == StreamTokenizer.TT_WORD) { // image source: N/A
+      while (t.ttype != StreamTokenizer.TT_EOL) t.nextToken();  // skip line
+    } else {  // general points: skipFirstLine(0,1) chosenColumns...
+      if (t.ttype != StreamTokenizer.TT_NUMBER) syntaxError(t.lineno(), "Number expected.");
+      else {
+        skipFirstLine = (int) t.nval;
+        t.nextToken();
+
+        ArrayList<Integer> chosenColumns = new ArrayList<>();
+        while (t.ttype != StreamTokenizer.TT_EOL) {
+          if (t.ttype != StreamTokenizer.TT_NUMBER) syntaxError(t.lineno(), "Number expected.");
+          else {
+            chosenColumns.add((int) t.nval);
+            t.nextToken();
+          }
+        }
+
+        TreeFileFormat.chosenColumns = chosenColumns.stream().mapToInt(i -> i).toArray();
+      }
+    }
+  }
+
+  public static String printChosenColumns() {
+    StringBuilder builder = new StringBuilder();
+
+    for (int column : chosenColumns) {
+      builder.append(column);
+      builder.append(" ");
+    }
+
+    return builder.toString();
   }
 
   private static double readNumber(StreamTokenizer t) throws IOException {

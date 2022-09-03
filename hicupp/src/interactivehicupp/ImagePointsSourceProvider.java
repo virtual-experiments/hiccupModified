@@ -57,7 +57,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private int newMaskIndex = initialNewMaskColorIndex;
 
   private String chosenImageFile = null;
-  private String metadata = "N/A\nN/A";
+  private String metadata = "N/A\nN/A\nN/A";
   private boolean automaticColor;
 
   private final SetOfPoints points = new SetOfPoints() {
@@ -565,10 +565,11 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
               .map(f -> f.substring(chosenImageFile.lastIndexOf(".") + 1))
               .orElse("N/A");
 
-      metadata = kilobytes + "\n" + type;
+      metadata = kilobytes + "\n" +
+              type + "\n" +
+              "N/A"; // 3rd line only for general points
     } catch (IOException | NullPointerException e) {
-
-      metadata = "N/A\nN/A";
+      metadata = "N/A\nN/A\nN/A";
       e.printStackTrace();
     }
   }
