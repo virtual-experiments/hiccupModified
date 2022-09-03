@@ -20,9 +20,6 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private DocumentChangeListener changeListener;
 
   private final Menu toolsMenu = new Menu();
-  private final Menu projectionIndexMenu;
-  private final Menu optimisationAlgorithmMenu;
-  private final MenuItem configureAlgorithmMenu = new MenuItem();
   private final Menu goMenu = new Menu();
   private final MenuItem goToRootMenuItem = new MenuItem();
   private final MenuItem goToParentMenuItem = new MenuItem();
@@ -75,6 +72,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private TreeDocument(PointsSourceType pointsSourceType, Tree tree) {
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
 
+    Menu projectionIndexMenu;
+    Menu optimisationAlgorithmMenu;
+    MenuItem configureAlgorithmMenu = new MenuItem();
     {
       RadioMenuTools.RadioMenuEventListener projectionIndexListener = index -> {
         projectionIndex = index;
@@ -105,19 +105,19 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       });
     }
 
+    nodePopupMenu.setFont(DocumentFrame.menuFont);
+
     projectionIndexMenu.setLabel("Projection Index");
     optimisationAlgorithmMenu.setLabel("Optimization Algorithm");
     configureAlgorithmMenu.setLabel("Configure Optimization Algorithm");
 
     toolsMenu.setLabel("Tools");
-    toolsMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     toolsMenu.add(projectionIndexMenu);
     toolsMenu.addSeparator();
     toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.add(configureAlgorithmMenu);
 
     goMenu.setLabel("Go");
-    goMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     goMenu.add(goToRootMenuItem);
     goMenu.add(goToParentMenuItem);
     goMenu.add(goToLeftChildMenuItem);
@@ -143,8 +143,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       logTextArea.setEditable(false);
       logFrame.setTitle("Log Window - Interactive Hicupp");
       MenuBar menuBar = new MenuBar();
+      menuBar.setFont(DocumentFrame.menuFont);
       Menu fileMenu = new Menu("File");
-      fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
       MenuItem save = new MenuItem("Save...");
       save.addActionListener(e -> {
         FileDialog fileDialog = new FileDialog(getFrame(), "Save Log As", FileDialog.SAVE);
@@ -163,7 +163,6 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       });
       fileMenu.add(save);
       Menu menu = new Menu("Edit");
-      menu.setFont(new Font("MenuFont", Font.PLAIN, 14));
       MenuItem clear = new MenuItem("Clear");
       menuBar.add(fileMenu);
       menuBar.add(menu);
@@ -208,7 +207,6 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   public PopupMenu createNodePopupMenu(final NodeView selectedNode) {
     nodePopupMenu.removeAll();
-    nodePopupMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
 
     final MenuItem splitMenuItem = new MenuItem();
     final MenuItem pruneMenuItem = new MenuItem();
@@ -227,7 +225,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         updateGoMenu();
         repaint();
       } catch (NoConvergenceException ex) {
-        MessageBox.showMessage(getFrameAncestor(TreeDocument.this), "Could not split the node: " + ex.toString(), "Interactive Hicupp");
+        MessageBox.showMessage(getFrameAncestor(TreeDocument.this), "Could not split the node: " + ex,
+                "Interactive Hicupp");
       } catch (CancellationException ignored) { }
     });
     pruneMenuItem.setLabel("Prune");

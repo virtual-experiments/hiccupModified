@@ -25,7 +25,7 @@ public class DecisionRule extends Frame {
         setMenuBar(menuBar);
 
         Menu fileMenu = new Menu("File");
-        fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
+        fileMenu.setFont(DocumentFrame.menuFont);
         menuBar.add(fileMenu);
 
         MenuItem save = new MenuItem("Save");

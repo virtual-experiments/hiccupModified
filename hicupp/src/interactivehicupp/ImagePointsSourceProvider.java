@@ -310,7 +310,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
     // main
     viewMenu.setLabel("View");
-    viewMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
     viewChooseImageMenuItem.setLabel("Choose Image...");
     viewChooseImageMenuItem.addActionListener(e -> chooseImage(ImagePointsSourceProvider.this.client.getFrame()));
 

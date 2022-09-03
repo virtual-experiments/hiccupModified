@@ -105,7 +105,7 @@ public class SplitView extends Label {
 
         if (inComponent && (e.getButton() == MouseEvent.BUTTON3)) {
           final PopupMenu popupMenu = new PopupMenu();
-          popupMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
+          popupMenu.setFont(DocumentFrame.menuFont);
 
           final MenuItem showPointsPlotMenuItem = new MenuItem();
           final MenuItem showDecisionRuleMenuItem = new MenuItem();

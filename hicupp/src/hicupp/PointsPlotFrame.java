@@ -3,6 +3,7 @@ package hicupp;
 import java.awt.*;
 import java.io.*;
 import imageformats.*;
+import interactivehicupp.DocumentFrame;
 
 public class PointsPlotFrame extends Frame {
   private PointsPlot pointsPlot = new PointsPlot();
@@ -10,7 +11,7 @@ public class PointsPlotFrame extends Frame {
   public PointsPlotFrame(String title) {
     super(title);
     MenuBar menuBar = new MenuBar();
-    menuBar.setFont(new Font("MenuFont", Font.PLAIN, 14));
+    menuBar.setFont(DocumentFrame.menuFont);
     Menu fileMenu = new Menu("File");
     MenuItem saveMenuItem = new MenuItem("Save...");
     saveMenuItem.addActionListener(e -> {

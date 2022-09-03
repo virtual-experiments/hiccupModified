@@ -5,19 +5,16 @@ import java.awt.event.*;
 import java.io.*;
 
 public class DocumentFrame extends Frame {
-  private String title;
-  private DocumentType documentType;
+  public static final Font menuFont = new Font("MenuFont", Font.PLAIN, 14);
+
+  private final String title;
+  private final DocumentType documentType;
   private Document document;
-  private Component documentComponent;
   private int untitledCounter = 1;
   private File file;
   private boolean dirty;
 
   private final Menu fileMenu = new Menu();
-  private final MenuItem fileNewMenuItem = new MenuItem();
-  private final MenuItem fileOpenMenuItem = new MenuItem();
-  private final MenuItem fileSaveMenuItem = new MenuItem();
-  private final MenuItem fileSaveAsMenuItem = new MenuItem();
 
   public DocumentFrame(DocumentType documentType, String title) {
     this.documentType = documentType;
@@ -26,13 +23,16 @@ public class DocumentFrame extends Frame {
     String documentTypeName = documentType.getCapitalizedName();
 
     fileMenu.setLabel("File");
-    fileMenu.setFont(new Font("MenuFont", Font.PLAIN, 14));
+    MenuItem fileNewMenuItem = new MenuItem();
     fileNewMenuItem.setLabel("New " + documentTypeName);
     fileNewMenuItem.addActionListener(e -> newDocument());
+    MenuItem fileOpenMenuItem = new MenuItem();
     fileOpenMenuItem.setLabel("Open " + documentTypeName + "...");
     fileOpenMenuItem.addActionListener(e -> openDocument());
+    MenuItem fileSaveMenuItem = new MenuItem();
     fileSaveMenuItem.setLabel("Save " + documentTypeName);
     fileSaveMenuItem.addActionListener(e -> saveDocument());
+    MenuItem fileSaveAsMenuItem = new MenuItem();
     fileSaveAsMenuItem.setLabel("Save " + documentTypeName + " As...");
     fileSaveAsMenuItem.addActionListener(e -> saveDocumentAs());
 
@@ -50,18 +50,17 @@ public class DocumentFrame extends Frame {
   private void setDocument(Document document) {
     this.document = document;
     MenuBar menuBar = new MenuBar();
+    menuBar.setFont(menuFont);
     menuBar.add(fileMenu);
     document.addMenuBarItems(menuBar);
     setMenuBar(menuBar);
-    document.addChangeListener(new DocumentChangeListener() {
-      public void documentChanged() {
-        if (!dirty) {
-          dirty = true;
-          updateTitle();
-        }
+    document.addChangeListener(() -> {
+      if (!dirty) {
+        dirty = true;
+        updateTitle();
       }
     });
-    documentComponent = document.getComponent();
+    Component documentComponent = document.getComponent();
     removeAll();
     add(documentComponent, BorderLayout.CENTER);
     updateTitle();
@@ -120,7 +119,7 @@ public class DocumentFrame extends Frame {
       return true;
     } catch (IOException e) {
       String name = documentType.getName();
-      MessageBox.showMessage(this, "Could not save " + name + ": " + e.toString(), title);
+      MessageBox.showMessage(this, "Could not save " + name + ": " + e, title);
       return false;
     }
   }
@@ -129,9 +128,9 @@ public class DocumentFrame extends Frame {
     String name = documentType.getCapitalizedName();
     FileDialog fileDialog = new FileDialog(this, "Save " + name + " As", FileDialog.SAVE);
     if (file != null && file.getParent() != null)
-      fileDialog.setDirectory(file.getParent().toString());
+      fileDialog.setDirectory(file.getParent());
     fileDialog.setFile(getFileName());
-    fileDialog.show();
+    fileDialog.setVisible(true);
     if (fileDialog.getFile() == null)
       return false;
     else
@@ -153,7 +152,7 @@ public class DocumentFrame extends Frame {
       hideAllInfo(document.getRoot());
       String capdName = documentType.getCapitalizedName();
       FileDialog fileDialog = new FileDialog(this, "Open " + capdName, FileDialog.LOAD);
-      fileDialog.show();
+      fileDialog.setVisible(true);
       if (fileDialog.getFile() != null) {
         File filename = new File(fileDialog.getDirectory(), fileDialog.getFile());
         try {
@@ -163,7 +162,7 @@ public class DocumentFrame extends Frame {
           setDocument(document);
         } catch (IOException e) {
           String name = documentType.getName();
-          MessageBox.showMessage(this, "Could not open " + name + " file: " + e.toString(), title);
+          MessageBox.showMessage(this, "Could not open " + name + " file: " + e, title);
         }
       }
     }
