@@ -93,17 +93,31 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       String digits = "0".repeat(numberOfDigitsAfterDecimal);
       NumberFormat format = new DecimalFormat("##0." + digits);
 
-      System.arraycopy(parameterNames, 0, pointsString[0], 1, ndims);
+      int lengthPoints = (int) (Math.log10(pointCount) + 1);
       for (int i = 0; i < pointCount + 1; i++) {
-        pointsString[i][0] = (i == 0)? "" : Integer.toString(i);
+        if (i == 0) pointsString[i][0] = "_".repeat(lengthPoints);
+        else {
+          String number = Integer.toString(i);
+          String zeroes = "0".repeat(lengthPoints - number.length());
+          pointsString[i][0] = zeroes + number;
+        }
       }
 
+      int maxLength = 0;
       for (int i = 0; i < pointCount; i++) {
         for (int j = 0; j < ndims; j++) {
           int index = i + pointCount * j;
+          String number = format.format(coords[index]);
           pointsString[i + 1][j + 1] = (getClassNode().containsPointAtIndex(i))?
-                  format.format(coords[index]) : "---";
+                  number : "_".repeat(number.length());
+          if (number.length() > maxLength) maxLength = number.length();
         }
+      }
+
+      for (int i = 0; i < ndims; i++) {
+        String param = parameterNames[i];
+        param = "_".repeat((maxLength - param.length()) / 2) + param + "_".repeat((maxLength - param.length()) / 2);
+        pointsString[0][i + 1] = param;
       }
 
       return pointsString;
@@ -142,7 +156,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
           builder.append(newRow).append("\n");
         }
 
-        textArea.setColumns(columns * 3/2);
+        textArea.setColumns(columns * 5/2);
         textArea.setText(builder.toString());
       }
 
