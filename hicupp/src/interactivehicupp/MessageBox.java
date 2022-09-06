@@ -10,7 +10,7 @@ public class MessageBox extends Dialog {
   
   public static int showMessage(Frame owner, String message, String title, String[] options) {
     MessageBox messageBox = new MessageBox(owner, message, title, options);
-    messageBox.show();
+    messageBox.setVisible(true);
     return messageBox.option;
   }
   
@@ -23,11 +23,9 @@ public class MessageBox extends Dialog {
     for (int i = 0; i < options.length; i++) {
       Button button = new Button(options[i]);
       final int index = i;
-      button.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          option = index;
-          dispose();
-        }
+      button.addActionListener(e -> {
+        option = index;
+        dispose();
       });
       buttonPanel.add(button);
     }
