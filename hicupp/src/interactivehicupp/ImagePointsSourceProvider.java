@@ -166,7 +166,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
             Dimension size = getSize();
             Dimension viewportSize = scrollPane.getViewportSize();
             Point scrollPosition = scrollPane.getScrollPosition();
-            boolean zoomIn = (e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0;
+            boolean zoomIn = e.getButton() == MouseEvent.BUTTON1;
             float zoomFactor = zoomIn ? 2.0f : 0.5f;
             int newWidth = (int) ((float) size.width * zoomFactor);
             if (newWidth < viewportSize.width) {
@@ -211,7 +211,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         super("Node Inspector - Left Click Zoom In / Right Click Zoom Out");
 
         inspector = new Inspector();
-        inspector.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
         inspector.setSize(imageWidth, imageHeight);
         scrollPane.add(inspector);
         scrollPane.setSize(600, 600);
