@@ -5,6 +5,7 @@ import interactivehicupp.MessageBox;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Arrays;
 
 public class LoadMatrixDialog extends LoadDialog {
   private final TextField dataFileTextField = new TextField();
@@ -59,6 +60,15 @@ public class LoadMatrixDialog extends LoadDialog {
               skipFirstLine == 1,
               chosenColumns);
       columnsCount = chosenColumns.length;
+
+      dataFileTextField.setText(filename);
+      skipFirstLineCheckbox.setState(skipFirstLine == 1);
+
+      columnsList.removeAll();
+      for (int i = 0; i < Arrays.stream(chosenColumns).max().orElse(5); i++)
+        columnsList.add("Column " + (i + 1));
+      for (int i : chosenColumns) columnsList.select(i);
+
     } catch (IOException e) {
       MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
     }

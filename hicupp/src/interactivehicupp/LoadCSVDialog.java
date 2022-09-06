@@ -62,6 +62,13 @@ public class LoadCSVDialog extends LoadDialog {
             coords = reader.getCoordinatesFromChosenColumns(chosenColumns);
             columnsCount = chosenColumns.length;
             parameterNames = reader.getChosenParameters(chosenColumns);
+
+            dataFileTextField.setText(filename);
+            parameterFirstLineCheckBox.setState(skipFirstLine == 1);
+
+            columnsList.removeAll();
+            for (String param : reader.getParameters()) columnsList.add(param);
+            for (int chosenColumn : chosenColumns) columnsList.select(chosenColumn);
         } catch (IOException e) {
             MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
         }
