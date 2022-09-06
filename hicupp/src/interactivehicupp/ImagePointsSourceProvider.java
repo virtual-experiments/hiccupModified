@@ -30,8 +30,6 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private static final int initialNewMaskColorIndex = 7;
 
   private final Menu viewMenu = new Menu();
-  private final MenuItem viewChooseImageMenuItem = new MenuItem();
-  private final Menu viewZoomMenuItem = new Menu();
   private final CheckboxMenuItem zoomAutomaticMenuItem = new CheckboxMenuItem();
   private final CheckboxMenuItem[] zoomMenuItems = new CheckboxMenuItem[zoomFactors.length];
   private final CheckboxMenuItem zoomCustomMenuItem = new CheckboxMenuItem();
@@ -310,6 +308,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
     // main
     viewMenu.setLabel("View");
+    MenuItem viewChooseImageMenuItem = new MenuItem();
     viewChooseImageMenuItem.setLabel("Choose Image...");
     viewChooseImageMenuItem.addActionListener(e -> chooseImage(ImagePointsSourceProvider.this.client.getFrame()));
 
@@ -351,6 +350,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     }
 
     viewMenu.add(viewChooseImageMenuItem);
+    Menu viewZoomMenuItem = new Menu();
     viewMenu.add(viewZoomMenuItem);
     viewMenu.add(viewAutomaticMaskColor);
     viewMenu.add(viewOldMaskColorMenuItem);
@@ -425,6 +425,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   @Override
   public void loadFile(String filename) {
     loadBMPFile(filename);
+    chosenImageFile = filename;
+    setMetadata();
   }
 
   private void chooseImage(Component c) {
@@ -516,7 +518,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     Dimension screenSize = client.getFrame().getToolkit().getScreenSize();
     dialog.setLocation((screenSize.width - dialogSize.width) / 2,
             (screenSize.height - dialogSize.height) / 2);
-    dialog.show();
+    dialog.setVisible(true);
   }
 
   private void generateDefaultImage() {
