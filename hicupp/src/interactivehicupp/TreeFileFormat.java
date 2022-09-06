@@ -190,23 +190,44 @@ public class TreeFileFormat {
     }
   }
 
-  public static String printChosenColumns() {
-    StringBuilder builder = new StringBuilder();
-
-    for (int column : chosenColumns) {
-      builder.append(column);
-      builder.append(" ");
-    }
-
-    return builder.toString();
-  }
-
+  /**
+   * Read a number from a StreamTokenizer including its exponent. A number including an exponent (e.g. 0.123E-9) has
+   * two tokens.
+   * First reads the first token (mantissa).
+   * Then, checks if the next token is a string and check if it is a valid exponent. If not throws IOException.
+   * If next token is not a string, pushback StreamTokenizer so when function called again,
+   * it reads the next token, not two tokens ahead.
+   * @param t StreamTokenizer of the file read
+   * @return number with optional exponent
+   * @throws IOException thrown when first token read is not a number, or when the second token read is a string
+   * but not a valid exponent
+   */
   private static double readNumber(StreamTokenizer t) throws IOException {
     t.nextToken();
     if (t.ttype != StreamTokenizer.TT_NUMBER)
       syntaxError(t.lineno(), "Number expected.");
-    return t.nval;
-  } 
+
+    double mantissa = t.nval;
+    int exponent = 0;
+
+    t.nextToken();
+    if (t.ttype != StreamTokenizer.TT_WORD) t.pushBack(); // another number or EOL, pushback
+    else {  // a string, is the exponent
+      String exponentString = t.sval;
+
+      if (!exponentString.contains("E")) syntaxError(t.lineno(), "Invalid exponent.");
+      else {
+        try {
+          exponentString = exponentString.replaceAll("E", "");  // remove exponent symbol
+          exponent = Integer.parseInt(exponentString);
+        } catch (NumberFormatException | NullPointerException e) {
+          syntaxError(t.lineno(), "Invalid exponent.");
+        }
+      }
+    }
+
+    return mantissa * Math.pow(10, exponent);
+  }
   
   private static void syntaxError(int lineNumber, String message) throws IOException {
     throw new IOException("Syntax error: line " + lineNumber + ": " + message);
