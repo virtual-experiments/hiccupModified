@@ -9,4 +9,5 @@ public interface Document {
   Component getComponent();
   void save(String filename) throws IOException;
   NodeView getRoot();
+  void redraw();
 }

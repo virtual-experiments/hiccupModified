@@ -23,23 +23,32 @@ public class DocumentFrame extends Frame {
     String documentTypeName = documentType.getCapitalizedName();
 
     fileMenu.setLabel("File");
+
     MenuItem fileNewMenuItem = new MenuItem();
     fileNewMenuItem.setLabel("New " + documentTypeName);
     fileNewMenuItem.addActionListener(e -> newDocument());
+
     MenuItem fileOpenMenuItem = new MenuItem();
     fileOpenMenuItem.setLabel("Open " + documentTypeName + "...");
     fileOpenMenuItem.addActionListener(e -> openDocument());
+
     MenuItem fileSaveMenuItem = new MenuItem();
     fileSaveMenuItem.setLabel("Save " + documentTypeName);
     fileSaveMenuItem.addActionListener(e -> saveDocument());
+
     MenuItem fileSaveAsMenuItem = new MenuItem();
     fileSaveAsMenuItem.setLabel("Save " + documentTypeName + " As...");
     fileSaveAsMenuItem.addActionListener(e -> saveDocumentAs());
+
+    MenuItem fileRedrawItem = new MenuItem();
+    fileRedrawItem.setLabel("Redraw " + documentTypeName);
+    fileRedrawItem.addActionListener(e -> redraw());
 
     fileMenu.add(fileNewMenuItem);
     fileMenu.add(fileOpenMenuItem);
     fileMenu.add(fileSaveMenuItem);
     fileMenu.add(fileSaveAsMenuItem);
+    fileMenu.add(fileRedrawItem);
 
     setDocument(documentType.createNewDocument());
     pack();
@@ -166,6 +175,10 @@ public class DocumentFrame extends Frame {
         }
       }
     }
+  }
+
+  private void redraw() {
+    document.redraw();
   }
 
   public static void hideAllInfo(NodeView nodeView) {

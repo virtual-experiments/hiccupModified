@@ -176,9 +176,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     setBackground(Color.white);
 
     addComponentListener(new ComponentAdapter() {
+      @Override
       public void componentResized(ComponentEvent e) {
-        layoutTree();
-        repaint();
+        redraw();
       }
     });
 
@@ -205,6 +205,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return new Dimension(600, 400);
   }
 
+  @Override
   public PopupMenu createNodePopupMenu(final NodeView selectedNode) {
     nodePopupMenu.removeAll();
 
@@ -321,6 +322,12 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   @Override
   public NodeView getRoot() {
     return displayRoot;
+  }
+
+  @Override
+  public void redraw() {
+    layoutTree();
+    repaint();
   }
 
   PointsSourceProvider getPointsSourceProvider() {
