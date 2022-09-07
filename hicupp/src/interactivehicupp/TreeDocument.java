@@ -56,7 +56,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return getFrameAncestor(this);
   }
 
-  TextArea getLogTextArea() {
+  @Override
+  public TextArea getLogTextArea() {
     return logTextArea;
   }
 

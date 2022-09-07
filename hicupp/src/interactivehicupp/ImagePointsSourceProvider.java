@@ -447,6 +447,10 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       imageHeight = image.getHeight();
       classTree.setPoints(points);
       setAutomaticZoom();
+
+      TextArea logTextArea = client.getLogTextArea();
+      if (!logTextArea.getText().equals("")) logTextArea.append("\n");
+      logTextArea.append("Loaded image " + chosenImageFile + "\n");
     } catch (IOException e) {
       MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e, "Interactive Hicupp");
     }

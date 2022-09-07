@@ -238,6 +238,10 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
         chosenFile = loadDialog.getFilename();
         setMetadata();
         client.layoutTree();
+
+        TextArea logTextArea = client.getLogTextArea();
+        if (!logTextArea.getText().equals("")) logTextArea.append("\n");
+        logTextArea.append("Loaded dataset " + chosenFile + " with " + this.ndims + " dimensions.\n");
       }
     }
   }
