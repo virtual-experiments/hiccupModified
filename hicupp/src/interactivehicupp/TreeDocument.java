@@ -106,6 +106,10 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       });
     }
 
+    MenuItem redrawTreeMenu = new MenuItem();
+    redrawTreeMenu.setLabel("Redraw tree");
+    redrawTreeMenu.addActionListener(e -> redraw());
+
     nodePopupMenu.setFont(DocumentFrame.menuFont);
 
     projectionIndexMenu.setLabel("Projection Index");
@@ -117,6 +121,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     toolsMenu.addSeparator();
     toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.add(configureAlgorithmMenu);
+    toolsMenu.addSeparator();
+    toolsMenu.add(redrawTreeMenu);
 
     goMenu.setLabel("Go");
     goMenu.add(goToRootMenuItem);
@@ -325,8 +331,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return displayRoot;
   }
 
-  @Override
-  public void redraw() {
+  private void redraw() {
     layoutTree();
     repaint();
   }
