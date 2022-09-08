@@ -51,6 +51,7 @@ abstract class AbstractNodeView implements NodeView {
     classNode.addObserver((observable, info) -> {
       if (info == "Split") {
         child = createChild();
+        child.resizeHistogramView(client.getHistogramZoom());
       } else if (info == "Prune") {
         this.splitProjection = "N/A";
         this.splitNoOfIterations = 0;

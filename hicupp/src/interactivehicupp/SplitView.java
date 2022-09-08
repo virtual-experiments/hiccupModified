@@ -9,8 +9,8 @@ import hicupp.classify.*;
 import hicupp.trees.*;
 
 public class SplitView extends Label {
-  private static final int histogramHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 5;
-  private static final int histogramWidth = histogramHeight * 2;
+  private static final int defaultHistogramHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 5;
+  private static final int defaultHistogramWidth = defaultHistogramHeight * 2;
 
   private final ClassSplit classSplit;
   private final NodeView parent;
@@ -211,7 +211,7 @@ public class SplitView extends Label {
   private class HistogramView extends Canvas {
     public HistogramView() {
       setBackground(Color.white);
-      setSize(histogramWidth, histogramHeight);
+      setSize(defaultHistogramWidth, defaultHistogramHeight);
       addMouseListener(new MouseAdapter() {
         public void mousePressed(MouseEvent e) {
           updateValue(e.getX());
@@ -336,6 +336,17 @@ public class SplitView extends Label {
 
       if (rightChild.getChild() != null)
         rightChild.getChild().setParameterNames(parameterNames);
+    }
+  }
+
+  public void resizeHistogramView(float factor) {
+    histogramView.setSize((int) (defaultHistogramWidth * factor), (int) (defaultHistogramHeight * factor));
+    if (leftChild != null) {
+      if (leftChild.getChild() != null)
+        leftChild.getChild().resizeHistogramView(factor);
+
+      if (rightChild.getChild() != null)
+        rightChild.getChild().resizeHistogramView(factor);
     }
   }
 }

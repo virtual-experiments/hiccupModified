@@ -7,4 +7,5 @@ public interface PointsSourceClient {
   void layoutTree();
   Frame getFrame();
   TextArea getLogTextArea();
+  float getHistogramZoom();
 }

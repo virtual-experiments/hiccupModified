@@ -73,6 +73,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private TreeDocument(PointsSourceType pointsSourceType, Tree tree) {
     this.pointsSourceProvider = pointsSourceType.createPointsSourceProvider(this, tree);
 
+    nodePopupMenu.setFont(DocumentFrame.menuFont);
+
     Menu projectionIndexMenu;
     Menu optimisationAlgorithmMenu;
     MenuItem configureAlgorithmMenu = new MenuItem();
@@ -86,11 +88,14 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
               projectionLabels,
               projectionIndex,
               projectionIndexListener);
+    }
 
+    {
       RadioMenuTools.RadioMenuEventListener algorithmIndexListener = index -> {
         algorithmIndex = index;
         chooseParameters();
       };
+
       String[] optimisationLabel = FunctionMaximizer.getAlgorithmNames();
       optimisationAlgorithmMenu = RadioMenuTools.createRadioMenu(
               optimisationLabel,
@@ -106,15 +111,28 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       });
     }
 
+    projectionIndexMenu.setLabel("Projection Index");
+    optimisationAlgorithmMenu.setLabel("Optimization Algorithm");
+    configureAlgorithmMenu.setLabel("Configure Optimization Algorithm");
+
     MenuItem redrawTreeMenu = new MenuItem();
     redrawTreeMenu.setLabel("Redraw tree");
     redrawTreeMenu.addActionListener(e -> redraw());
 
-    nodePopupMenu.setFont(DocumentFrame.menuFont);
+    Menu resizeHistogram;
+    {
+      RadioMenuTools.RadioMenuEventListener listener = index -> {
+        histogramZoomIndex = index;
+        changeHistogramSize();
+      };
 
-    projectionIndexMenu.setLabel("Projection Index");
-    optimisationAlgorithmMenu.setLabel("Optimization Algorithm");
-    configureAlgorithmMenu.setLabel("Configure Optimization Algorithm");
+      resizeHistogram = RadioMenuTools.createRadioMenu(
+              histogramZoomFactors,
+              histogramZoomDefaultIndex,
+              listener);
+    }
+
+    resizeHistogram.setLabel("Resize histogram");
 
     toolsMenu.setLabel("Tools");
     toolsMenu.add(projectionIndexMenu);
@@ -123,6 +141,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     toolsMenu.add(configureAlgorithmMenu);
     toolsMenu.addSeparator();
     toolsMenu.add(redrawTreeMenu);
+    toolsMenu.add(resizeHistogram);
 
     goMenu.setLabel("Go");
     goMenu.add(goToRootMenuItem);
@@ -342,5 +361,22 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
   private void chooseParameters() {
     AlgorithmParametersUI.createParams(this);
+  }
+
+  public static final String[] histogramZoomFactors = new String[] { "0.25", "0.5", "0.75", "1.0", "1.5", "2.0" };
+  public static final int histogramZoomDefaultIndex = 3;
+  private int histogramZoomIndex = histogramZoomDefaultIndex;
+
+  private void changeHistogramSize() {
+    if (displayRoot.getChild() != null) {
+      float factor = Float.parseFloat(histogramZoomFactors[histogramZoomIndex]);
+      displayRoot.getChild().resizeHistogramView(factor);
+      redraw();
+    }
+  }
+
+  @Override
+  public float getHistogramZoom() {
+    return Float.parseFloat(histogramZoomFactors[histogramZoomIndex]);
   }
 }
