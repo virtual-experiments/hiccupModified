@@ -28,6 +28,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   private final Frame logFrame = new Frame();
   private final TextArea logTextArea = new TextArea();
   private final PopupMenu nodePopupMenu = new PopupMenu();
+  private final RadioMenuTools projectionIndexMenu;
+  private final RadioMenuTools optimisationAlgorithmMenu;
 
   private static Frame getFrameAncestor(Component c) {
     while (!(c instanceof Frame))
@@ -75,14 +77,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
     nodePopupMenu.setFont(DocumentFrame.menuFont);
 
-    Menu projectionIndexMenu;
-    Menu optimisationAlgorithmMenu;
     MenuItem configureAlgorithmMenu = new MenuItem();
     {
-      RadioMenuTools.RadioMenuEventListener projectionIndexListener = index -> {
-        projectionIndex = index;
-        ((AbstractNodeView) pointsSourceProvider.getRoot()).setEvaluationTime();
-      };
+      RadioMenuTools.RadioMenuEventListener projectionIndexListener = this::changeProjection;
       String[] projectionLabels = ProjectionIndexFunction.getProjectionIndexNames();
       projectionIndexMenu = RadioMenuTools.createRadioMenu(
               projectionLabels,
@@ -91,10 +88,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     }
 
     {
-      RadioMenuTools.RadioMenuEventListener algorithmIndexListener = index -> {
-        algorithmIndex = index;
-        chooseParameters();
-      };
+      RadioMenuTools.RadioMenuEventListener algorithmIndexListener = this::changeAlgorithm;
 
       String[] optimisationLabel = FunctionMaximizer.getAlgorithmNames();
       optimisationAlgorithmMenu = RadioMenuTools.createRadioMenu(
@@ -107,7 +101,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
           MessageBox.showMessage(getFrame(), "No configuration for the simplex algorithm.",
                   "Interactive Hicupp");
         else
-          chooseParameters();
+          changeAlgorithm(algorithmIndex);
       });
     }
 
@@ -136,7 +130,6 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
 
     toolsMenu.setLabel("Tools");
     toolsMenu.add(projectionIndexMenu);
-    toolsMenu.addSeparator();
     toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.add(configureAlgorithmMenu);
     toolsMenu.addSeparator();
@@ -359,8 +352,38 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     return pointsSourceProvider;
   }
 
-  private void chooseParameters() {
+  private void changeAlgorithm(int index) {
+    if (pointsSourceProvider.getRoot().getChild() != null) {
+      int result = MessageBox.showMessage(getFrame(),
+              "Tree already have child nodes, changing the algorithm is not recommended.",
+              "Change algorithm",
+              new String[]{"Change anyway", "Cancel"});
+
+      if (result == 1) {  // cancel
+        optimisationAlgorithmMenu.setChosenItem(algorithmIndex);
+        return;
+      }
+    }
+
+    algorithmIndex = index;
     AlgorithmParametersUI.createParams(this);
+  }
+
+  private void changeProjection(int index) {
+    if (pointsSourceProvider.getRoot().getChild() != null) {
+      int result = MessageBox.showMessage(getFrame(),
+              "Tree already have child nodes, changing the projection is not recommended.",
+              "Change projection",
+              new String[]{"Change anyway", "Cancel"});
+
+      if (result == 1) {  // cancel
+        projectionIndexMenu.setChosenItem(projectionIndex);
+        return;
+      }
+    }
+
+    projectionIndex = index;
+    ((AbstractNodeView) pointsSourceProvider.getRoot()).setEvaluationTime();
   }
 
   public static final String[] histogramZoomFactors = new String[] { "0.25", "0.5", "0.75", "1.0", "1.5", "2.0" };
