@@ -198,9 +198,17 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   
   private void loadPointsFromFile(boolean csv) {
     if (loadDialog == null) {
-      if (csv) loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
-      else loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
-    }
+      if (csv)
+        loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
+      else
+        loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+    } else if (loadDialog instanceof LoadMatrixDialog && csv)   // from matrix to csv
+        loadDialog = new LoadCSVDialog(client.getFrame(), "Load Points from CSV File");
+      else if (loadDialog instanceof LoadCSVDialog && !csv)     // from csv to matrix
+        loadDialog = new LoadMatrixDialog(client.getFrame(), "Load Points from ASCII File");
+      else if (root.getChild() != null)                         // prevent changing dimensions
+        loadDialog.disableColumnsSelection();
+
     loadDialog.setVisible(true);
     loadPoints(loadDialog.getCoords());
   }

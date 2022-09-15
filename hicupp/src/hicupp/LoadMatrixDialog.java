@@ -74,6 +74,11 @@ public class LoadMatrixDialog extends LoadDialog {
     }
   }
 
+  @Override
+  public void disableColumnsSelection() {
+    columnsList.setEnabled(false);
+  }
+
   public LoadMatrixDialog(Frame parent, String title) {
     super(parent, title, true);
     
@@ -115,6 +120,7 @@ public class LoadMatrixDialog extends LoadDialog {
                                              "Choose a Data File", FileDialog.LOAD);
       String filename = dataFileTextField.getText();
       if (!filename.equals("")) {
+        columnsList.setEnabled(true);
         File file = new File(filename);
         if (file.getParent() != null)
           fileDialog.setDirectory(file.getParent());
