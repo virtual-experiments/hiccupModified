@@ -216,16 +216,18 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         this.pointsSourceProvider.loadFile(TreeFileFormat.filename.toString());
         getLogTextArea().append("Loaded file with input file " + TreeFileFormat.filename + " with type " + TreeFileFormat.fileExtension
                 + " and size " + TreeFileFormat.fileSize + "kB.\n");
-      } else getLogTextArea().append("Loaded tree without input file.\n");
+      } else
+        getLogTextArea().append("Loaded tree without input file.\n");
+    } else
+      this.pointsSourceProvider.loadFile("./parrot.bmp");
 
-      Split rootSplit = tree.getRoot().getChild();
-      if (rootSplit != null) {
-        projectionIndex = rootSplit.getSplitProjectionIndex();
-        projectionIndexMenu.setChosenItem(projectionIndex);
+    Split rootSplit = tree.getRoot().getChild();
+    if (rootSplit != null) {
+      projectionIndex = rootSplit.getSplitProjectionIndex();
+      projectionIndexMenu.setChosenItem(projectionIndex);
 
-        algorithmIndex = rootSplit.getOptimisationAlgorithmIndex();
-        optimisationAlgorithmMenu.setChosenItem(algorithmIndex);
-      }
+      algorithmIndex = rootSplit.getOptimisationAlgorithmIndex();
+      optimisationAlgorithmMenu.setChosenItem(algorithmIndex);
     }
   }
 
