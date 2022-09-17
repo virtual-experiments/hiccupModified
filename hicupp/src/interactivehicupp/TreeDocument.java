@@ -217,6 +217,15 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
         getLogTextArea().append("Loaded file with input file " + TreeFileFormat.filename + " with type " + TreeFileFormat.fileExtension
                 + " and size " + TreeFileFormat.fileSize + "kB.\n");
       } else getLogTextArea().append("Loaded tree without input file.\n");
+
+      Split rootSplit = tree.getRoot().getChild();
+      if (rootSplit != null) {
+        projectionIndex = rootSplit.getSplitProjectionIndex();
+        projectionIndexMenu.setChosenItem(projectionIndex);
+
+        algorithmIndex = rootSplit.getOptimisationAlgorithmIndex();
+        optimisationAlgorithmMenu.setChosenItem(algorithmIndex);
+      }
     }
   }
 
