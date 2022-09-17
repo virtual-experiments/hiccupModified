@@ -40,10 +40,15 @@ public class DocumentFrame extends Frame {
     fileSaveAsMenuItem.setLabel("Save " + documentTypeName + " As...");
     fileSaveAsMenuItem.addActionListener(e -> saveDocumentAs());
 
+    MenuItem fileSaveCSVAsMenuItem = new MenuItem();
+    fileSaveCSVAsMenuItem.setLabel("Export " + documentTypeName + " As CSV");
+    fileSaveCSVAsMenuItem.addActionListener(e -> document.exportCSV(getFileName()));
+
     fileMenu.add(fileNewMenuItem);
     fileMenu.add(fileOpenMenuItem);
     fileMenu.add(fileSaveMenuItem);
     fileMenu.add(fileSaveAsMenuItem);
+    fileMenu.add(fileSaveCSVAsMenuItem);
 
     setDocument(documentType.createNewDocument());
     pack();

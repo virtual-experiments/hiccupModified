@@ -348,6 +348,16 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     repaint();
   }
 
+  @Override
+  public void exportCSV(String title) {
+    NodeView root = pointsSourceProvider.getRoot();
+
+    if (root.getChild() != null)
+      ExportAsCSV.export(getFrame(), title, root.getChild());
+    else
+      MessageBox.showMessage(getFrame(), "Tree is empty.", "Export as CSV");
+  }
+
   PointsSourceProvider getPointsSourceProvider() {
     return pointsSourceProvider;
   }

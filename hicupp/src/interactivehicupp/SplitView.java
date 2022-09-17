@@ -3,6 +3,7 @@ package interactivehicupp;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.*;
+import java.util.ArrayList;
 
 import hicupp.*;
 import hicupp.classify.*;
@@ -71,6 +72,14 @@ public class SplitView extends Label {
 
   public NodeView getParentNodeView() {
     return parent;
+  }
+
+  public String[] getParameterNames() {
+    return parameterNames;
+  }
+
+  public Split getSplit() {
+    return classSplit.getSplit();
   }
 
   public SplitView(NodeViewFactory nodeViewFactory,
@@ -348,5 +357,19 @@ public class SplitView extends Label {
       if (rightChild.getChild() != null)
         rightChild.getChild().resizeHistogramView(factor);
     }
+  }
+
+  public String printSplitView() {
+    double[] axis = classSplit.getSplit().getAxis();
+    double threshold = classSplit.getSplit().getThreshold();
+
+    ArrayList<String> data = new ArrayList<>(axis.length + 2);
+
+    data.add(String.valueOf(parent.getClassNode().getNode().getSerialNumber()));
+    for (double value : axis)
+      data.add(String.valueOf(value));
+    data.add(String.valueOf(threshold));
+
+    return String.join(",", data);
   }
 }

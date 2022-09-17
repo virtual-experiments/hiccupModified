@@ -1,5 +1,6 @@
 package hicupp.trees;
 
+import java.util.ArrayList;
 import java.util.Observable;
 
 public final class Split extends Observable {
@@ -41,7 +42,7 @@ public final class Split extends Observable {
   }
 
   public double[] getAxis() {
-    return (double[]) axis.clone();
+    return axis.clone();
   }
   
   public double getThreshold() {
@@ -57,9 +58,7 @@ public final class Split extends Observable {
   
   public double evaluate(double[] coords, int index) {
     double value = 0.0;
-    int ndims = axis.length;
-    for (int i = 0; i < ndims; i++)
-      value += coords[index++] * axis[i];
+    for (double axi : axis) value += coords[index++] * axi;
     return value;
   }
 
