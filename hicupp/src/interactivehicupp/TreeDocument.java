@@ -231,8 +231,9 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     }
   }
 
+  @Override
   public Dimension getPreferredSize() {
-    return new Dimension(600, 400);
+    return new Dimension(1600, 900);
   }
 
   @Override
