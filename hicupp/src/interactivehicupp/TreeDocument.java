@@ -218,8 +218,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
                 + " and size " + TreeFileFormat.fileSize + "kB.\n");
       } else
         getLogTextArea().append("Loaded tree without input file.\n");
-    } else
-      this.pointsSourceProvider.loadFile("./parrot.bmp");
+    } else if (this.pointsSourceProvider instanceof ImagePointsSourceProvider)
+      this.pointsSourceProvider.loadFile("./src/interactivehicupp/parrot.bmp");
 
     Split rootSplit = tree.getRoot().getChild();
     if (rootSplit != null) {
