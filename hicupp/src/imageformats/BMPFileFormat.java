@@ -4,7 +4,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.URL;
 
 public class BMPFileFormat {
   /**
@@ -94,9 +93,13 @@ public class BMPFileFormat {
   }
 
   public static RGBAImage loadDefaultImage() throws IOException {
-    URL url = BMPFileFormat.class.getResource("parrot.bmp");
-    assert url != null;
-    return readImage(url.getFile());
+    InputStream stream = BMPFileFormat.class.getResourceAsStream("parrot.bmp");
+    RandomAccessFile randomAccessFile = new RandomAccessFile("./temp.bmp", "rw");
+    assert stream != null;
+    byte[] bytes = stream.readAllBytes();
+    randomAccessFile.write(bytes);
+    randomAccessFile.seek(0);
+    return readImage(randomAccessFile);
   }
 
   public static RGBAImage readImage(String filename) throws IOException {
