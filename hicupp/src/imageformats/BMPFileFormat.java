@@ -4,6 +4,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URL;
 
 public class BMPFileFormat {
   /**
@@ -87,24 +88,27 @@ public class BMPFileFormat {
     if (output.exists())
       System.out.println("BMP written successfully.");
     else
-      throw  new IOException("Unable to convert to BMP file.");
+      throw new IOException("Unable to convert to BMP file.");
 
     return new RandomAccessFile("./temp.bmp", "r");
   }
 
-  public static RGBAImage readImage(String filename) throws IOException {
-    RandomAccessFile file = new RandomAccessFile(filename, "r");
+  public static RGBAImage loadDefaultImage() throws IOException {
+    URL url = BMPFileFormat.class.getResource("parrot.bmp");
+    assert url != null;
+    return readImage(url.getFile());
+  }
 
+  public static RGBAImage readImage(String filename) throws IOException {
+    RandomAccessFile file;
+    if (filename.endsWith(".bmp")) file = new RandomAccessFile(filename, "r");
+    else file = convertImage(filename);
+    return readImage(file);
+  }
+
+  public static RGBAImage readImage(RandomAccessFile file) throws IOException {
     byte[] fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
     file.readFully(fileHeaderBuffer);
-    
-    if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0)) { // convert first
-      file = convertImage(filename);
-      fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
-      file.readFully(fileHeaderBuffer);
-      if (!BITMAPFILEHEADER.recognize(fileHeaderBuffer, 0)) // unable to convert
-        throw  new IOException("Unable to convert to BMP file.");
-    }
     
     BITMAPFILEHEADER fileHeader = new BITMAPFILEHEADER();
     fileHeader.read(fileHeaderBuffer, 0);

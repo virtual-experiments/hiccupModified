@@ -448,11 +448,27 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       classTree.setPoints(points);
       setAutomaticZoom();
 
-      TextArea logTextArea = client.getLogTextArea();
-      if (!logTextArea.getText().equals("")) logTextArea.append("\n");
-      logTextArea.append("Loaded image " + chosenImageFile + "\n");
+      if (chosenImageFile != null) {
+        TextArea logTextArea = client.getLogTextArea();
+        if (!logTextArea.getText().equals("")) logTextArea.append("\n");
+        logTextArea.append("Loaded image " + chosenImageFile + "\n");
+      }
+
     } catch (IOException e) {
       MessageBox.showMessage(client.getFrame(), "Could not load bitmap: " + e, "Interactive Hicupp");
+    }
+  }
+
+  public void loadDefaultImage() {
+    try {
+      imageformats.RGBAImage image = imageformats.BMPFileFormat.loadDefaultImage();
+      imagePixels = image.getPixels();
+      imageWidth = image.getWidth();
+      imageHeight = image.getHeight();
+      classTree.setPoints(points);
+      setAutomaticZoom();
+    } catch (IOException e) {
+      MessageBox.showMessage(client.getFrame(), "Could not load default image: " + e, "Interactive Hicupp");
     }
   }
 
