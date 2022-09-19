@@ -92,14 +92,97 @@ public class BMPFileFormat {
     return new RandomAccessFile("./temp.bmp", "r");
   }
 
+  private static byte[] readBytes(byte[] original, byte[] read, int pos) {
+    System.arraycopy(original, pos, read, 0, read.length);
+    return read;
+  }
+
   public static RGBAImage loadDefaultImage() throws IOException {
     InputStream stream = BMPFileFormat.class.getResourceAsStream("parrot.bmp");
-    RandomAccessFile randomAccessFile = new RandomAccessFile("./temp.bmp", "rw");
     assert stream != null;
     byte[] bytes = stream.readAllBytes();
-    randomAccessFile.write(bytes);
-    randomAccessFile.seek(0);
-    return readImage(randomAccessFile);
+
+    byte[] fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
+    readBytes(bytes, fileHeaderBuffer, 0);
+
+    BITMAPFILEHEADER fileHeader = new BITMAPFILEHEADER();
+    fileHeader.read(fileHeaderBuffer, 0);
+
+    byte[] infoHeaderBuffer = new byte[fileHeader.bfOffBits - BITMAPFILEHEADER.size];
+    readBytes(bytes, infoHeaderBuffer, BITMAPFILEHEADER.size);
+
+    boolean topDown;
+    int width;
+    int height;
+    int bitCount;
+
+    if (BITMAPCOREHEADER.recognize(infoHeaderBuffer, 0)) {
+      BITMAPCOREHEADER coreHeader = new BITMAPCOREHEADER();
+      coreHeader.read(infoHeaderBuffer, 0);
+
+      topDown = false;
+      width = coreHeader.bcWidth;
+      height = coreHeader.bcHeight;
+      bitCount = coreHeader.bcBitCount;
+    } else
+      // Insert BITMAPV5HEADER, BITMAPV4HEADER here if desired.
+      if (BITMAPINFOHEADER.recognize(infoHeaderBuffer, 0)) {
+        BITMAPINFOHEADER infoHeader = new BITMAPINFOHEADER();
+        infoHeader.read(infoHeaderBuffer, 0);
+
+        topDown = infoHeader.biHeight < 0;
+        width = infoHeader.biWidth;
+        height = Math.abs(infoHeader.biHeight);
+        bitCount = infoHeader.biBitCount;
+
+        if (infoHeader.biCompression != BITMAPINFOHEADER.BI_RGB)
+          throw new IOException("Unsupported compression method: " +
+                  infoHeader.biCompression +
+                  "; only uncompressed images supported.");
+      } else
+        throw new IOException("BMP file format version currently not supported.");
+
+    RGBAImage image;
+    if (bitCount == 24) {
+      int pixelCount = width * height;
+      int[] pixels = new int[pixelCount];
+      int scanLine = width * 3;
+      int bufferLength = scanLine % 4 == 0 ? scanLine : scanLine + 4 - scanLine % 4;
+      byte[] buffer = new byte[bufferLength];
+
+      for (int line = 0; line < height; line++) {
+        readBytes(bytes, buffer, fileHeader.bfOffBits + line * bufferLength);
+        int i = (topDown ? line : (height - line - 1)) * width;
+        for (int k = 0; k < scanLine;) {
+          int pixel = (buffer[k++] & 0xff) | ((buffer[k++] & 0xff) << 8) | (buffer[k++] << 16) | 0xff000000;
+          pixels[i++] = pixel;
+        }
+      }
+
+      image = new RGBAImage(pixels, width);
+    } else if (bitCount == 32) {
+      int pixelCount = width * height;
+      int[] pixels = new int[pixelCount];
+      int bufferLength = width * 4;
+      byte[] buffer = new byte[bufferLength];
+      for (int line = 0; line < height; line++) {
+        readBytes(bytes, buffer, fileHeader.bfOffBits + line * bufferLength);
+        int i = (topDown ? line : (height - line - 1)) * width;
+        for (int k = 0; k < bufferLength; ) {
+          int pixel = (buffer[k++] & 0xff) | ((buffer[k++] & 0xff) << 8) | (buffer[k++] << 16) | 0xff000000;
+          pixels[i] = pixel;
+          k++;
+        }
+      }
+
+      image = new RGBAImage(pixels, width);
+    }
+    else
+      throw new IOException("Unsupported number of bits per pixel: " + bitCount);
+
+    stream.close();
+
+    return image;
   }
 
   public static RGBAImage readImage(String filename) throws IOException {
@@ -109,7 +192,7 @@ public class BMPFileFormat {
     return readImage(file);
   }
 
-  public static RGBAImage readImage(RandomAccessFile file) throws IOException {
+  private static RGBAImage readImage(RandomAccessFile file) throws IOException {
     byte[] fileHeaderBuffer = new byte[BITMAPFILEHEADER.size];
     file.readFully(fileHeaderBuffer);
     
@@ -123,33 +206,33 @@ public class BMPFileFormat {
     int width;
     int height;
     int bitCount;
-    
+
     if (BITMAPCOREHEADER.recognize(infoHeaderBuffer, 0)) {
       BITMAPCOREHEADER coreHeader = new BITMAPCOREHEADER();
       coreHeader.read(infoHeaderBuffer, 0);
-      
+
       topDown = false;
       width = coreHeader.bcWidth;
       height = coreHeader.bcHeight;
       bitCount = coreHeader.bcBitCount;
-    } else 
+    } else
       // Insert BITMAPV5HEADER, BITMAPV4HEADER here if desired.
       if (BITMAPINFOHEADER.recognize(infoHeaderBuffer, 0)) {
       BITMAPINFOHEADER infoHeader = new BITMAPINFOHEADER();
       infoHeader.read(infoHeaderBuffer, 0);
-      
+
       topDown = infoHeader.biHeight < 0;
       width = infoHeader.biWidth;
       height = Math.abs(infoHeader.biHeight);
       bitCount = infoHeader.biBitCount;
-      
+
       if (infoHeader.biCompression != BITMAPINFOHEADER.BI_RGB)
         throw new IOException("Unsupported compression method: " +
                               infoHeader.biCompression +
                               "; only uncompressed images supported.");
     } else
       throw new IOException("BMP file format version currently not supported.");
-    
+
     RGBAImage image;
     if (bitCount == 24)
       image = read24BitImageBits(file, topDown, width, height);
@@ -157,7 +240,7 @@ public class BMPFileFormat {
       image = read32BitImageBits(file, topDown, width, height);
     else
       throw new IOException("Unsupported number of bits per pixel: " + bitCount);
-    
+
     file.close();
     removeTempImage();
 
