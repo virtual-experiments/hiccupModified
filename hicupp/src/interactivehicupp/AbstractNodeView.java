@@ -5,9 +5,6 @@ import java.awt.event.*;
 
 import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
-import hicupp.algorithms.AlgorithmUtilities;
-import hicupp.algorithms.ga.GeneticAlgorithmParameters;
-import hicupp.algorithms.sa.SimulatedAnnealingParameters;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
@@ -68,6 +65,10 @@ abstract class AbstractNodeView implements NodeView {
           showInfo();
         }
 
+        if (!client.getLogTextArea().getText().equals(""))
+          client.getLogTextArea().append("__________________________________________________________________________________\n\n");
+        client.getLogTextArea().append("Node " + classNode.getNode().getSerialNumber() + " pruned.\n");
+
         child = null;
       } else if (info == "New Points") {
         newPoints();
@@ -97,7 +98,7 @@ abstract class AbstractNodeView implements NodeView {
                               x <= size.width &&
                               0 <= y &&
                               y <= size.height;
-        if (inComponent && (e.getModifiers() & MouseEvent.BUTTON3_MASK) != 0) {
+        if (inComponent && (e.getButton() == MouseEvent.BUTTON3)) {
           PopupMenu popupMenu = client.createNodePopupMenu(AbstractNodeView.this);
           addNodePopupMenuItems(popupMenu);
           popupMenu.show(getComponent(), e.getX(), e.getY());
@@ -220,7 +221,7 @@ abstract class AbstractNodeView implements NodeView {
       infoFrame.setLocation(location.x + (nodeSize.width - size.width) / 2,
                             location.y + nodeSize.height);
     }
-    infoFrame.show();
+    infoFrame.setVisible(true);
   }
   
   private static void appendChars(StringBuffer b, char c, int n) {
