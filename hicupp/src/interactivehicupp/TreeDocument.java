@@ -387,8 +387,19 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       }
     }
 
-    algorithmIndex = index;
-    AlgorithmParametersUI.createParams(this);
+    AlgorithmParametersUI.Response response = new AlgorithmParametersUI.Response() {
+      @Override
+      public void confirm() {
+        algorithmIndex = index;
+      }
+
+      @Override
+      public void cancel() {
+        optimisationAlgorithmMenu.setChosenItem(algorithmIndex);
+      }
+    };
+
+    AlgorithmParametersUI.createParams(this, index, response);
   }
 
   private void changeProjection(int index) {

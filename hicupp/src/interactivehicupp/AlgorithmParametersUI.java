@@ -14,12 +14,20 @@ import java.awt.*;
 
 public final class AlgorithmParametersUI {
 
-    public static void createParams(TreeDocument treeDocument) {
-        switch (treeDocument.getAlgorithmIndex()) {
-            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.show(treeDocument);
-            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.show(treeDocument);
-            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.show(treeDocument);
-            default -> treeDocument.setAlgorithmParameters(null);
+    public interface Response {
+        void confirm();
+        void cancel();
+    }
+
+    public static void createParams(TreeDocument treeDocument, int index, Response response) {
+        switch (index) {
+            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.show(treeDocument, response);
+            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.show(treeDocument, response);
+            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.show(treeDocument, response);
+            default -> {
+                response.confirm();
+                treeDocument.setAlgorithmParameters(null);
+            }
         }
     }
 
@@ -57,7 +65,7 @@ public final class AlgorithmParametersUI {
 
         private static long evaluationTime;
 
-        public static void show(TreeDocument treeDocument) {
+        public static void show(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -94,13 +102,13 @@ public final class AlgorithmParametersUI {
             labelMinEvaluations = new Label("Minimum number of evaluations: " + minEvaluations, Label.RIGHT);
 
             String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
-            labelMinTime = new Label("Minimum time required: " + minTime + " s", Label.LEFT);
+            labelMinTime = new Label("Estimate minimum time: " + minTime + " s", Label.LEFT);
 
             String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
             labelMaxEvaluations = new Label("Maximum number of evaluations: " + maxEvaluations, Label.RIGHT);
 
             String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
-            labelMaxTime = new Label("Maximum time required: " + maxTime + " s", Label.LEFT);
+            labelMaxTime = new Label("Estimate maximum time: " + maxTime + " s", Label.LEFT);
 
             final Button ok = new Button("Ok");
             final Button cancel = new Button("Cancel");
@@ -112,13 +120,7 @@ public final class AlgorithmParametersUI {
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
-
-                treeDocument.setAlgorithmParameters(
-                        new SimulatedAnnealingParameters(
-                                initNumberOfIterations,
-                                initConverge,
-                                initMaxEquals
-                        ));
+                response.cancel();
             });
 
             checkboxConverge.addItemListener(e -> {
@@ -148,7 +150,7 @@ public final class AlgorithmParametersUI {
                                         numberOfIterations,
                                         convergeAtMaxEquals,
                                         maxEquals));
-
+                        response.confirm();
                         dialog.dispose();
                     }
                 } catch (NumberFormatException exception) {
@@ -190,7 +192,7 @@ public final class AlgorithmParametersUI {
             } catch (NumberFormatException ignore) { }
             finally {
                 labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
-                labelMinTime.setText("Minimum time required: " + minTime + " s");
+                labelMinTime.setText("Estimate minimum time: " + minTime + " s");
             }
         }
 
@@ -206,7 +208,7 @@ public final class AlgorithmParametersUI {
             } catch (NumberFormatException ignore) {
             } finally {
                 labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
-                labelMaxTime.setText("Maximum time required: " + maxTime + " s");
+                labelMaxTime.setText("Estimate maximum time: " + maxTime + " s");
             }
         }
 
@@ -243,7 +245,7 @@ public final class AlgorithmParametersUI {
         private static int evaluationsPerIteration = -1;
         private static double evaluationTime = -1;
 
-        static void show(TreeDocument treeDocument) {
+        static void show(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -295,10 +297,10 @@ public final class AlgorithmParametersUI {
             fieldMaxEquals.setEnabled(initConverge);
 
             labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
-            labelMinTime = new Label("Minimum time required: s", Label.LEFT);
+            labelMinTime = new Label("Estimate minimum time: s", Label.LEFT);
 
             labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
-            labelMaxTime = new Label("Maximum time required: s", Label.LEFT);
+            labelMaxTime = new Label("Estimate maximum time: s", Label.LEFT);
 
             getEstimates();
 
@@ -314,15 +316,7 @@ public final class AlgorithmParametersUI {
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
-
-                treeDocument.setAlgorithmParameters(
-                        new GeneticAlgorithmParameters(
-                                initPop,
-                                initGens,
-                                initMutations,
-                                initSpawns,
-                                initConverge,
-                                initMaxEquals));
+                response.cancel();
             });
 
             checkboxConverge.addItemListener(e -> {
@@ -362,7 +356,7 @@ public final class AlgorithmParametersUI {
                                         spawns,
                                         converge,
                                         maxEquals));
-
+                        response.confirm();
                         dialog.dispose();
                     }
                 } catch (NumberFormatException exception) {
@@ -438,9 +432,9 @@ public final class AlgorithmParametersUI {
             } catch (NumberFormatException ignore) { }
             finally {
                 labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
-                labelMinTime.setText("Minimum time: " + minTime + " s");
+                labelMinTime.setText("Estimate minimum time: " + minTime + " s");
                 labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
-                labelMaxTime.setText("Maximum time: " + maxTime + " s");
+                labelMaxTime.setText("Estimate maximum time: " + maxTime + " s");
             }
         }
 
@@ -476,7 +470,7 @@ public final class AlgorithmParametersUI {
         private static long evaluationTime;
         private static int argumentCount;
 
-        static void show(TreeDocument treeDocument) {
+        static void show(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
 
             AbstractNodeView nodeView = (AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot();
@@ -520,10 +514,10 @@ public final class AlgorithmParametersUI {
             fieldMaxEquals.setEnabled(initConverge);
 
             labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
-            labelMinTime = new Label("Minimum time required: s", Label.LEFT);
+            labelMinTime = new Label("Estimate minimum time: s", Label.LEFT);
 
             labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
-            labelMaxTime = new Label("Maximum time required: s", Label.LEFT);
+            labelMaxTime = new Label("Estimate maximum time: s", Label.LEFT);
 
             getMinimumEstimates();
             getMaximumEstimates();
@@ -541,14 +535,7 @@ public final class AlgorithmParametersUI {
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
-
-                treeDocument.setAlgorithmParameters(
-                        new GradientDescentParameters(
-                                initIterations,
-                                initSolutions,
-                                initConverge,
-                                initMaxEquals
-                        ));
+                response.cancel();
             });
 
             checkboxConverge.addItemListener(e -> {
@@ -587,7 +574,7 @@ public final class AlgorithmParametersUI {
                                         maxEquals
                                 )
                         );
-
+                        response.confirm();
                         dialog.dispose();
                     }
                 } catch (NumberFormatException exception) {
@@ -640,7 +627,7 @@ public final class AlgorithmParametersUI {
             }
 
             labelMinEvaluations.setText("Minimum number of evaluations: " + minEvaluations);
-            labelMinTime.setText("Minimum time required: " + minTime + " s");
+            labelMinTime.setText("Estimate minimum time: " + minTime + " s");
         }
 
         private static void getMaximumEstimates() {
@@ -657,7 +644,7 @@ public final class AlgorithmParametersUI {
             } catch (NumberFormatException ignore) { }
             finally {
                 labelMaxEvaluations.setText("Maximum number of evaluations: " + maxEvaluations);
-                labelMaxTime.setText("Maximum time required: " + maxTime + " s");
+                labelMaxTime.setText("Estimate maximum time: " + maxTime + " s");
             }
         }
 
