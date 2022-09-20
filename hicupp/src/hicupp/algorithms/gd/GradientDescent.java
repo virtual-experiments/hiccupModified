@@ -31,7 +31,6 @@ public final class GradientDescent {
 
         final double precision = 1e-4;
         final double h = 1e-4;
-        final double learningRate = 1e-15;
 
         // function variables
         final MonitoringFunctionWrapper wrapper =
@@ -60,53 +59,11 @@ public final class GradientDescent {
                      .forEach(System.out::println);
             System.out.println("Converges: " + solutions.stream().filter(Solution::isConverged).count() + "\n");
 
-            // find gradient
-            for (Solution solution : solutions) {
-                if (!solution.isConverged()) {
-                    final double[] x_current = solution.getX().clone();
-                    final double fx_current = solution.getFx();
-                    double[] gradient_current = new double[n];
+            for (Solution solution : solutions)
+                GradientDescentFunctions.findGradient(solution, wrapper, n, h);
 
-                    for (int j = 0; j < n; j++) { // each axis
-                        double[] x_new = x_current.clone();
-
-                        x_new[j] += h;
-                        double fx_new = wrapper.evaluate(x_new);
-                        if (fx_new < fx_current) {  // go opposite
-                            x_new[j] -= h * 2;
-                            fx_new = wrapper.evaluate(x_new);
-                        }
-
-                        double gradient_axis = (fx_new - fx_current) / h;
-                        gradient_current[j] = gradient_axis;
-                    }
-
-                    solution.setGradient(gradient_current);
-                }
-            }
-
-            // find new solution
-            for (Solution solution : solutions) {
-                if (!solution.isConverged()) {
-                    final double[] gradient = solution.getGradient().clone();
-                    double[] x = solution.getX().clone();
-
-                    for (int i = 0; i < n; i++) {
-                        x[i] += gradient[i] * learningRate;
-
-                        if (Math.abs(x[i]) > 1) solution.setConverged(true);  // out of bounds
-                    }
-
-                    solution.setX(x);
-                    double fx = wrapper.evaluate(x);
-
-                    if (Math.abs(fx - solution.getFx()) < precision)    // converged
-                        solution.setConverged(true);
-
-                    if (fx < 0) solution.setConverged(true);    // error
-                    else solution.setFx(fx);
-                }
-            }
+            for (Solution solution : solutions)
+                GradientDescentFunctions.findNewSolution(solution, wrapper, n, precision);
 
             // find best solution
             Solution newBest = solutions.stream()
@@ -114,19 +71,22 @@ public final class GradientDescent {
                     .orElseThrow()
                     .clone();
 
-            if (bestSolution.equals(newBest) || bestSolution.getFx() < newBest.getFx()) numberOfEquals++;
-            else {
+            if (bestSolution.getFx() >= newBest.getFx()) { // not improved, increase counter
+                numberOfEquals++;
+                System.out.println("Number of equals: " + numberOfEquals);
+            } else {
                 numberOfEquals = 0;
-                if (newBest.getFx() > bestSolution.getFx()) bestSolution = newBest;
+                System.out.println("Improved");
+                bestSolution = newBest.clone(); // improvement
             }
 
             if (monitor != null)
                 monitor.writeLine("(iter = " + iteration + ") " + bestSolution);
 
             // check stop condition
-            if (solutions.stream().allMatch(Solution::isConverged))
+            if (solutions.stream().allMatch(Solution::isConverged))         // all solutions converged
                 allConverged = true;
-            else if (convergeAtMaxEquals && numberOfEquals >= maxEquals)
+            else if (convergeAtMaxEquals && numberOfEquals >= maxEquals)    // has not improved in a while
                 break;
 
             iteration++;

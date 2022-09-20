@@ -15,7 +15,7 @@ public final class FunctionMaximizer {
     "Simplex",
     "Simulated annealing",
     "Genetic algorithm",
-    "Gradient descent"
+    "Gradient ascent"
   };
 
   public static final int SIMPLEX_ALGORITHM_INDEX = 0;

@@ -496,13 +496,13 @@ public final class AlgorithmParametersUI {
                 initMaxEquals = parameters.maxEquals();
             } else {
                 initIterations = 100;
-                initSolutions = 15;
+                initSolutions = 5;
                 initConverge = true;
-                initMaxEquals = 10;
+                initMaxEquals = 20;
             }
 
             // UI
-            dialog = new Dialog(frame, "Gradient Descent", true);
+            dialog = new Dialog(frame, "Gradient Ascent", true);
             dialog.setLayout(new SpringLayout());
 
             final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);

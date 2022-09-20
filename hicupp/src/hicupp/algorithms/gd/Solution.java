@@ -10,19 +10,25 @@ class Solution implements Cloneable {
     private double fx;
     private double[] gradient;
     private boolean converged;
+    private double learningRate;
+    private double delta;
 
     public Solution (double[] x, double fx) {
         this.x = x;
         this.fx = fx;
         this.gradient = new double[x.length];
         this.converged = false;
+        this.learningRate = 1e-6;
+        this.delta = Double.MAX_VALUE;
     }
 
-    public Solution(double[] x, double fx, double[] gradient, boolean converged) {
+    public Solution(double[] x, double fx, double[] gradient, boolean converged, double learningRate, double delta) {
         this.x = x;
         this.fx = fx;
         this.gradient = gradient;
         this.converged = converged;
+        this.learningRate = learningRate;
+        this.delta = delta;
     }
 
     public double[] getX() {
@@ -57,12 +63,30 @@ class Solution implements Cloneable {
         this.converged = converged;
     }
 
+    public double getLearningRate() {
+        return learningRate;
+    }
+
+    public void setLearningRate(double learningRate) {
+        this.learningRate = learningRate;
+    }
+
+    public double getDelta() {
+        return delta;
+    }
+
+    public void setDelta(double delta) {
+        this.delta = delta;
+    }
+
     @Override
     public Solution clone() {
         final double[] x = this.x.clone();
         final double fx = this.fx;
         final double[] gradient = this.gradient.clone();
         final boolean converged = this.converged;
+        final double learningRate = this.learningRate;
+        final double delta = this.delta;
 
         try {
             Solution clone = (Solution) super.clone();
@@ -71,10 +95,12 @@ class Solution implements Cloneable {
             clone.setFx(fx);
             clone.setGradient(gradient);
             clone.setConverged(converged);
+            clone.setLearningRate(learningRate);
+            clone.setDelta(delta);
 
             return clone;
         } catch (CloneNotSupportedException e) {
-            return new Solution(x, fx, gradient,  converged);
+            return new Solution(x, fx, gradient,  converged, learningRate, delta);
         }
     }
 
@@ -83,7 +109,7 @@ class Solution implements Cloneable {
         return "(fx = " + TextTools.formatScientific(fx) + ") " +
                 "(gradient = " + AlgorithmUtilities.argumentArrayToString(gradient) + ") " +
                 "(x = " + AlgorithmUtilities.argumentArrayToString(x) + ") " +
-                "(converged = " + isConverged() + ")";
+                "(delta = " + TextTools.formatScientific(delta) + ")";
     }
 
     @Override
