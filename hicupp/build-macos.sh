@@ -1,8 +1,13 @@
 #!/bin/bash
 set -e
 GIF_FILES=($(cd src; find . -name \*.gif))
+BMP_FILES=($(cd src; find . -name \*.bmp))
 javac -d bin --module-source-path hicupp=src -m hicupp
 for F in $GIF_FILES
+do
+  cp src/$F bin/hicupp/$F
+done
+for F in $BMP_FILES
 do
   cp src/$F bin/hicupp/$F
 done
