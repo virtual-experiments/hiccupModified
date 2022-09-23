@@ -23,9 +23,9 @@ public final class AlgorithmParametersUI {
 
     public static void createParams(TreeDocument treeDocument, int index, Response response) {
         switch (index) {
-            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.show(treeDocument, response);
-            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.show(treeDocument, response);
-            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.show(treeDocument, response);
+            case FunctionMaximizer.ANNEALING_ALGORITHM_INDEX -> AnnealingUI.create(treeDocument, response);
+            case FunctionMaximizer.GENETIC_ALGORITHM_INDEX -> GeneticUI.create(treeDocument, response);
+            case FunctionMaximizer.GRADIENT_ALGORITHM_INDEX -> GradientUI.create(treeDocument, response);
             default -> {
                 response.confirm();
                 treeDocument.setAlgorithmParameters(null);
@@ -49,25 +49,25 @@ public final class AlgorithmParametersUI {
         }
     }
 
-    private static final class AnnealingUI {
+    private static class AnnealingUI {
 
-        private static JDialog dialog;
+        private final JDialog dialog;
 
-        private static JTextField fieldIterations;
+        private final JTextField fieldIterations;
 
-        private static JCheckBox checkboxConverge;
+        private final JCheckBox checkboxConverge;
 
-        private static JLabel labelMaxEquals;
-        private static JTextField fieldMaxEquals;
+        private final JLabel labelMaxEquals;
+        private final JTextField fieldMaxEquals;
 
-        private static JLabel labelMinEvaluations;
-        private static JLabel labelMinTime;
-        private static JLabel labelMaxEvaluations;
-        private static JLabel labelMaxTime;
+        private final JLabel labelMinEvaluations;
+        private final JLabel labelMinTime;
+        private final JLabel labelMaxEvaluations;
+        private final JLabel labelMaxTime;
 
-        private static long evaluationTime;
+        private final long evaluationTime;
 
-        public static void show(TreeDocument treeDocument, Response response) {
+        public AnnealingUI(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -90,27 +90,27 @@ public final class AlgorithmParametersUI {
             dialog = new JDialog(frame, "Simulated Annealing", true);
             dialog.setLayout(new SpringLayout());
 
-            JLabel labelIterations = new JLabel("Number of iterations: ", SwingConstants.RIGHT);
+            JLabel labelIterations = new JLabel("Number of iterations: ", JLabel.RIGHT);
             fieldIterations = new JTextField(Integer.toString(initNumberOfIterations));
 
             checkboxConverge = new JCheckBox("Stop when solution does not improve", initConverge);
 
-            labelMaxEquals = new JLabel("After number of iterations: ", SwingConstants.RIGHT);
+            labelMaxEquals = new JLabel("After number of iterations: ", JLabel.RIGHT);
             labelMaxEquals.setEnabled(initConverge);
             fieldMaxEquals = new JTextField(Integer.toString(initMaxEquals));
             fieldMaxEquals.setEnabled(initConverge);
 
             String minEvaluations = (initConverge) ? Integer.toString(initMaxEquals + 1) : "N/A";
-            labelMinEvaluations = new JLabel("Minimum number of evaluations: " + minEvaluations, SwingConstants.RIGHT);
+            labelMinEvaluations = new JLabel("Minimum number of evaluations: " + minEvaluations, JLabel.RIGHT);
 
             String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
-            labelMinTime = new JLabel("Estimate minimum time: " + minTime + " s", SwingConstants.LEFT);
+            labelMinTime = new JLabel("Estimate minimum time: " + minTime + " s", JLabel.LEFT);
 
             String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
-            labelMaxEvaluations = new JLabel("Maximum number of evaluations: " + maxEvaluations, SwingConstants.RIGHT);
+            labelMaxEvaluations = new JLabel("Maximum number of evaluations: " + maxEvaluations, JLabel.RIGHT);
 
             String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
-            labelMaxTime = new JLabel("Estimate maximum time: " + maxTime + " s", SwingConstants.LEFT);
+            labelMaxTime = new JLabel("Estimate maximum time: " + maxTime + " s", JLabel.LEFT);
 
             final JButton ok = new JButton("Ok");
             final JButton cancel = new JButton("Cancel");
@@ -195,7 +195,7 @@ public final class AlgorithmParametersUI {
             dialog.add(labelIterations);
             dialog.add(fieldIterations);
             dialog.add(checkboxConverge);
-            dialog.add(new Label()); // keeps checkbox to the left
+            dialog.add(new JLabel()); // keeps checkbox to the left
             dialog.add(labelMaxEquals);
             dialog.add(fieldMaxEquals);
             dialog.add(labelMinEvaluations);
@@ -210,7 +210,7 @@ public final class AlgorithmParametersUI {
             showDialog(dialog, frame);
         }
 
-        private static void getMinimumEstimates() {
+        private void getMinimumEstimates() {
             String minEvaluations = "N/A";
             String minTime = "N/A";
             try {
@@ -228,7 +228,7 @@ public final class AlgorithmParametersUI {
             }
         }
 
-        private static void getMaximumEstimates() {
+        private void getMaximumEstimates() {
             String maxEvaluations = "N/A";
             String maxTime = "N/A";
             try {
@@ -253,31 +253,35 @@ public final class AlgorithmParametersUI {
                 );
             } else throw new RuntimeException("Wrong parameters type.");
         }
+
+        public static void create(TreeDocument treeDocument, Response response) {
+            new AnnealingUI(treeDocument, response);
+        }
     }
 
-    private static final class GeneticUI {
+    private static class GeneticUI {
 
-        private static Dialog dialog;
+        private final JDialog dialog;
 
-        private static TextField fieldPopulation;
-        private static TextField fieldGens;
-        private static TextField fieldMutations;
-        private static TextField fieldSpawns;
+        private final JTextField fieldPopulation;
+        private final JTextField fieldGens;
+        private final JTextField fieldMutations;
+        private final JTextField fieldSpawns;
 
-        private static Checkbox checkboxConverge;
+        private final JCheckBox checkboxConverge;
 
-        private static Label labelMaxEquals;
-        private static TextField fieldMaxEquals;
+        private final JLabel labelMaxEquals;
+        private final JTextField fieldMaxEquals;
 
-        private static Label labelMinEvaluations;
-        private static Label labelMinTime;
-        private static Label labelMaxEvaluations;
-        private static Label labelMaxTime;
+        private final JLabel labelMinEvaluations;
+        private final JLabel labelMinTime;
+        private final JLabel labelMaxEvaluations;
+        private final JLabel labelMaxTime;
 
         private static int evaluationsPerIteration = -1;
         private static double evaluationTime = -1;
 
-        static void show(TreeDocument treeDocument, Response response) {
+        public GeneticUI(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
             evaluationTime = ((AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot()).getEvaluationTime();
 
@@ -306,33 +310,33 @@ public final class AlgorithmParametersUI {
             }
 
             // UI
-            dialog = new Dialog(frame, "Genetic Algorithm", true);
+            dialog = new JDialog(frame, "Genetic Algorithm", true);
             dialog.setLayout(new SpringLayout());
 
-            Label labelPopulation = new Label("Population size: ", Label.RIGHT);
-            fieldPopulation = new TextField(Integer.toString(initPop), 29);
+            JLabel labelPopulation = new JLabel("Population size: ", JLabel.RIGHT);
+            fieldPopulation = new JTextField(Integer.toString(initPop));
 
-            Label labelGens = new Label("Number of generations: ", Label.RIGHT);
-            fieldGens = new TextField(Integer.toString(initGens), 29);
+            JLabel labelGens = new JLabel("Number of generations: ", JLabel.RIGHT);
+            fieldGens = new JTextField(Integer.toString(initGens));
 
-            Label labelMutations = new Label("Mutations per generation: ", Label.RIGHT);
-            fieldMutations = new TextField(Integer.toString(initMutations), 29);
+            JLabel labelMutations = new JLabel("Mutations per generation: ", JLabel.RIGHT);
+            fieldMutations = new JTextField(Integer.toString(initMutations));
 
-            Label labelSpawns = new Label("Spawns per generation: ", Label.RIGHT);
-            fieldSpawns = new TextField(Integer.toString(initSpawns), 29);
+            JLabel labelSpawns = new JLabel("Spawns per generation: ", JLabel.RIGHT);
+            fieldSpawns = new JTextField(Integer.toString(initSpawns));
 
-            checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
+            checkboxConverge = new JCheckBox("Stop when solution does not improve", initConverge);
 
-            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals = new JLabel("After number of iterations: ", JLabel.RIGHT);
             labelMaxEquals.setEnabled(initConverge);
-            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals = new JTextField(Integer.toString(initMaxEquals));
             fieldMaxEquals.setEnabled(initConverge);
 
-            labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
-            labelMinTime = new Label("Estimate minimum time: s", Label.LEFT);
+            labelMinEvaluations = new JLabel("Minimum number of evaluations: ", JLabel.RIGHT);
+            labelMinTime = new JLabel("Estimate minimum time: s", JLabel.LEFT);
 
-            labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
-            labelMaxTime = new Label("Estimate maximum time: s", Label.LEFT);
+            labelMaxEvaluations = new JLabel("Maximum number of evaluations: ", JLabel.RIGHT);
+            labelMaxTime = new JLabel("Estimate maximum time: s", JLabel.LEFT);
 
             getEstimates();
 
@@ -340,11 +344,86 @@ public final class AlgorithmParametersUI {
             final Button cancel = new Button("Cancel");
 
             // events
-            fieldPopulation.addTextListener(e -> getEstimates());
-            fieldGens.addTextListener(e -> getEstimates());
-            fieldMutations.addTextListener(e -> getEstimates());
-            fieldSpawns.addTextListener(e -> getEstimates());
-            fieldMaxEquals.addTextListener(e -> getEstimates());
+            fieldPopulation.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+            });
+            fieldGens.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+            });
+            fieldMutations.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+            });
+            fieldSpawns.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+            });
+            fieldMaxEquals.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getEstimates();
+                }
+            });
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
@@ -352,8 +431,8 @@ public final class AlgorithmParametersUI {
             });
 
             checkboxConverge.addItemListener(e -> {
-                fieldMaxEquals.setEnabled(checkboxConverge.getState());
-                labelMaxEquals.setEnabled(checkboxConverge.getState());
+                fieldMaxEquals.setEnabled(checkboxConverge.isSelected());
+                labelMaxEquals.setEnabled(checkboxConverge.isSelected());
                 getEstimates();
             });
 
@@ -363,7 +442,7 @@ public final class AlgorithmParametersUI {
                     final int gens = Integer.parseInt(fieldGens.getText());
                     final int mutations = Integer.parseInt(fieldMutations.getText());
                     final int spawns = Integer.parseInt(fieldSpawns.getText());
-                    final boolean converge = checkboxConverge.getState();
+                    final boolean converge = checkboxConverge.isSelected();
                     final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
 
                     if (popSize <= 0 || gens <= 0)
@@ -407,7 +486,7 @@ public final class AlgorithmParametersUI {
             dialog.add(labelSpawns);
             dialog.add(fieldSpawns);
             dialog.add(checkboxConverge);
-            dialog.add(new Label()); // keeps checkbox on the left
+            dialog.add(new JLabel()); // keeps checkbox on the left
             dialog.add(labelMaxEquals);
             dialog.add(fieldMaxEquals);
             dialog.add(labelMinEvaluations);
@@ -417,12 +496,12 @@ public final class AlgorithmParametersUI {
             dialog.add(ok);
             dialog.add(cancel);
 
-            makeCompactGrid(dialog, 9);
+            dialog.setLayout(new GridLayout(9, 2, 8, 8));
 
             showDialog(dialog, frame);
         }
 
-        private static void calculateEvaluationsPerIteration() {
+        private void calculateEvaluationsPerIteration() {
             try {
                 int populationSize = Integer.parseInt(fieldPopulation.getText());
                 int mutations = Integer.parseInt(fieldMutations.getText());
@@ -436,7 +515,7 @@ public final class AlgorithmParametersUI {
             }
         }
 
-        private static void getEstimates() {
+        private void getEstimates() {
             String minEvaluations = "N/A";
             String minTime = "N/A";
             String maxEvaluations = "N/A";
@@ -446,7 +525,7 @@ public final class AlgorithmParametersUI {
                 calculateEvaluationsPerIteration();
                 if (evaluationsPerIteration == -1) throw new NumberFormatException();
 
-                if (checkboxConverge.getState()) {
+                if (checkboxConverge.isSelected()) {
                     int min =
                             Integer.parseInt(fieldPopulation.getText())  +  // initial random population
                             evaluationsPerIteration * Integer.parseInt(fieldMaxEquals.getText()); // total evaluations
@@ -482,27 +561,31 @@ public final class AlgorithmParametersUI {
                 );
             } else throw new RuntimeException("Wrong parameters type.");
         }
+
+        public static void create(TreeDocument treeDocument, Response response) {
+            new GeneticUI(treeDocument, response);
+        }
     }
 
-    private static final class GradientUI {
+    private static class GradientUI {
 
-        private static Dialog dialog;
+        private final JDialog dialog;
 
-        private static TextField fieldIterations;
-        private static TextField fieldSolutions;
-        private static Checkbox checkboxConverge;
-        private static Label labelMaxEquals;
-        private static TextField fieldMaxEquals;
+        private final JTextField fieldIterations;
+        private final JTextField fieldSolutions;
+        private final JCheckBox checkboxConverge;
+        private final JLabel labelMaxEquals;
+        private final JTextField fieldMaxEquals;
 
-        private static Label labelMinEvaluations;
-        private static Label labelMinTime;
-        private static Label labelMaxEvaluations;
-        private static Label labelMaxTime;
+        private final JLabel labelMinEvaluations;
+        private final JLabel labelMinTime;
+        private final JLabel labelMaxEvaluations;
+        private final JLabel labelMaxTime;
 
-        private static long evaluationTime;
-        private static int argumentCount;
+        private final long evaluationTime;
+        private final int argumentCount;
 
-        static void show(TreeDocument treeDocument, Response response) {
+        public GradientUI(TreeDocument treeDocument, Response response) {
             Frame frame = treeDocument.getFrame();
 
             AbstractNodeView nodeView = (AbstractNodeView) treeDocument.getPointsSourceProvider().getRoot();
@@ -528,28 +611,28 @@ public final class AlgorithmParametersUI {
             }
 
             // UI
-            dialog = new Dialog(frame, "Gradient Ascent", true);
+            dialog = new JDialog(frame, "Gradient Ascent", true);
             dialog.setLayout(new SpringLayout());
 
-            final Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
-            fieldIterations = new TextField(Integer.toString(initIterations), 29);
+            final JLabel labelIterations = new JLabel("Number of iterations: ", JLabel.RIGHT);
+            fieldIterations = new JTextField(Integer.toString(initIterations));
 
-            final Label labelSolutions = new Label("Number of initial random solutions: ", Label.RIGHT);
-            fieldSolutions = new TextField(Integer.toString(initSolutions), 29);
+            final JLabel labelSolutions = new JLabel("Number of initial random solutions: ", JLabel.RIGHT);
+            fieldSolutions = new JTextField(Integer.toString(initSolutions));
 
             checkboxConverge =
-                    new Checkbox("Stop when the solution does not improve", initConverge);
+                    new JCheckBox("Stop when the solution does not improve", initConverge);
 
-            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals = new JLabel("After number of iterations: ", JLabel.RIGHT);
             labelMaxEquals.setEnabled(initConverge);
-            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals = new JTextField(Integer.toString(initMaxEquals));
             fieldMaxEquals.setEnabled(initConverge);
 
-            labelMinEvaluations = new Label("Minimum number of evaluations: ", Label.RIGHT);
-            labelMinTime = new Label("Estimate minimum time: s", Label.LEFT);
+            labelMinEvaluations = new JLabel("Minimum number of evaluations: ", JLabel.RIGHT);
+            labelMinTime = new JLabel("Estimate minimum time: s", JLabel.LEFT);
 
-            labelMaxEvaluations = new Label("Maximum number of evaluations: ", Label.RIGHT);
-            labelMaxTime = new Label("Estimate maximum time: s", Label.LEFT);
+            labelMaxEvaluations = new JLabel("Maximum number of evaluations: ", JLabel.RIGHT);
+            labelMaxTime = new JLabel("Estimate maximum time: s", JLabel.LEFT);
 
             getMinimumEstimates();
             getMaximumEstimates();
@@ -558,12 +641,57 @@ public final class AlgorithmParametersUI {
             final Button cancel = new Button("Cancel");
 
             // events
-            fieldIterations.addTextListener(e -> getMaximumEstimates());
-            fieldSolutions.addTextListener(e -> {
-                getMinimumEstimates();
-                getMaximumEstimates();
+            fieldIterations.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
             });
-            fieldMaxEquals.addTextListener(e -> getMinimumEstimates());
+            fieldSolutions.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                    getMaximumEstimates();
+                }
+            });
+            fieldMaxEquals.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+            });
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
@@ -571,8 +699,8 @@ public final class AlgorithmParametersUI {
             });
 
             checkboxConverge.addItemListener(e -> {
-                labelMaxEquals.setEnabled(checkboxConverge.getState());
-                fieldMaxEquals.setEnabled(checkboxConverge.getState());
+                labelMaxEquals.setEnabled(checkboxConverge.isSelected());
+                fieldMaxEquals.setEnabled(checkboxConverge.isSelected());
 
                 getMinimumEstimates();
             });
@@ -581,7 +709,7 @@ public final class AlgorithmParametersUI {
                 try {
                     final int iterations = Integer.parseInt(fieldIterations.getText());
                     final int numberOfSolutions = Integer.parseInt(fieldSolutions.getText());
-                    final boolean converge = checkboxConverge.getState();
+                    final boolean converge = checkboxConverge.isSelected();
                     final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
 
                     if (iterations <= 0 || numberOfSolutions <= 0)
@@ -621,7 +749,7 @@ public final class AlgorithmParametersUI {
             dialog.add(labelSolutions);
             dialog.add(fieldSolutions);
             dialog.add(checkboxConverge);
-            dialog.add(new Label());    // keeps checkbox on the left
+            dialog.add(new JLabel());    // keeps checkbox on the left
             dialog.add(labelMaxEquals);
             dialog.add(fieldMaxEquals);
             dialog.add(labelMinEvaluations);
@@ -631,23 +759,23 @@ public final class AlgorithmParametersUI {
             dialog.add(ok);
             dialog.add(cancel);
 
-            makeCompactGrid(dialog, 7);
+            dialog.setLayout(new GridLayout(7, 2, 8, 8));
 
             showDialog(dialog, frame);
         }
 
-        private static int evaluationsPerIteration(int iterations, int solutions) {
+        private int evaluationsPerIteration(int iterations, int solutions) {
             int evaluations = solutions * 2 * argumentCount +   // finding gradient, worst case scenario
                               solutions;                        // calculate new position
 
             return evaluations * iterations;
         }
 
-        private static void getMinimumEstimates() {
+        private void getMinimumEstimates() {
             String minEvaluations = "N/A";
             String minTime = "N/A";
 
-            if (checkboxConverge.getState()) {
+            if (checkboxConverge.isSelected()) {
                 try {
                     int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
                     int solutions = Integer.parseInt(fieldSolutions.getText());
@@ -662,7 +790,7 @@ public final class AlgorithmParametersUI {
             labelMinTime.setText("Estimate minimum time: " + minTime + " s");
         }
 
-        private static void getMaximumEstimates() {
+        private void getMaximumEstimates() {
             String maxEvaluations = "N/A";
             String maxTime = "N/A";
 
@@ -690,9 +818,13 @@ public final class AlgorithmParametersUI {
                 );
             } else throw new RuntimeException("Wrong parameters type.");
         }
+
+        public static void create(TreeDocument treeDocument, Response response) {
+            new GradientUI(treeDocument, response);
+        }
     }
 
-    private static void showDialog(Dialog dialog, Frame frame) {
+    private static void showDialog(JDialog dialog, Frame frame) {
         dialog.pack();
         dialog.setResizable(false);
         Dimension dialogSize = dialog.getSize();
@@ -738,104 +870,5 @@ public final class AlgorithmParametersUI {
         });
 
         thread.start();
-    }
-
-    /*
-     * Copyright (c) 1995, 2008, Oracle and/or its affiliates. All rights reserved.
-     *
-     * Redistribution and use in source and binary forms, with or without
-     * modification, are permitted provided that the following conditions
-     * are met:
-     *
-     *   - Redistributions of source code must retain the above copyright
-     *     notice, this list of conditions and the following disclaimer.
-     *
-     *   - Redistributions in binary form must reproduce the above copyright
-     *     notice, this list of conditions and the following disclaimer in the
-     *     documentation and/or other materials provided with the distribution.
-     *
-     *   - Neither the name of Oracle or the names of its
-     *     contributors may be used to endorse or promote products derived
-     *     from this software without specific prior written permission.
-     *
-     * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
-     * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-     * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-     * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-     * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-     * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-     * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-     * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-     * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-     * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-     * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-     */
-
-    /* Used by makeCompactGrid. */
-    private static SpringLayout.Constraints getConstraintsForCell(int row, int col, Container parent) {
-        SpringLayout layout = (SpringLayout) parent.getLayout();
-        Component c = parent.getComponent(row * 2 + col);
-        return layout.getConstraints(c);
-    }
-
-    /**
-     * Aligns the first <code>rows</code> * <code>cols</code>
-     * components of <code>parent</code> in
-     * a grid. Each component in a column is as wide as the maximum
-     * preferred width of the components in that column;
-     * height is similarly determined for each row.
-     * The parent is made just big enough to fit them all.
-     * @param rows number of rows
-     *
-     */
-    private static void makeCompactGrid(Container parent, int rows) {
-        SpringLayout layout;
-        try {
-            layout = (SpringLayout) parent.getLayout();
-        } catch (ClassCastException exc) {
-            System.err.println("The first argument to makeCompactGrid must use SpringLayout.");
-            return;
-        }
-
-        //Align all cells in each column and make them the same width.
-        Spring x = Spring.constant(6);
-        for (int c = 0; c < 2; c++) {
-            Spring width = Spring.constant(0);
-            for (int r = 0; r < rows; r++) {
-                width = Spring.max(width,
-                        getConstraintsForCell(r, c, parent).
-                                getWidth());
-            }
-            for (int r = 0; r < rows; r++) {
-                SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent);
-                constraints.setX(x);
-                constraints.setWidth(width);
-            }
-            x = Spring.sum(x, Spring.sum(width, Spring.constant(6)));
-        }
-
-        //Align all cells in each row and make them the same height.
-        Spring y = Spring.constant(6);
-        for (int r = 0; r < rows; r++) {
-            Spring height = Spring.constant(0);
-            for (int c = 0; c < 2; c++) {
-                height = Spring.max(height,
-                        getConstraintsForCell(r, c, parent).
-                                getHeight());
-            }
-            for (int c = 0; c < 2; c++) {
-                SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent);
-                constraints.setY(y);
-                constraints.setHeight(height);
-            }
-            y = Spring.sum(y, Spring.sum(height, Spring.constant(6)));
-        }
-
-        //Set the parent's size.
-        SpringLayout.Constraints pCons = layout.getConstraints(parent);
-        pCons.setConstraint(SpringLayout.SOUTH, y);
-        pCons.setConstraint(SpringLayout.EAST, x);
     }
 }
