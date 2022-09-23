@@ -2,6 +2,7 @@ package hicupp;
 
 import interactivehicupp.MessageBox;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
@@ -9,12 +10,12 @@ import java.util.Arrays;
 
 public class LoadMatrixDialog extends LoadDialog {
   private final TextField dataFileTextField = new TextField();
-  private final Checkbox skipFirstLineCheckbox = new Checkbox();
+  private final JCheckBox skipFirstLineCheckbox = new JCheckBox();
   private final List columnsList = new List(10);
 
   private int columnsCount;
   private double[] coords;
-  private final Frame parent;
+  private final JFrame parent;
 
   @Override
   public double[] getCoords() {
@@ -38,7 +39,7 @@ public class LoadMatrixDialog extends LoadDialog {
 
   @Override
   public int skipFirstLine() {
-    return (skipFirstLineCheckbox.getState())? 1 : 0;
+    return (skipFirstLineCheckbox.isSelected())? 1 : 0;
   }
 
   @Override
@@ -62,7 +63,7 @@ public class LoadMatrixDialog extends LoadDialog {
       columnsCount = chosenColumns.length;
 
       dataFileTextField.setText(filename);
-      skipFirstLineCheckbox.setState(skipFirstLine == 1);
+      skipFirstLineCheckbox.setSelected(skipFirstLine == 1);
 
       columnsList.removeAll();
       for (int i = 0; i < Arrays.stream(chosenColumns).max().orElse(5); i++)
@@ -79,20 +80,20 @@ public class LoadMatrixDialog extends LoadDialog {
     columnsList.setEnabled(false);
   }
 
-  public LoadMatrixDialog(Frame parent, String title) {
+  public LoadMatrixDialog(JFrame parent, String title) {
     super(parent, title, true);
     
     this.parent = parent;
 
-    Panel mainPanel = new Panel();
+    JPanel mainPanel = new JPanel();
     LayoutTools.addWithMargin(this, mainPanel, 8);
     
     mainPanel.setLayout(new BorderLayout(6, 6));
-    Panel dataFilePanel = new Panel();
+    JPanel dataFilePanel = new JPanel();
     mainPanel.add(dataFilePanel, BorderLayout.NORTH);
-    Panel columnsPanel = new Panel();
+    JPanel columnsPanel = new JPanel();
     mainPanel.add(columnsPanel, BorderLayout.CENTER);
-    Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
+    JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     mainPanel.add(buttonsPanel, BorderLayout.SOUTH);
     
     addWindowListener(new WindowAdapter() {
@@ -104,17 +105,17 @@ public class LoadMatrixDialog extends LoadDialog {
     setBackground(SystemColor.control);
     
     dataFilePanel.setLayout(new BorderLayout(6, 6));
-    Label dataFileLabel = new Label();
+    JLabel dataFileLabel = new JLabel();
     dataFilePanel.add(dataFileLabel, BorderLayout.WEST);
     dataFilePanel.add(dataFileTextField, BorderLayout.CENTER);
-    Button browseButton = new Button();
+    JButton browseButton = new JButton();
     dataFilePanel.add(browseButton, BorderLayout.EAST);
     dataFilePanel.add(skipFirstLineCheckbox, BorderLayout.SOUTH);
     
     dataFileLabel.setText("Data file: ");
     dataFileTextField.setColumns(50);
     
-    browseButton.setLabel("Browse...");
+    browseButton.setText("Browse...");
     browseButton.addActionListener(e -> {
       FileDialog fileDialog = new FileDialog(LoadMatrixDialog.this.parent,
                                              "Choose a Data File", FileDialog.LOAD);
@@ -131,17 +132,17 @@ public class LoadMatrixDialog extends LoadDialog {
         dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
     });
 
-    skipFirstLineCheckbox.setLabel("Skip First Line");
+    skipFirstLineCheckbox.setText("Skip First Line");
     
     columnsPanel.setLayout(new BorderLayout(6, 6));
-    Panel columnsHeaderPanel = new Panel();
+    JPanel columnsHeaderPanel = new JPanel();
     columnsPanel.add(columnsHeaderPanel, BorderLayout.NORTH);
     columnsPanel.add(columnsList, BorderLayout.CENTER);
     
     columnsHeaderPanel.setLayout(new BorderLayout(6, 6));
-    Label columnsLabel = new Label();
+    JLabel columnsLabel = new JLabel();
     columnsHeaderPanel.add(columnsLabel, BorderLayout.CENTER);
-    Button addColumnButton = new Button();
+    JButton addColumnButton = new JButton();
     columnsHeaderPanel.add(addColumnButton, BorderLayout.EAST);
     
     columnsLabel.setText("Columns:");
@@ -150,13 +151,13 @@ public class LoadMatrixDialog extends LoadDialog {
     for (int i = 0; i < 5; i++)
       columnsList.add("Column " + (i + 1));
     
-    addColumnButton.setLabel("Add column");
+    addColumnButton.setText("Add column");
     addColumnButton.addActionListener(e -> columnsList.add("Column " + (columnsList.getItemCount() + 1)));
 
-    Button loadPointsButton = new Button("Load Points");
+    JButton loadPointsButton = new JButton("Load Points");
     loadPointsButton.addActionListener(e -> loadPoints());
 
-    Button cancelButton = new Button("Cancel");
+    JButton cancelButton = new JButton("Cancel");
     cancelButton.addActionListener(e -> {
       coords = null;
       setVisible(false);
@@ -179,7 +180,7 @@ public class LoadMatrixDialog extends LoadDialog {
         MessageBox.showMessage(parent, "Select at least two columns!", getTitle());
         return;
       }
-      boolean skipFirstLine = skipFirstLineCheckbox.getState();
+      boolean skipFirstLine = skipFirstLineCheckbox.isSelected();
       coords = MatrixFileFormat.readMatrix(dataFileTextField.getText(),
                                                     skipFirstLine,
                                                     columns);

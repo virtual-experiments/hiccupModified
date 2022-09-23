@@ -5,11 +5,12 @@ import java.awt.event.*;
 import java.awt.image.*;
 import imageformats.RGBAImage;
 
-public class PointsPlot extends Canvas {
+import javax.swing.*;
+
+public class PointsPlot extends JPanel {
   private double[][] coords;
   private double minx, maxx, miny, maxy;
   private int gridSize;
-  private int[] gridPixels;
   private Image image;
   private boolean drawThreshold;
   private double threshold;
@@ -20,7 +21,7 @@ public class PointsPlot extends Canvas {
     
     addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
-        if ((e.getModifiers() & MouseEvent.BUTTON1_MASK) != 0)
+        if (e.getButton() == MouseEvent.BUTTON1)
           setGridSize(gridSize * 2);
         else
           setGridSize(gridSize / 2);
@@ -44,8 +45,7 @@ public class PointsPlot extends Canvas {
   public RGBAImage createRGBAImage() {
     int[] gridPixels = new int[gridSize * gridSize];
     int maxCount = 0;
-    for (int i = 0; i < coords.length; i++) {
-      double[] point = coords[i];
+    for (double[] point : coords) {
       double x = point[0];
       double y = point[1];
       int gridX = (int) ((x - minx) * (gridSize / (maxx - minx)));
@@ -77,7 +77,7 @@ public class PointsPlot extends Canvas {
   
   private void updatePixels() {
     RGBAImage rgbaImage = createRGBAImage();
-    gridPixels = rgbaImage.getPixels();
+    int[] gridPixels = rgbaImage.getPixels();
     
     image = createImage(new MemoryImageSource(gridSize, gridSize, gridPixels, 0, gridSize));
   }
@@ -107,14 +107,16 @@ public class PointsPlot extends Canvas {
     updatePixels();
     repaint();
   }
-    
+
+  @Override
   public void update(Graphics g) {
-    paint(g);
+    paintComponent(g);
   }
   
   private Image buffer;
-  
-  public void paint(Graphics g) {
+
+  @Override
+  public void paintComponent(Graphics g) {
     Dimension size = getSize();
 
     if (buffer == null ||

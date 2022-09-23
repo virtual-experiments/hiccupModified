@@ -5,15 +5,17 @@ import java.io.*;
 import imageformats.*;
 import interactivehicupp.DocumentFrame;
 
-public class PointsPlotFrame extends Frame {
-  private PointsPlot pointsPlot = new PointsPlot();
+import javax.swing.*;
+
+public class PointsPlotFrame extends JFrame {
+  private final PointsPlot pointsPlot = new PointsPlot();
   
   public PointsPlotFrame(String title) {
     super(title);
-    MenuBar menuBar = new MenuBar();
+    JMenuBar menuBar = new JMenuBar();
     menuBar.setFont(DocumentFrame.menuFont);
-    Menu fileMenu = new Menu("File");
-    MenuItem saveMenuItem = new MenuItem("Save...");
+    JMenu fileMenu = new JMenu("File");
+    JMenuItem saveMenuItem = new JMenuItem("Save...");
     saveMenuItem.addActionListener(e -> {
       FileDialog fileDialog = new FileDialog(PointsPlotFrame.this, "Save Plot BMP As...", FileDialog.SAVE);
       fileDialog.setFile("*.bmp");
@@ -31,7 +33,7 @@ public class PointsPlotFrame extends Frame {
     });
     fileMenu.add(saveMenuItem);
     menuBar.add(fileMenu);
-    setMenuBar(menuBar);
+    setJMenuBar(menuBar);
     // LayoutTools.addWithMargin(this, pointsPlot, 8);
     add(pointsPlot, BorderLayout.CENTER);
     setSize(200, 200);
