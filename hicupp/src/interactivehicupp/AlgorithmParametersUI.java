@@ -10,6 +10,8 @@ import hicupp.algorithms.gd.GradientDescentParameters;
 import hicupp.algorithms.sa.*;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 
 public final class AlgorithmParametersUI {
@@ -49,19 +51,19 @@ public final class AlgorithmParametersUI {
 
     private static final class AnnealingUI {
 
-        private static Dialog dialog;
+        private static JDialog dialog;
 
-        private static TextField fieldIterations;
+        private static JTextField fieldIterations;
 
-        private static Checkbox checkboxConverge;
+        private static JCheckBox checkboxConverge;
 
-        private static Label labelMaxEquals;
-        private static TextField fieldMaxEquals;
+        private static JLabel labelMaxEquals;
+        private static JTextField fieldMaxEquals;
 
-        private static Label labelMinEvaluations;
-        private static Label labelMinTime;
-        private static Label labelMaxEvaluations;
-        private static Label labelMaxTime;
+        private static JLabel labelMinEvaluations;
+        private static JLabel labelMinTime;
+        private static JLabel labelMaxEvaluations;
+        private static JLabel labelMaxTime;
 
         private static long evaluationTime;
 
@@ -85,38 +87,68 @@ public final class AlgorithmParametersUI {
             }
 
             // UI
-            dialog = new Dialog(frame, "Simulated Annealing", true);
+            dialog = new JDialog(frame, "Simulated Annealing", true);
             dialog.setLayout(new SpringLayout());
 
-            Label labelIterations = new Label("Number of iterations: ", Label.RIGHT);
-            fieldIterations = new TextField(Integer.toString(initNumberOfIterations), 29);
+            JLabel labelIterations = new JLabel("Number of iterations: ", SwingConstants.RIGHT);
+            fieldIterations = new JTextField(Integer.toString(initNumberOfIterations));
 
-            checkboxConverge = new Checkbox("Stop when solution does not improve", initConverge);
+            checkboxConverge = new JCheckBox("Stop when solution does not improve", initConverge);
 
-            labelMaxEquals = new Label("After number of iterations: ", Label.RIGHT);
+            labelMaxEquals = new JLabel("After number of iterations: ", SwingConstants.RIGHT);
             labelMaxEquals.setEnabled(initConverge);
-            fieldMaxEquals = new TextField(Integer.toString(initMaxEquals), 29);
+            fieldMaxEquals = new JTextField(Integer.toString(initMaxEquals));
             fieldMaxEquals.setEnabled(initConverge);
 
             String minEvaluations = (initConverge) ? Integer.toString(initMaxEquals + 1) : "N/A";
-            labelMinEvaluations = new Label("Minimum number of evaluations: " + minEvaluations, Label.RIGHT);
+            labelMinEvaluations = new JLabel("Minimum number of evaluations: " + minEvaluations, SwingConstants.RIGHT);
 
             String minTime = (initConverge) ? Double.toString((initMaxEquals + 1) * evaluationTime / 1000d) : "N/A";
-            labelMinTime = new Label("Estimate minimum time: " + minTime + " s", Label.LEFT);
+            labelMinTime = new JLabel("Estimate minimum time: " + minTime + " s", SwingConstants.LEFT);
 
             String maxEvaluations = Integer.toString(initNumberOfIterations + 1);
-            labelMaxEvaluations = new Label("Maximum number of evaluations: " + maxEvaluations, Label.RIGHT);
+            labelMaxEvaluations = new JLabel("Maximum number of evaluations: " + maxEvaluations, SwingConstants.RIGHT);
 
             String maxTime = Double.toString((initNumberOfIterations + 1) * evaluationTime / 1000d);
-            labelMaxTime = new Label("Estimate maximum time: " + maxTime + " s", Label.LEFT);
+            labelMaxTime = new JLabel("Estimate maximum time: " + maxTime + " s", SwingConstants.LEFT);
 
-            final Button ok = new Button("Ok");
-            final Button cancel = new Button("Cancel");
+            final JButton ok = new JButton("Ok");
+            final JButton cancel = new JButton("Cancel");
 
             // events
-            fieldIterations.addTextListener(e -> getMaximumEstimates());
+            fieldIterations.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
 
-            fieldMaxEquals.addTextListener(e -> getMinimumEstimates());
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getMaximumEstimates();
+                }
+            });
+
+            fieldMaxEquals.getDocument().addDocumentListener(new DocumentListener() {
+                @Override
+                public void insertUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                }
+
+                @Override
+                public void removeUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                }
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    getMinimumEstimates();
+                }
+            });
 
             cancel.addActionListener(e -> {
                 dialog.dispose();
@@ -124,8 +156,8 @@ public final class AlgorithmParametersUI {
             });
 
             checkboxConverge.addItemListener(e -> {
-                fieldMaxEquals.setEnabled(checkboxConverge.getState());
-                labelMaxEquals.setEnabled(checkboxConverge.getState());
+                fieldMaxEquals.setEnabled(checkboxConverge.isSelected());
+                labelMaxEquals.setEnabled(checkboxConverge.isSelected());
 
                 getMinimumEstimates();
             });
@@ -133,7 +165,7 @@ public final class AlgorithmParametersUI {
             ok.addActionListener(e -> {
                 try {
                     final int numberOfIterations = Integer.parseInt(fieldIterations.getText());
-                    final boolean convergeAtMaxEquals = checkboxConverge.getState();
+                    final boolean convergeAtMaxEquals = checkboxConverge.isSelected();
                     final int maxEquals = Integer.parseInt(fieldMaxEquals.getText());
 
                     if (numberOfIterations <= 0 || maxEquals < 0) {
@@ -173,7 +205,7 @@ public final class AlgorithmParametersUI {
             dialog.add(ok);
             dialog.add(cancel);
 
-            makeCompactGrid(dialog, 6);
+            dialog.setLayout(new GridLayout(6, 2, 8, 8));
 
             showDialog(dialog, frame);
         }
@@ -182,7 +214,7 @@ public final class AlgorithmParametersUI {
             String minEvaluations = "N/A";
             String minTime = "N/A";
             try {
-                if (checkboxConverge.getState()) {
+                if (checkboxConverge.isSelected()) {
                     int maxEquals = Integer.parseInt(fieldMaxEquals.getText()) + 1;
                     double time = maxEquals * evaluationTime / 1000d;
 
