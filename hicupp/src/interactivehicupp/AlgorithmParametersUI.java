@@ -340,8 +340,8 @@ public final class AlgorithmParametersUI {
 
             getEstimates();
 
-            final Button ok = new Button("Ok");
-            final Button cancel = new Button("Cancel");
+            final JButton ok = new JButton("Ok");
+            final JButton cancel = new JButton("Cancel");
 
             // events
             fieldPopulation.getDocument().addDocumentListener(new DocumentListener() {
@@ -637,8 +637,8 @@ public final class AlgorithmParametersUI {
             getMinimumEstimates();
             getMaximumEstimates();
 
-            final Button ok = new Button("Ok");
-            final Button cancel = new Button("Cancel");
+            final JButton ok = new JButton("Ok");
+            final JButton cancel = new JButton("Cancel");
 
             // events
             fieldIterations.getDocument().addDocumentListener(new DocumentListener() {
@@ -824,7 +824,7 @@ public final class AlgorithmParametersUI {
         }
     }
 
-    private static void showDialog(JDialog dialog, Frame frame) {
+    private static void showDialog(Dialog dialog, Frame frame) {
         dialog.pack();
         dialog.setResizable(false);
         Dimension dialogSize = dialog.getSize();

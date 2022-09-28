@@ -3,8 +3,8 @@ package hicupp;
 import javax.swing.*;
 import java.awt.*;
 
-public abstract class LoadDialog extends Dialog {
-    public LoadDialog(JFrame parent, String title, boolean modal) {
+public abstract class LoadDialog extends JDialog {
+    public LoadDialog(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
     }
 

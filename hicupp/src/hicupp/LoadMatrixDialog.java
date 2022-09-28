@@ -11,11 +11,11 @@ import java.util.Arrays;
 public class LoadMatrixDialog extends LoadDialog {
   private final TextField dataFileTextField = new TextField();
   private final JCheckBox skipFirstLineCheckbox = new JCheckBox();
-  private final List columnsList = new List(10);
+  private final JList<String> columnsList = new JList<>();
 
   private int columnsCount;
   private double[] coords;
-  private final JFrame parent;
+  private final Frame parent;
 
   @Override
   public double[] getCoords() {
@@ -46,7 +46,7 @@ public class LoadMatrixDialog extends LoadDialog {
   public String printChosenColumns() {
     StringBuilder builder = new StringBuilder();
 
-    for (int column : columnsList.getSelectedIndexes()) {
+    for (int column : columnsList.getSelectedIndices()) {
       builder.append(column);
       builder.append(" ");
     }
@@ -66,9 +66,11 @@ public class LoadMatrixDialog extends LoadDialog {
       skipFirstLineCheckbox.setSelected(skipFirstLine == 1);
 
       columnsList.removeAll();
+      String[] params = new String[Arrays.stream(chosenColumns).max().orElse(5)];
       for (int i = 0; i < Arrays.stream(chosenColumns).max().orElse(5); i++)
-        columnsList.add("Column " + (i + 1));
-      for (int i : chosenColumns) columnsList.select(i);
+        params[i] = "Column " + (i + 1);
+      columnsList.setListData(params);
+      for (int i : chosenColumns) columnsList.setSelectedIndex(i);
 
     } catch (IOException e) {
       MessageBox.showMessage(parent, "Could not read data file: " + e, getTitle());
@@ -80,7 +82,7 @@ public class LoadMatrixDialog extends LoadDialog {
     columnsList.setEnabled(false);
   }
 
-  public LoadMatrixDialog(JFrame parent, String title) {
+  public LoadMatrixDialog(Frame parent, String title) {
     super(parent, title, true);
     
     this.parent = parent;
@@ -137,7 +139,7 @@ public class LoadMatrixDialog extends LoadDialog {
     columnsPanel.setLayout(new BorderLayout(6, 6));
     JPanel columnsHeaderPanel = new JPanel();
     columnsPanel.add(columnsHeaderPanel, BorderLayout.NORTH);
-    columnsPanel.add(columnsList, BorderLayout.CENTER);
+    columnsPanel.add(new JScrollPane(columnsList), BorderLayout.CENTER);
     
     columnsHeaderPanel.setLayout(new BorderLayout(6, 6));
     JLabel columnsLabel = new JLabel();
@@ -145,14 +147,28 @@ public class LoadMatrixDialog extends LoadDialog {
     JButton addColumnButton = new JButton();
     columnsHeaderPanel.add(addColumnButton, BorderLayout.EAST);
     
-    columnsLabel.setText("Columns:");
+    columnsLabel.setText("Columns (Ctrl/Shift to select multiple):");
     
-    columnsList.setMultipleMode(true);
+    columnsList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+    String[] params = new String[5];
     for (int i = 0; i < 5; i++)
-      columnsList.add("Column " + (i + 1));
-    
+      params[i] = "Column " + (i + 1);
+
+    columnsList.setListData(params);
+
     addColumnButton.setText("Add column");
-    addColumnButton.addActionListener(e -> columnsList.add("Column " + (columnsList.getItemCount() + 1)));
+    addColumnButton.addActionListener(e -> {
+      int newSize = columnsList.getModel().getSize() + 1;
+      String[] oldParams = new String[newSize - 1];
+      for (int i = 0; i < newSize - 1; i++) {
+        oldParams[i] = columnsList.getModel().getElementAt(i);
+      }
+      String[] newParams = new String[newSize];
+      System.arraycopy(oldParams, 0, newParams, 0, newSize - 1);
+      newParams[newSize - 1] = "Column " + (newSize);
+      columnsList.setListData(newParams);
+    });
 
     JButton loadPointsButton = new JButton("Load Points");
     loadPointsButton.addActionListener(e -> loadPoints());
@@ -175,7 +191,7 @@ public class LoadMatrixDialog extends LoadDialog {
   
   private void loadPoints() {
     try {
-      int[] columns = columnsList.getSelectedIndexes();
+      int[] columns = columnsList.getSelectedIndices();
       if (columns.length < 2) {
         MessageBox.showMessage(parent, "Select at least two columns!", getTitle());
         return;

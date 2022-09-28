@@ -15,7 +15,7 @@ public class SequentialHicupp extends JFrame {
   private final JLabel dimensionCountLabel = new JLabel();
   private final JScrollBar dimensionCountScrollbar;
   private final List indexesList = new List(10);
-  private final JTextArea logTextArea = new JTextArea();
+  private final TextArea logTextArea = new TextArea();
   private final JFrame logFrame = new JFrame();
                      
   private void updateDimensionCountLabel() {
