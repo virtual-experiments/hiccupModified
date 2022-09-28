@@ -272,7 +272,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
 
     {
       viewMenu.setLabel("View");
-      viewMenu.setFont(new Font("Menu", Font.PLAIN, 14));
+      viewMenu.setFont(DocumentFrame.menuFont);
 
       MenuItem numberOfDecimalPointsMenuItem = new MenuItem("Set number of digits after the decimal point");
       numberOfDecimalPointsMenuItem.addActionListener(e -> setNumberOfDecimalPoints());
