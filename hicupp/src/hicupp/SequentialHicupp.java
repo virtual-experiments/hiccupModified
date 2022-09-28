@@ -5,22 +5,18 @@ import interactivehicupp.MonitorDialog;
 
 import Jama.*;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class SequentialHicupp extends Frame {
+public class SequentialHicupp extends JFrame {
   private final LoadMatrixDialog loadMatrixDialog = new LoadMatrixDialog(this, "Load Points");
-  private final Panel mainPanel = new Panel();
-  private final Panel dimensionCountPanel = new Panel();
-  private final Label dimensionCountLabel = new Label();
-  private final Scrollbar dimensionCountScrollbar;
-  private final Panel indexesPanel = new Panel();
-  private final Label indexLabel = new Label();
+  private final JLabel dimensionCountLabel = new JLabel();
+  private final JScrollBar dimensionCountScrollbar;
   private final List indexesList = new List(10);
-  private final Button goButton = new Button();
   private final TextArea logTextArea = new TextArea();
-  private final Frame logFrame = new Frame();
+  private final JFrame logFrame = new JFrame();
                      
   private void updateDimensionCountLabel() {
     dimensionCountLabel.setText("Max. Dimensions: " + dimensionCountScrollbar.getValue());
@@ -29,40 +25,36 @@ public class SequentialHicupp extends Frame {
   public SequentialHicupp() {
     super("Clustering using Sequential Projection Pursuit");
 
+    JPanel mainPanel = new JPanel();
     LayoutTools.addWithMargin(this, mainPanel, 8);
     
-    dimensionCountScrollbar = new Scrollbar(Scrollbar.HORIZONTAL, 3, 1, 1, 9 + 1);
-    dimensionCountScrollbar.addAdjustmentListener(new AdjustmentListener() {
-      public void adjustmentValueChanged(AdjustmentEvent e) {
-        updateDimensionCountLabel();
-      }
-    });
+    dimensionCountScrollbar = new JScrollBar(Adjustable.HORIZONTAL, 3, 1, 1, 9 + 1);
+    dimensionCountScrollbar.addAdjustmentListener(e -> updateDimensionCountLabel());
     updateDimensionCountLabel();
 
+    JPanel dimensionCountPanel = new JPanel();
     dimensionCountPanel.setLayout(new BorderLayout());
     dimensionCountPanel.add(dimensionCountLabel, BorderLayout.CENTER);
     dimensionCountPanel.add(dimensionCountScrollbar, BorderLayout.EAST);
-    
+
+    JPanel indexesPanel = new JPanel();
     indexesPanel.setLayout(new BorderLayout());
+    JLabel indexLabel = new JLabel();
     indexesPanel.add(indexLabel, BorderLayout.WEST);
     indexesPanel.add(indexesList, BorderLayout.CENTER);
     
     mainPanel.setLayout(new BorderLayout(6, 6));
     mainPanel.add(dimensionCountPanel, BorderLayout.NORTH);
     mainPanel.add(indexesPanel, BorderLayout.CENTER);
+    JButton goButton = new JButton();
     mainPanel.add(goButton, BorderLayout.SOUTH);
     
     indexLabel.setText("Projection index:");
     String[] names = ProjectionIndexFunction.getProjectionIndexNames();
-    for (int i = 0; i < names.length; i++)
-      indexesList.add(names[i]);
+    for (String name : names) indexesList.add(name);
     
-    goButton.setLabel("Load Points and Show Structure Explorer");
-    goButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        computeStructureBasis();
-      }
-    });
+    goButton.setText("Load Points and Show Structure Explorer");
+    goButton.addActionListener(e -> computeStructureBasis());
     
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -75,38 +67,32 @@ public class SequentialHicupp extends Frame {
     {
       logFrame.add(logTextArea, BorderLayout.CENTER);
       logFrame.setTitle("Log Window");
-      MenuBar menuBar = new MenuBar();
-      Menu fileMenu = new Menu("File");
-      MenuItem save = new MenuItem("Save...");
-      save.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          FileDialog fileDialog = new FileDialog(logFrame, "Save Log As", FileDialog.SAVE);
-          fileDialog.show();
-          if (fileDialog.getFile() != null) {
-            try {
-              Writer writer = new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile()));
-              writer.write(logTextArea.getText());
-              writer.close();
-            } catch (IOException ex) {
-              MessageBox.showMessage(logFrame, "Could not save the log: " + ex, "Hicupp");
-            }
+      JMenuBar menuBar = new JMenuBar();
+      JMenu fileMenu = new JMenu("File");
+      JMenuItem save = new JMenuItem("Save...");
+      save.addActionListener(e -> {
+        FileDialog fileDialog = new FileDialog(logFrame, "Save Log As", FileDialog.SAVE);
+        fileDialog.setVisible(true);
+        if (fileDialog.getFile() != null) {
+          try {
+            Writer writer = new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile()));
+            writer.write(logTextArea.getText());
+            writer.close();
+          } catch (IOException ex) {
+            MessageBox.showMessage(logFrame, "Could not save the log: " + ex, "Hicupp");
           }
         }
       });
       fileMenu.add(save);
-      Menu menu = new Menu("Edit");
-      MenuItem clear = new MenuItem("Clear");
+      JMenu menu = new JMenu("Edit");
+      JMenuItem clear = new JMenuItem("Clear");
       menuBar.add(fileMenu);
       menuBar.add(menu);
       menu.add(clear);
-      clear.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          logTextArea.setText("");
-        }
-      });
-      logFrame.setMenuBar(menuBar);
+      clear.addActionListener(e -> logTextArea.setText(""));
+      logFrame.setJMenuBar(menuBar);
       logFrame.pack();
-      logFrame.show();
+      logFrame.setVisible(true);
     }
     
     pack();
@@ -118,7 +104,7 @@ public class SequentialHicupp extends Frame {
   
   private void computeStructureBasis() {
     try {
-      loadMatrixDialog.show();
+      loadMatrixDialog.setVisible(true);
       if (loadMatrixDialog.getCoords() == null)
         return;
       String filename = new File(loadMatrixDialog.getFilename()).getName();
@@ -131,9 +117,9 @@ public class SequentialHicupp extends Frame {
       SetOfPoints points = new ArraySetOfPoints(loadMatrixDialog.getColumnsCount(),
                                                 loadMatrixDialog.getCoords());
       Matrix structureBasis = computeStructureBasis(points);
-      new StructureExplorer(points, structureBasis, title).show();
+      new StructureExplorer(points, structureBasis, title).setVisible(true);
     } catch (NoConvergenceException e) {
-      MessageBox.showMessage(this, "Could not compute the axis: " + e.toString(), "Sequential Hicupp");
+      MessageBox.showMessage(this, "Could not compute the axis: " + e, "Sequential Hicupp");
     } catch (CancellationException e) {
       // Does not occur.
     }

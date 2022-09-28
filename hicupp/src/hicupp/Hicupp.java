@@ -1,30 +1,24 @@
 package hicupp;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class Hicupp extends Frame {
-  private final Panel dataFilePanel = new Panel();
-  private final Label dataFileLabel = new Label();
+public class Hicupp extends JFrame {
   private final TextField dataFileTextField = new TextField();
-  private final Button browseButton = new Button();
-  private final Panel columnsPanel = new Panel();
-  private final Panel columnsHeaderPanel = new Panel();
-  private final Label columnsLabel = new Label();
   private final List columnsList = new List();
-  private final Button addColumnButton = new Button();
-  private final Panel axisPanel = new Panel();
-  private final Label axisLabel = new Label();
   private final TextField axisTextField = new TextField();
-  private final Button computeAxisButton = new Button();
 
   public Hicupp() {
     super("Hicupp");
 
     setLayout(new BorderLayout(6, 6));
+    JPanel dataFilePanel = new JPanel();
     add(dataFilePanel, BorderLayout.NORTH);
+    JPanel columnsPanel = new JPanel();
     add(columnsPanel, BorderLayout.CENTER);
+    JPanel axisPanel = new JPanel();
     add(axisPanel, BorderLayout.SOUTH);
     
     addWindowListener(new WindowAdapter() {
@@ -35,35 +29,38 @@ public class Hicupp extends Frame {
     setBackground(SystemColor.control);
     
     dataFilePanel.setLayout(new BorderLayout());
+    JLabel dataFileLabel = new JLabel();
     dataFilePanel.add(dataFileLabel, BorderLayout.WEST);
     dataFilePanel.add(dataFileTextField, BorderLayout.CENTER);
+    JButton browseButton = new JButton();
     dataFilePanel.add(browseButton, BorderLayout.EAST);
     
     dataFileLabel.setText("Data file: ");
     
-    browseButton.setLabel("Browse...");
-    browseButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        FileDialog fileDialog = new FileDialog(Hicupp.this, "Choose a Data File", FileDialog.LOAD);
-        String filename = dataFileTextField.getText();
-        if (!filename.equals("")) {
-          File file = new File(filename);
-          if (file.getParent() != null)
-            fileDialog.setDirectory(file.getParent().toString());
-          fileDialog.setFile(file.getName());
-        }
-        fileDialog.show();
-        if (fileDialog.getFile() != null)
-          dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
+    browseButton.setText("Browse...");
+    browseButton.addActionListener(e -> {
+      FileDialog fileDialog = new FileDialog(Hicupp.this, "Choose a Data File", FileDialog.LOAD);
+      String filename = dataFileTextField.getText();
+      if (!filename.equals("")) {
+        File file = new File(filename);
+        if (file.getParent() != null)
+          fileDialog.setDirectory(file.getParent());
+        fileDialog.setFile(file.getName());
       }
+      fileDialog.setVisible(true);
+      if (fileDialog.getFile() != null)
+        dataFileTextField.setText(new File(fileDialog.getDirectory(), fileDialog.getFile()).toString());
     });
     
     columnsPanel.setLayout(new BorderLayout());
+    JPanel columnsHeaderPanel = new JPanel();
     columnsPanel.add(columnsHeaderPanel, BorderLayout.NORTH);
     columnsPanel.add(columnsList, BorderLayout.CENTER);
     
     columnsHeaderPanel.setLayout(new BorderLayout());
+    JLabel columnsLabel = new JLabel();
     columnsHeaderPanel.add(columnsLabel, BorderLayout.CENTER);
+    JButton addColumnButton = new JButton();
     columnsHeaderPanel.add(addColumnButton, BorderLayout.EAST);
     
     columnsLabel.setText("Columns:");
@@ -72,28 +69,22 @@ public class Hicupp extends Frame {
     for (int i = 0; i < 5; i++)
       columnsList.add("Column " + (i + 1));
     
-    addColumnButton.setLabel("Add column");
-    addColumnButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        columnsList.add("Column " + (columnsList.getItemCount() + 1));
-      }
-    });
+    addColumnButton.setText("Add column");
+    addColumnButton.addActionListener(e -> columnsList.add("Column " + (columnsList.getItemCount() + 1)));
     
     axisPanel.setLayout(new BorderLayout());
+    JLabel axisLabel = new JLabel();
     axisPanel.add(axisLabel, BorderLayout.WEST);
     axisPanel.add(axisTextField, BorderLayout.CENTER);
+    JButton computeAxisButton = new JButton();
     axisPanel.add(computeAxisButton, BorderLayout.EAST);
     
     axisLabel.setText("Axis: ");
     
     axisTextField.setEditable(false);
     
-    computeAxisButton.setLabel("Compute");
-    computeAxisButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        computeAxis();
-      }
-    });
+    computeAxisButton.setText("Compute");
+    computeAxisButton.addActionListener(e -> computeAxis());
     
     pack();
   }
@@ -108,7 +99,7 @@ public class Hicupp extends Frame {
       double[] matrix = MatrixFileFormat.readMatrix(dataFileTextField.getText(), false, columns);
       SetOfPoints points = new ArraySetOfPoints(columns.length, matrix);
       double[] axis = Clusterer.findAxis(ProjectionIndexFunction.FRIEDMANS_PROJECTION_INDEX, points, null);
-      StringBuffer buffer = new StringBuffer();
+      StringBuilder buffer = new StringBuilder();
       buffer.append(axis[0]);
       for (int i = 1; i < axis.length; i++) {
         buffer.append(' ');
@@ -119,9 +110,9 @@ public class Hicupp extends Frame {
       double[][] planarProjections = PrincipalPlaneFinder.projectOntoPrincipalPlane(points, axis);
       showPoints(planarProjections);
     } catch (IOException e) {
-      axisTextField.setText("Could not read data file: " + e.toString());
+      axisTextField.setText("Could not read data file: " + e);
     } catch (NoConvergenceException e) {
-      axisTextField.setText("Could not compute the axis: " + e.toString());
+      axisTextField.setText("Could not compute the axis: " + e);
     } catch (CancellationException e) {
       // Does not occur.
     }
@@ -132,7 +123,7 @@ public class Hicupp extends Frame {
 	}
   
   private void showPoints(double[][] coords) {
-    Frame frame = new Frame("Plot - Hicupp");
+    JFrame frame = new JFrame("Plot - Hicupp");
     PointsPlot plot = new PointsPlot();
     plot.setCoords(coords);
     frame.add(plot);

@@ -1,6 +1,6 @@
 package imageformats;
 
-import java.awt.*;
+import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
 
@@ -8,7 +8,7 @@ public class LANImageViewer {
   public static void main(String[] args) {
     try {
       RGBAImage image = new LANImage(args[0]).toRGBAImage();
-      Frame frame = new Frame("LAN Image Viewer");
+      JFrame frame = new JFrame("LAN Image Viewer");
       frame.add(new ImageViewer(image));
       frame.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {

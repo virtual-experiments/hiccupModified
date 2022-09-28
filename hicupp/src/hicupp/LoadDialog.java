@@ -1,8 +1,9 @@
 package hicupp;
 
+import javax.swing.*;
 import java.awt.*;
 
-public abstract class LoadDialog extends Dialog {
+public abstract class LoadDialog extends JDialog {
     public LoadDialog(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
     }

@@ -4,22 +4,23 @@ import interactivehicupp.TextTools;
 
 import Jama.Matrix;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.Vector;
 
-public class StructureExplorer extends Frame {
-  private final Panel mainPanel = new Panel();
-  private final Panel labelsPanel = new Panel();
-  private final Panel listsPanel = new Panel();
-  private final Label horizontalAxisLabel = new Label();
+public class StructureExplorer extends JFrame {
+  private final JPanel mainPanel = new JPanel();
+  private final JPanel labelsPanel = new JPanel();
+  private final JPanel listsPanel = new JPanel();
+  private final JLabel horizontalAxisLabel = new JLabel();
   private final List horizontalAxisList = new List(8);
-  private final Label verticalAxisLabel = new Label();
+  private final JLabel verticalAxisLabel = new JLabel();
   private final List verticalAxisList = new List(8);
-  private final Panel showPanel = new Panel();
-  private final Button showButton = new Button();
-  private final Button saveButton = new Button();
+  private final JPanel showPanel = new JPanel();
+  private final JButton showButton = new JButton();
+  private final JButton saveButton = new JButton();
   private final Vector plotFrames = new Vector();
   
   private final Matrix structureBasis;
@@ -43,7 +44,7 @@ public class StructureExplorer extends Frame {
     verticalAxisLabel.setText("Vertical:");
     
     for (int i = 0; i < structureBasis.getRowDimension(); i++) {
-      StringBuffer buffer = new StringBuffer();
+      StringBuilder buffer = new StringBuilder();
       buffer.append(i);
       buffer.append(": ");
       for (int j = 0; j < structureBasis.getColumnDimension(); j++) {
@@ -57,34 +58,28 @@ public class StructureExplorer extends Frame {
       verticalAxisList.add(line);
     }
     
-    showButton.setLabel("Show Projection");
-    showButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        showProjection();
-      }
-    });
+    showButton.setText("Show Projection");
+    showButton.addActionListener(e -> showProjection());
     
-    saveButton.setLabel("Save Axes");
-    saveButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        FileDialog fileDialog = new FileDialog(StructureExplorer.this, "Save Axes As...", FileDialog.SAVE);
-        fileDialog.show();
-        if (fileDialog.getFile() != null) {
-          try {
-            PrintWriter printWriter = new PrintWriter(new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile())));
-            printWriter.println(title);
-            for (int i = 0; i < structureBasis.getRowDimension(); i++) {
-              for (int j = 0; j < structureBasis.getColumnDimension(); j++) {
-                if (j > 0)
-                  printWriter.print(' ');
-                printWriter.print(structureBasis.get(i, j));
-              }
-              printWriter.println();
+    saveButton.setText("Save Axes");
+    saveButton.addActionListener(e -> {
+      FileDialog fileDialog = new FileDialog(StructureExplorer.this, "Save Axes As...", FileDialog.SAVE);
+      fileDialog.setVisible(true);
+      if (fileDialog.getFile() != null) {
+        try {
+          PrintWriter printWriter = new PrintWriter(new FileWriter(new File(fileDialog.getDirectory(), fileDialog.getFile())));
+          printWriter.println(title);
+          for (int i = 0; i < structureBasis.getRowDimension(); i++) {
+            for (int j = 0; j < structureBasis.getColumnDimension(); j++) {
+              if (j > 0)
+                printWriter.print(' ');
+              printWriter.print(structureBasis.get(i, j));
             }
-            printWriter.close();
-          } catch (IOException ex) {
-            interactivehicupp.MessageBox.showMessage(StructureExplorer.this, "Could not save axes: " + ex, "Hicupp");
+            printWriter.println();
           }
+          printWriter.close();
+        } catch (IOException ex) {
+          interactivehicupp.MessageBox.showMessage(StructureExplorer.this, "Could not save axes: " + ex, "Hicupp");
         }
       }
     });
@@ -102,7 +97,7 @@ public class StructureExplorer extends Frame {
     addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
         for (int i = 0; i < plotFrames.size(); i++)
-          ((Frame) plotFrames.elementAt(i)).dispose();
+          ((JFrame) plotFrames.elementAt(i)).dispose();
         dispose();
       }
     });
@@ -110,7 +105,7 @@ public class StructureExplorer extends Frame {
     setBackground(SystemColor.control);
     
     pack();
-    show();
+    setVisible(true);
   }
   
   private void showProjection() {
@@ -118,7 +113,7 @@ public class StructureExplorer extends Frame {
     int y = verticalAxisList.getSelectedIndex();
     Matrix transformationMatrix = structureBasis.getMatrix(new int[] {x, y}, 0, structureBasis.getColumnDimension() - 1).transpose();
     Matrix projection = points.times(transformationMatrix);
-    final Frame frame = new PointsPlotFrame("Plot (" + x + ", " + y + ")",
+    final JFrame frame = new PointsPlotFrame("Plot (" + x + ", " + y + ")",
                                             projection.getArray());
     frame.addWindowListener(new WindowAdapter() {
       public void windowClosing(WindowEvent e) {
@@ -126,7 +121,7 @@ public class StructureExplorer extends Frame {
         plotFrames.removeElement(frame);
       }
     });
-    frame.show();
+    frame.setVisible(true);
     plotFrames.addElement(frame);
   }
 }

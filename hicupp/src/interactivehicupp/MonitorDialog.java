@@ -5,15 +5,17 @@ import java.awt.event.*;
 
 import hicupp.*;
 
-public class MonitorDialog extends Dialog implements Monitor {
-  private final Label introLabel = new Label();
-  private final Panel statisticsPanel = new Panel();
-  private final Label iterationsLabelLabel = new Label();
-  private final Label iterationsLabel = new Label();
-  private final Label evaluationsLabelLabel = new Label();
-  private final Label evaluationsLabel = new Label();
-  private final Panel buttonPanel = new Panel();
-  private final Button cancelButton = new Button();
+import javax.swing.*;
+
+public class MonitorDialog extends JDialog implements Monitor {
+  private final JLabel introLabel = new JLabel();
+  private final JPanel statisticsPanel = new JPanel();
+  private final JLabel iterationsLabelLabel = new JLabel();
+  private final JLabel iterationsLabel = new JLabel();
+  private final JLabel evaluationsLabelLabel = new JLabel();
+  private final JLabel evaluationsLabel = new JLabel();
+  private final JPanel buttonPanel = new JPanel();
+  private final JButton cancelButton = new JButton();
   
   private Runnable computation;
   private TextArea logTextArea;
@@ -46,13 +48,11 @@ public class MonitorDialog extends Dialog implements Monitor {
     buttonPanel.setLayout(new FlowLayout());
     buttonPanel.add(cancelButton);
     
-    cancelButton.setLabel("Cancel");
-    cancelButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        cancellationRequested = true;
-        introLabel.setText("Please wait while the computation is cancelled...");
-        cancelButton.setEnabled(false);
-      }
+    cancelButton.setText("Cancel");
+    cancelButton.addActionListener(e -> {
+      cancellationRequested = true;
+      introLabel.setText("Please wait while the computation is cancelled...");
+      cancelButton.setEnabled(false);
     });
     
     pack();
