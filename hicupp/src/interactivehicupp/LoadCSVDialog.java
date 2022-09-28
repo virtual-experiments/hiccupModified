@@ -9,7 +9,7 @@ import java.awt.event.*;
 import java.io.*;
 
 public class LoadCSVDialog extends LoadDialog {
-    private final TextField dataFileTextField = new TextField();
+    private final JTextField dataFileTextField = new JTextField();
     private final JCheckBox parameterFirstLineCheckBox = new JCheckBox();
     private final JList<String> columnsList = new JList<>();
 

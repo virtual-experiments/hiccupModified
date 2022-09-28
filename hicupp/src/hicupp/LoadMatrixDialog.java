@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.Arrays;
 
 public class LoadMatrixDialog extends LoadDialog {
-  private final TextField dataFileTextField = new TextField();
+  private final JTextField dataFileTextField = new JTextField();
   private final JCheckBox skipFirstLineCheckbox = new JCheckBox();
   private final JList<String> columnsList = new JList<>();
 
