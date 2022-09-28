@@ -13,6 +13,8 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public final class AlgorithmParametersUI {
 
@@ -207,7 +209,7 @@ public final class AlgorithmParametersUI {
 
             dialog.setLayout(new GridLayout(6, 2, 8, 8));
 
-            showDialog(dialog, frame);
+            showDialog(dialog, frame, response);
         }
 
         private void getMinimumEstimates() {
@@ -498,7 +500,7 @@ public final class AlgorithmParametersUI {
 
             dialog.setLayout(new GridLayout(9, 2, 8, 8));
 
-            showDialog(dialog, frame);
+            showDialog(dialog, frame, response);
         }
 
         private void calculateEvaluationsPerIteration() {
@@ -761,7 +763,7 @@ public final class AlgorithmParametersUI {
 
             dialog.setLayout(new GridLayout(7, 2, 8, 8));
 
-            showDialog(dialog, frame);
+            showDialog(dialog, frame, response);
         }
 
         private int evaluationsPerIteration(int iterations, int solutions) {
@@ -824,7 +826,15 @@ public final class AlgorithmParametersUI {
         }
     }
 
-    private static void showDialog(Dialog dialog, Frame frame) {
+    private static void showDialog(Dialog dialog, Frame frame, Response response) {
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                super.windowClosing(e);
+                response.cancel();
+            }
+        });
+
         dialog.pack();
         dialog.setResizable(false);
         Dimension dialogSize = dialog.getSize();

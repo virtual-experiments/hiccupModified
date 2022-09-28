@@ -66,8 +66,6 @@ public class SequentialHicupp extends JFrame {
     
     {
       logFrame.add(logTextArea, BorderLayout.CENTER);
-      logTextArea.setColumns(30);
-      logTextArea.setRows(30);
       logFrame.setTitle("Log Window");
       JMenuBar menuBar = new JMenuBar();
       JMenu fileMenu = new JMenu("File");
