@@ -14,7 +14,7 @@ public class TreeDocumentFrame {
   };
 
   public static void main(String[] args) {
-    showTreeDocumentFrame(0, true);
+    EventQueue.invokeLater(() -> showTreeDocumentFrame(0, true));
   }
   
   static void showTreeDocumentFrame(int pointsSourceTypeIndex, boolean allowSwitching) {
@@ -39,7 +39,7 @@ public class TreeDocumentFrame {
         item.addActionListener(e -> {
           if (frame.askSaveIfDirty()) {
             frame.dispose();
-            showTreeDocumentFrame(index, true);
+            EventQueue.invokeLater(() -> showTreeDocumentFrame(index, true));
           }
         });
         pointsSourceTypesMenu.add(item);

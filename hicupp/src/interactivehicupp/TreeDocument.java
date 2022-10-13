@@ -305,6 +305,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
 
   @Override
   public void paintComponent(Graphics g) {
+    super.paintComponent(g);
     if (displayRoot != pointsSourceProvider.getRoot()) {
       Rectangle bounds = displayRoot.getComponent().getBounds();
       g.setColor(Color.black);
@@ -312,7 +313,6 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
       g.drawLine(center, 0, center, bounds.y);
     }
     SplitView.paintSubtree(displayRoot, g);
-    super.paintComponent(g);
   }
 
   private void goTo(NodeView nodeView) {
