@@ -72,7 +72,11 @@ public class DocumentFrame extends JFrame {
       }
     });
     Container documentComponent = document.getContainer();
-    setContentPane(documentComponent);
+    JPanel contentPane = (JPanel) getContentPane();
+    contentPane.removeAll();
+    contentPane.add(documentComponent);
+    contentPane.revalidate();
+    contentPane.repaint();
     updateTitle();
   }
 
