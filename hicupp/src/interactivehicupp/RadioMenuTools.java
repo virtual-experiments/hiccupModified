@@ -1,25 +1,24 @@
 package interactivehicupp;
 
-import java.awt.*;
-import java.util.stream.IntStream;
+import javax.swing.*;
 
-public class RadioMenuTools extends Menu {
+public class RadioMenuTools extends JMenu {
   public interface RadioMenuEventListener {
     void itemChosen(int index);
   }
 
-  private CheckboxMenuItem[] items;
+  private JCheckBoxMenuItem[] items;
 
   public static RadioMenuTools createRadioMenu(final String[] labels,
                                      final int initialChoice,
                                      final RadioMenuEventListener listener) {
     RadioMenuTools menu = new RadioMenuTools();
-    final CheckboxMenuItem[] items = new CheckboxMenuItem[labels.length];
+    final JCheckBoxMenuItem[] items = new JCheckBoxMenuItem[labels.length];
 
     for (int i = 0; i < items.length; i++) {
       final int index = i;
-      CheckboxMenuItem item = new CheckboxMenuItem(labels[i]);
-      item.addItemListener(e -> {
+      JCheckBoxMenuItem item = new JCheckBoxMenuItem(labels[i]);
+      item.addActionListener(e -> {
         for (int j = 0; j < items.length; j++)
           items[j].setState(index == j);
         listener.itemChosen(index);
@@ -34,7 +33,7 @@ public class RadioMenuTools extends Menu {
     return menu;
   }
 
-  public void setItems(CheckboxMenuItem[] items) {
+  public void setItems(JCheckBoxMenuItem[] items) {
     this.items = items;
   }
 

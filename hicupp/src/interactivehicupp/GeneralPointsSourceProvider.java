@@ -15,9 +15,11 @@ import hicupp.*;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
+import javax.swing.*;
+
 public class GeneralPointsSourceProvider implements PointsSourceProvider {
-  private final Menu pointsMenu = new Menu();
-  private final Menu viewMenu = new Menu();
+  private final JMenu pointsMenu = new JMenu();
+  private final JMenu viewMenu = new JMenu();
   private LoadDialog loadDialog;
   
   private final PointsSourceClient client;
@@ -36,7 +38,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   private int numberOfTermsLimit = -1;
   
   private class GeneralNodeView extends AbstractNodeView {
-    private final Label component = new Label();
+    private final JLabel component = new JLabel();
     private Inspector inspector = null;
     
     public GeneralNodeView(SplitView parent, ClassNode classNode) {
@@ -68,8 +70,8 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     }
 
     @Override
-    void addNodePopupMenuItems(PopupMenu popupMenu) {
-      final MenuItem inspectMenuItem = new MenuItem("Inspect");
+    void addNodePopupMenuItems(JPopupMenu popupMenu) {
+      final JMenuItem inspectMenuItem = new JMenuItem("Inspect");
       inspectMenuItem.addActionListener(e -> inspect());
       popupMenu.add(inspectMenuItem);
     }
@@ -247,7 +249,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
         setMetadata();
         client.layoutTree();
 
-        TextArea logTextArea = client.getLogTextArea();
+        JTextArea logTextArea = client.getLogTextArea();
         if (!logTextArea.getText().equals("")) logTextArea.append("\n");
         logTextArea.append("Loaded dataset " + chosenFile + " with " + this.ndims + " dimensions.\n");
       }
@@ -258,27 +260,25 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     this.client = client;
 
     {
-      pointsMenu.setLabel("Points");
-      pointsMenu.setFont(new Font("Menu", Font.PLAIN, 14));
+      pointsMenu.setText("Points");
 
-      MenuItem pointsLoadPointsMenuItem = new MenuItem("Load Points From ASCII File...");
+      JMenuItem pointsLoadPointsMenuItem = new JMenuItem("Load Points From ASCII File...");
       pointsLoadPointsMenuItem.addActionListener(e -> loadPointsFromFile(false));
       pointsMenu.add(pointsLoadPointsMenuItem);
 
-      MenuItem pointsFromCSVMenuItem = new MenuItem("Load Points From CSV...");
+      JMenuItem pointsFromCSVMenuItem = new JMenuItem("Load Points From CSV...");
       pointsFromCSVMenuItem.addActionListener(e -> loadPointsFromFile(true));
       pointsMenu.add(pointsFromCSVMenuItem);
     }
 
     {
-      viewMenu.setLabel("View");
-      viewMenu.setFont(DocumentFrame.menuFont);
+      viewMenu.setText("View");
 
-      MenuItem numberOfDecimalPointsMenuItem = new MenuItem("Set number of digits after the decimal point");
+      JMenuItem numberOfDecimalPointsMenuItem = new JMenuItem("Set number of digits after the decimal point");
       numberOfDecimalPointsMenuItem.addActionListener(e -> setNumberOfDecimalPoints());
       viewMenu.add(numberOfDecimalPointsMenuItem);
 
-      MenuItem numberOfTermsMenuItem = new MenuItem("Set number of terms in decision tree");
+      JMenuItem numberOfTermsMenuItem = new JMenuItem("Set number of terms in decision tree");
       numberOfTermsMenuItem.addActionListener(e -> setNumberOfTermsLimit());
       viewMenu.add(numberOfTermsMenuItem);
     }
@@ -295,7 +295,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
   }
 
   @Override
-  public void addMenuBarItems(MenuBar menuBar) {
+  public void addMenuBarItems(JMenuBar menuBar) {
     menuBar.add(pointsMenu);
     menuBar.add(viewMenu);
   }
@@ -343,18 +343,18 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     boolean limit = numberOfTermsLimit != -1;
 
     // elements
-    final Dialog dialog = new Dialog(client.getFrame(), "Set Terms Limit");
+    final JDialog dialog = new JDialog(client.getFrame(), "Set Terms Limit");
 
-    final Checkbox checkboxLimit = new Checkbox("Limit number of terms in decision tree", limit);
+    final JCheckBox checkboxLimit = new JCheckBox("Limit number of terms in decision tree", limit);
 
-    final TextField fieldLimit = new TextField(Integer.toString((limit)? numberOfTermsLimit : 3));
+    final JTextField fieldLimit = new JTextField(Integer.toString((limit)? numberOfTermsLimit : 3));
     fieldLimit.setEnabled(limit);
 
-    final Button buttonOk = new Button("Ok");
-    final Button buttonCancel = new Button("Cancel");
+    final JButton buttonOk = new JButton("Ok");
+    final JButton buttonCancel = new JButton("Cancel");
 
     // organise
-    final Panel panelButtons = new Panel(new FlowLayout(FlowLayout.RIGHT));
+    final JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panelButtons.add(buttonOk);
     panelButtons.add(buttonCancel);
 
@@ -364,7 +364,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
     dialog.add(panelButtons, BorderLayout.SOUTH);
 
     // events
-    checkboxLimit.addItemListener(e -> fieldLimit.setEnabled(checkboxLimit.getState()));
+    checkboxLimit.addItemListener(e -> fieldLimit.setEnabled(checkboxLimit.isSelected()));
 
     buttonCancel.addActionListener(e -> dialog.dispose());
 
@@ -375,7 +375,7 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
           MessageBox.showMessage(client.getFrame(),
                   "Limit must be a positive integer.", "Interactive Hicupp");
         else {
-          if (checkboxLimit.getState()) numberOfTermsLimit = newLimit;
+          if (checkboxLimit.isSelected()) numberOfTermsLimit = newLimit;
           else numberOfTermsLimit = -1;
 
           if (root.getChild() != null)
@@ -401,17 +401,17 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
 
   public void setNumberOfDecimalPoints() {
     // elements
-    final Dialog dialog = new Dialog(client.getFrame(), "Set Number of Digits After The Decimal Point");
+    final JDialog dialog = new JDialog(client.getFrame(), "Set Number of Digits After The Decimal Point");
 
-    final Label label = new Label("Number of digits: ");
+    final JLabel label = new JLabel("Number of digits: ");
 
-    final TextField fieldDecimalPoints = new TextField(Integer.toString(numberOfDigitsAfterDecimal));
+    final JTextField fieldDecimalPoints = new JTextField(Integer.toString(numberOfDigitsAfterDecimal));
 
-    final Button buttonOk = new Button("Ok");
-    final Button buttonCancel = new Button("Cancel");
+    final JButton buttonOk = new JButton("Ok");
+    final JButton buttonCancel = new JButton("Cancel");
 
     // organise
-    final Panel panelButtons = new Panel(new FlowLayout(FlowLayout.RIGHT));
+    final JPanel panelButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
     panelButtons.add(buttonOk);
     panelButtons.add(buttonCancel);
 

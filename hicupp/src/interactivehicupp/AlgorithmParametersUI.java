@@ -36,7 +36,7 @@ public final class AlgorithmParametersUI {
     }
 
     public static void logParameters(TreeDocument treeDocument) {
-        TextArea log = treeDocument.getLogTextArea();
+        JTextArea log = treeDocument.getLogTextArea();
         AlgorithmParameters parameters = treeDocument.getAlgorithmParameters();
 
         if (log != null) {
@@ -246,7 +246,7 @@ public final class AlgorithmParametersUI {
             }
         }
 
-        public static void log(TextArea log, AlgorithmParameters parameters) {
+        public static void log(JTextArea log, AlgorithmParameters parameters) {
             if (parameters instanceof SimulatedAnnealingParameters params) {
                 log.append("Iterations - " + params.numberOfIterations() +
                            ((params.convergeAtMaxEquals())? (", Stop when solution does not improve after number of " +
@@ -551,7 +551,7 @@ public final class AlgorithmParametersUI {
             }
         }
 
-        public static void log(TextArea log, AlgorithmParameters parameters) {
+        public static void log(JTextArea log, AlgorithmParameters parameters) {
             if (parameters instanceof GeneticAlgorithmParameters params) {
                 log.append("Population size - " + params.populationSize() + ", " +
                         "Number of generations - " + params.maxGenerations() + ", " +
@@ -810,7 +810,7 @@ public final class AlgorithmParametersUI {
             }
         }
 
-        public static void log(TextArea log, AlgorithmParameters parameters) {
+        public static void log(JTextArea log, AlgorithmParameters parameters) {
             if (parameters instanceof GradientDescentParameters params) {
                 log.append("Iterations - " + params.maxIterations() + ", " +
                         "Number of initial random solutions - " + params.numberOfSolutions() +

@@ -9,16 +9,12 @@ import javax.swing.*;
 
 public class MonitorDialog extends JDialog implements Monitor {
   private final JLabel introLabel = new JLabel();
-  private final JPanel statisticsPanel = new JPanel();
-  private final JLabel iterationsLabelLabel = new JLabel();
   private final JLabel iterationsLabel = new JLabel();
-  private final JLabel evaluationsLabelLabel = new JLabel();
   private final JLabel evaluationsLabel = new JLabel();
-  private final JPanel buttonPanel = new JPanel();
   private final JButton cancelButton = new JButton();
   
   private Runnable computation;
-  private TextArea logTextArea;
+  private JTextArea logTextArea;
   
   private volatile boolean cancellationRequested;
   private volatile int iterationCount;
@@ -29,14 +25,18 @@ public class MonitorDialog extends JDialog implements Monitor {
     
     setLayout(new BorderLayout());
     add(introLabel, BorderLayout.NORTH);
+    JPanel statisticsPanel = new JPanel();
     add(statisticsPanel, BorderLayout.CENTER);
+    JPanel buttonPanel = new JPanel();
     add(buttonPanel, BorderLayout.SOUTH);
     
     introLabel.setText("Computing the split axis by maximizing the projection index function...");
     
     statisticsPanel.setLayout(new GridLayout(0, 2));
+    JLabel iterationsLabelLabel = new JLabel();
     statisticsPanel.add(iterationsLabelLabel);
     statisticsPanel.add(iterationsLabel);
+    JLabel evaluationsLabelLabel = new JLabel();
     statisticsPanel.add(evaluationsLabelLabel);
     statisticsPanel.add(evaluationsLabel);
     
@@ -94,7 +94,7 @@ public class MonitorDialog extends JDialog implements Monitor {
     }
   }
   
-  public void show(final Runnable computation, TextArea logTextArea) {
+  public void show(final Runnable computation, JTextArea logTextArea) {
     this.computation = computation;
     this.logTextArea = logTextArea;
     
@@ -104,22 +104,26 @@ public class MonitorDialog extends JDialog implements Monitor {
   private void postEvent(int id) {
     getToolkit().getSystemEventQueue().postEvent(new CustomEvent(id));
   }
-  
+
+  @Override
   public void continuing() throws CancellationException {
     if (cancellationRequested)
       throw new CancellationException();
   }
-  
+
+  @Override
   public void iterationStarted(int iterationNumber) {
     iterationCount = iterationNumber;
     postEvent(updateEventID);
   }
-  
+
+  @Override
   public void evaluationStarted() {
     evaluationCount++;
     postEvent(updateEventID);
   }
-  
+
+  @Override
   public void writeLine(String text) {
     if (logTextArea != null)
       logTextArea.append(text + "\n");

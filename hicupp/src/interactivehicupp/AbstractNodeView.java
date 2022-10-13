@@ -8,6 +8,8 @@ import hicupp.algorithms.AlgorithmParameters;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
+import javax.swing.*;
+
 abstract class AbstractNodeView implements NodeView {
   private final TreeDocument client;
   private final ClassNode classNode;
@@ -99,7 +101,7 @@ abstract class AbstractNodeView implements NodeView {
                               0 <= y &&
                               y <= size.height;
         if (inComponent && (e.getButton() == MouseEvent.BUTTON3)) {
-          PopupMenu popupMenu = client.createNodePopupMenu(AbstractNodeView.this);
+          JPopupMenu popupMenu = client.createNodePopupMenu(AbstractNodeView.this);
           addNodePopupMenuItems(popupMenu);
           popupMenu.show(getComponent(), e.getX(), e.getY());
         }
@@ -107,7 +109,7 @@ abstract class AbstractNodeView implements NodeView {
     });
   }    
 
-  abstract void addNodePopupMenuItems(PopupMenu popupMenu);
+  abstract void addNodePopupMenuItems(JPopupMenu popupMenu);
   
   public SplitView getParentSplitView() {
     return parent;

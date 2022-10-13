@@ -21,23 +21,23 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
 
   private DocumentChangeListener changeListener;
 
-  private final Menu toolsMenu = new Menu();
-  private final Menu goMenu = new Menu();
-  private final MenuItem goToRootMenuItem = new MenuItem();
-  private final MenuItem goToParentMenuItem = new MenuItem();
-  private final MenuItem goToLeftChildMenuItem = new MenuItem();
-  private final MenuItem goToRightChildMenuItem = new MenuItem();
-  private final Frame logFrame = new Frame();
-  private final TextArea logTextArea = new TextArea();
-  private final PopupMenu nodePopupMenu = new PopupMenu();
+  private final JMenu toolsMenu = new JMenu();
+  private final JMenu goMenu = new JMenu();
+  private final JMenuItem goToRootMenuItem = new JMenuItem();
+  private final JMenuItem goToParentMenuItem = new JMenuItem();
+  private final JMenuItem goToLeftChildMenuItem = new JMenuItem();
+  private final JMenuItem goToRightChildMenuItem = new JMenuItem();
+  private final JFrame logFrame = new JFrame();
+  private final JTextArea logTextArea = new JTextArea();
+  private final JPopupMenu nodePopupMenu = new JPopupMenu();
   private final RadioMenuTools projectionIndexMenu;
   private final RadioMenuTools optimisationAlgorithmMenu;
 
-  private static Frame getFrameAncestor(Component c) {
-    while (!(c instanceof Frame))
+  private static JFrame getFrameAncestor(Component c) {
+    while (!(c instanceof JFrame))
       if (c == null) return null;
       else c = c.getParent();
-    return (Frame) c;
+    return (JFrame) c;
   }
 
   int getProjectionIndex() {
@@ -56,12 +56,12 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
     algorithmParameters = parameters;
   }
 
-  public Frame getFrame() {
+  public JFrame getFrame() {
     return getFrameAncestor(this);
   }
 
   @Override
-  public TextArea getLogTextArea() {
+  public JTextArea getLogTextArea() {
     return logTextArea;
   }
 
@@ -79,7 +79,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
 
     nodePopupMenu.setFont(DocumentFrame.menuFont);
 
-    MenuItem configureAlgorithmMenu = new MenuItem();
+    JMenuItem configureAlgorithmMenu = new JMenuItem();
     {
       RadioMenuTools.RadioMenuEventListener projectionIndexListener = this::changeProjection;
       String[] projectionLabels = ProjectionIndexFunction.getProjectionIndexNames();
@@ -107,15 +107,15 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
       });
     }
 
-    projectionIndexMenu.setLabel("Projection Index");
-    optimisationAlgorithmMenu.setLabel("Optimization Algorithm");
-    configureAlgorithmMenu.setLabel("Configure Optimization Algorithm");
+    projectionIndexMenu.setText("Projection Index");
+    optimisationAlgorithmMenu.setText("Optimization Algorithm");
+    configureAlgorithmMenu.setText("Configure Optimization Algorithm");
 
-    MenuItem redrawTreeMenu = new MenuItem();
-    redrawTreeMenu.setLabel("Redraw tree");
+    JMenuItem redrawTreeMenu = new JMenuItem();
+    redrawTreeMenu.setText("Redraw tree");
     redrawTreeMenu.addActionListener(e -> redraw());
 
-    Menu resizeHistogram;
+    JMenu resizeHistogram;
     {
       RadioMenuTools.RadioMenuEventListener listener = index -> {
         histogramZoomIndex = index;
@@ -128,9 +128,9 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
               listener);
     }
 
-    resizeHistogram.setLabel("Resize histogram");
+    resizeHistogram.setText("Resize histogram");
 
-    toolsMenu.setLabel("Tools");
+    toolsMenu.setText("Tools");
     toolsMenu.add(projectionIndexMenu);
     toolsMenu.add(optimisationAlgorithmMenu);
     toolsMenu.add(configureAlgorithmMenu);
@@ -138,19 +138,19 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
     toolsMenu.add(redrawTreeMenu);
     toolsMenu.add(resizeHistogram);
 
-    goMenu.setLabel("Go");
+    goMenu.setText("Go");
     goMenu.add(goToRootMenuItem);
     goMenu.add(goToParentMenuItem);
     goMenu.add(goToLeftChildMenuItem);
     goMenu.add(goToRightChildMenuItem);
 
-    goToRootMenuItem.setLabel("Go To Root");
+    goToRootMenuItem.setText("Go To Root");
     goToRootMenuItem.addActionListener(e -> goTo(pointsSourceProvider.getRoot()));
-    goToParentMenuItem.setLabel("Go To Parent");
+    goToParentMenuItem.setText("Go To Parent");
     goToParentMenuItem.addActionListener(e -> goTo(displayRoot.getParentSplitView().getParentNodeView()));
-    goToLeftChildMenuItem.setLabel("Go To Left Child");
+    goToLeftChildMenuItem.setText("Go To Left Child");
     goToLeftChildMenuItem.addActionListener(e -> goTo(displayRoot.getChild().getLeftChild()));
-    goToRightChildMenuItem.setLabel("Go To Right Child");
+    goToRightChildMenuItem.setText("Go To Right Child");
     goToRightChildMenuItem.addActionListener(e -> goTo(displayRoot.getChild().getRightChild()));
 
     logFrame.addWindowListener(new WindowAdapter() {
@@ -160,13 +160,16 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
     });
 
     {
-      logFrame.add(logTextArea, BorderLayout.CENTER);
+      JScrollPane scrollPane = new JScrollPane(logTextArea,
+              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      logFrame.add(scrollPane);
       logTextArea.setEditable(false);
       logFrame.setTitle("Log Window - Interactive Hicupp");
-      MenuBar menuBar = new MenuBar();
+      JMenuBar menuBar = new JMenuBar();
       menuBar.setFont(DocumentFrame.menuFont);
-      Menu fileMenu = new Menu("File");
-      MenuItem save = new MenuItem("Save...");
+      JMenu fileMenu = new JMenu("File");
+      JMenuItem save = new JMenuItem("Save...");
       save.addActionListener(e -> {
         FileDialog fileDialog = new FileDialog(getFrame(), "Save Log As", FileDialog.SAVE);
         fileDialog.setVisible(true);
@@ -183,14 +186,14 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
         }
       });
       fileMenu.add(save);
-      Menu menu = new Menu("Edit");
-      MenuItem clear = new MenuItem("Clear");
+      JMenu menu = new JMenu("Edit");
+      JMenuItem clear = new JMenuItem("Clear");
       menuBar.add(fileMenu);
       menuBar.add(menu);
       menu.add(clear);
       clear.addActionListener(e -> logTextArea.setText(""));
-      logFrame.setMenuBar(menuBar);
-      logFrame.pack();
+      logFrame.setJMenuBar(menuBar);
+      logFrame.setSize(400, 400);
       logFrame.setVisible(true);
     }
 
@@ -239,17 +242,17 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
   }
 
   @Override
-  public PopupMenu createNodePopupMenu(final NodeView selectedNode) {
+  public JPopupMenu createNodePopupMenu(final NodeView selectedNode) {
     nodePopupMenu.removeAll();
 
-    final MenuItem splitMenuItem = new MenuItem();
-    final MenuItem pruneMenuItem = new MenuItem();
-    final MenuItem goToNodeMenuItem = new MenuItem();
-    final MenuItem showInfoMenuItem = new MenuItem();
+    final JMenuItem splitMenuItem = new JMenuItem();
+    final JMenuItem pruneMenuItem = new JMenuItem();
+    final JMenuItem goToNodeMenuItem = new JMenuItem();
+    final JMenuItem showInfoMenuItem = new JMenuItem();
 
     boolean split = selectedNode.getChild() == null;
 
-    splitMenuItem.setLabel("Split");
+    splitMenuItem.setText("Split");
     splitMenuItem.setEnabled(split);
     splitMenuItem.addActionListener(e -> {
       try {
@@ -263,7 +266,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
                 "Interactive Hicupp");
       } catch (CancellationException ignored) { }
     });
-    pruneMenuItem.setLabel("Prune");
+    pruneMenuItem.setText("Prune");
     pruneMenuItem.setEnabled(!split);
     pruneMenuItem.addActionListener(e -> {
       selectedNode.getClassNode().getNode().prune();
@@ -272,9 +275,9 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
       updateGoMenu();
       repaint();
     });
-    goToNodeMenuItem.setLabel("Go To Node");
+    goToNodeMenuItem.setText("Go To Node");
     goToNodeMenuItem.addActionListener(e -> goTo(selectedNode));
-    showInfoMenuItem.setLabel(selectedNode.infoIsShowing() ? "Hide Info" : "Show Info");
+    showInfoMenuItem.setText(selectedNode.infoIsShowing() ? "Hide Info" : "Show Info");
     showInfoMenuItem.addActionListener(e -> {
       if (selectedNode.infoIsShowing())
         selectedNode.hideInfo();
@@ -297,6 +300,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
     SplitView.addSubtreeToContainer(displayRoot, this);
   }
 
+  @Override
   public void layoutTree() {
     Dimension size = getSize();
     int top = displayRoot == pointsSourceProvider.getRoot() ? 0 : 10;
@@ -312,6 +316,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
       int center = bounds.x + bounds.width / 2;
       g.drawLine(center, 0, center, bounds.y);
     }
+    layoutTree();
     SplitView.paintSubtree(displayRoot, g);
   }
 
@@ -332,7 +337,7 @@ public class TreeDocument extends JPanel implements Document, PointsSourceClient
   }
 
   @Override
-  public void addMenuBarItems(MenuBar menuBar) {
+  public void addMenuBarItems(JMenuBar menuBar) {
     pointsSourceProvider.addMenuBarItems(menuBar);
     menuBar.add(goMenu);
     menuBar.add(toolsMenu);

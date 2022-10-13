@@ -14,6 +14,8 @@ import hicupp.classify.*;
 import hicupp.trees.*;
 import imageformats.RGBAImage;
 
+import javax.swing.*;
+
 public class ImagePointsSourceProvider implements PointsSourceProvider {
   private static final float[] zoomFactors = {0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f};
   private static final String[] parameterNames = {"R", "G", "B"};
@@ -29,13 +31,13 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   private static final int initialOldMaskColorIndex = 4;
   private static final int initialNewMaskColorIndex = 7;
 
-  private final Menu viewMenu = new Menu();
-  private final CheckboxMenuItem zoomAutomaticMenuItem = new CheckboxMenuItem();
-  private final CheckboxMenuItem[] zoomMenuItems = new CheckboxMenuItem[zoomFactors.length];
-  private final CheckboxMenuItem zoomCustomMenuItem = new CheckboxMenuItem();
-  private final CheckboxMenuItem viewAutomaticMaskColor = new CheckboxMenuItem();
-  private final MenuItem viewOldMaskColorMenuItem;
-  private final MenuItem viewNewMaskColorMenuItem;
+  private final JMenu viewMenu = new JMenu();
+  private final JCheckBoxMenuItem zoomAutomaticMenuItem = new JCheckBoxMenuItem();
+  private final JCheckBoxMenuItem[] zoomMenuItems = new JCheckBoxMenuItem[zoomFactors.length];
+  private final JCheckBoxMenuItem zoomCustomMenuItem = new JCheckBoxMenuItem();
+  private final JCheckBoxMenuItem viewAutomaticMaskColor = new JCheckBoxMenuItem();
+  private final JMenuItem viewOldMaskColorMenuItem;
+  private final JMenuItem viewNewMaskColorMenuItem;
 
   private final PointsSourceClient client;
   private final ClassTree classTree;
@@ -95,16 +97,19 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private class ImageNodeView extends AbstractNodeView {
-    private class NodeViewComponent extends Canvas {
+    private class NodeViewComponent extends JPanel {
+      @Override
       public void update(Graphics g) {
-        paint(g);
+        paintComponent(g);
       }
 
+      @Override
       public Dimension getPreferredSize() {
         return new Dimension(displayImageWidth + 4, displayImageHeight + 4);
       }
 
-      public void paint(Graphics g) {
+      @Override
+      public void paintComponent(Graphics g) {
         if (image == null)
           updateImage(this);
         Dimension size = getSize();
@@ -192,10 +197,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         });
       }
 
+      @Override
       public void update(Graphics g) {
         paint(g);
       }
 
+      @Override
       public void paint(Graphics g) {
         Dimension size = getSize();
         if (image == null)
@@ -251,17 +258,19 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       newPoints();
     }
 
+    @Override
     SplitView createChild() {
       return new SplitView(ImageNodeView::new, this, getClassNode().getChild(), parameterNames);
     }
 
     @Override
-    void addNodePopupMenuItems(PopupMenu popupMenu) {
-      final MenuItem inspectMenuItem = new MenuItem("Inspect");
+    void addNodePopupMenuItems(JPopupMenu popupMenu) {
+      final JMenuItem inspectMenuItem = new JMenuItem("Inspect");
       inspectMenuItem.addActionListener(e -> inspect());
       popupMenu.add(inspectMenuItem);
     }
 
+    @Override
     public void newPoints() {
       super.newPoints();
       image = null;
@@ -279,6 +288,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       }
     }
 
+    @Override
     public void split() throws NoConvergenceException, CancellationException {
       super.split();
     }
@@ -306,9 +316,9 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     ColorUtils.initColorList();
 
     // main
-    viewMenu.setLabel("View");
-    MenuItem viewChooseImageMenuItem = new MenuItem();
-    viewChooseImageMenuItem.setLabel("Choose Image...");
+    viewMenu.setText("View");
+    JMenuItem viewChooseImageMenuItem = new JMenuItem();
+    viewChooseImageMenuItem.setText("Choose Image...");
     viewChooseImageMenuItem.addActionListener(e -> chooseImage(ImagePointsSourceProvider.this.client.getFrame()));
 
     // mask color
@@ -322,7 +332,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       viewOldMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
               initialOldMaskColorIndex,
               listener);
-      viewOldMaskColorMenuItem.setLabel("Old Mask Color");
+      viewOldMaskColorMenuItem.setText("Old Mask Color");
     }
 
     {
@@ -335,21 +345,21 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       viewNewMaskColorMenuItem = RadioMenuTools.createRadioMenu(colorNames,
               initialNewMaskColorIndex,
               listener);
-      viewNewMaskColorMenuItem.setLabel("New Mask Color");
+      viewNewMaskColorMenuItem.setText("New Mask Color");
     }
 
     {
-      viewAutomaticMaskColor.addItemListener(e -> {
+      viewAutomaticMaskColor.addActionListener(e -> {
         automaticColor = !automaticColor;
         setAutomaticMaskColor();
       });
       viewAutomaticMaskColor.setState(false);
       automaticColor = false;
-      viewAutomaticMaskColor.setLabel("Automatic Mask Color");
+      viewAutomaticMaskColor.setText("Automatic Mask Color");
     }
 
     viewMenu.add(viewChooseImageMenuItem);
-    Menu viewZoomMenuItem = new Menu();
+    JMenu viewZoomMenuItem = new JMenu();
     viewMenu.add(viewZoomMenuItem);
     viewMenu.add(viewAutomaticMaskColor);
     viewMenu.add(viewOldMaskColorMenuItem);
@@ -357,22 +367,22 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
 
     // zoom
     viewZoomMenuItem.add(zoomAutomaticMenuItem);
-    zoomAutomaticMenuItem.setLabel("Automatic");
+    zoomAutomaticMenuItem.setText("Automatic");
     zoomAutomaticMenuItem.setState(false);
-    zoomAutomaticMenuItem.addItemListener(e -> setAutomaticZoom());
+    zoomAutomaticMenuItem.addActionListener(e -> setAutomaticZoom());
     viewZoomMenuItem.addSeparator();
 
     for (int i = 0; i < zoomMenuItems.length; i++) {
-      CheckboxMenuItem item = new CheckboxMenuItem(Float.toString(zoomFactors[i]));
+      JCheckBoxMenuItem item = new JCheckBoxMenuItem(Float.toString(zoomFactors[i]));
       viewZoomMenuItem.add(item);
       zoomMenuItems[i] = item;
       final int index = i;
 
       if (zoomFactors[i] == 1.0f) item.setState(true);  // initial zoom
 
-      item.addItemListener(e -> {
+      item.addActionListener(e -> {
         for (int j = 0; j < zoomMenuItems.length; j++) {
-          CheckboxMenuItem currentItem = zoomMenuItems[j];
+          JCheckBoxMenuItem currentItem = zoomMenuItems[j];
           currentItem.setState(index == j);
         }
 
@@ -381,17 +391,17 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       });
     }
 
-    viewZoomMenuItem.setLabel("Zoom");
+    viewZoomMenuItem.setText("Zoom");
     viewZoomMenuItem.addSeparator();
     viewZoomMenuItem.add(zoomCustomMenuItem);
 
-    zoomCustomMenuItem.setLabel("Custom factor...");
+    zoomCustomMenuItem.setText("Custom factor...");
     zoomCustomMenuItem.setState(false);
-    zoomCustomMenuItem.addItemListener(e -> chooseCustomZoomFactor());
+    zoomCustomMenuItem.addActionListener(e -> chooseCustomZoomFactor());
   }
 
   @Override
-  public void addMenuBarItems(MenuBar menuBar) {
+  public void addMenuBarItems(JMenuBar menuBar) {
     menuBar.add(viewMenu);
   }
 
@@ -449,7 +459,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
       setAutomaticZoom();
 
       if (chosenImageFile != null) {
-        TextArea logTextArea = client.getLogTextArea();
+        JTextArea logTextArea = client.getLogTextArea();
         if (!logTextArea.getText().equals("")) logTextArea.append("\n");
         logTextArea.append("Loaded image " + chosenImageFile + "\n");
       }
@@ -500,12 +510,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private void chooseCustomZoomFactor() {
-    final Dialog dialog = new Dialog(client.getFrame(), "Custom Zoom Factor", true);
-    final Label label = new Label("Zoom factor: ");
-    final TextField textField = new TextField(Float.toString(zoomFactor));
-    final Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.RIGHT));
-    final Button okButton = new Button("OK");
-    final Button cancelButton = new Button("Cancel");
+    final JDialog dialog = new JDialog(client.getFrame(), "Custom Zoom Factor", true);
+    final JLabel label = new JLabel("Zoom factor: ");
+    final JTextField textField = new JTextField(Float.toString(zoomFactor));
+    final JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    final JButton okButton = new JButton("OK");
+    final JButton cancelButton = new JButton("Cancel");
 
     dialog.setLayout(new BorderLayout());
     dialog.add(label, BorderLayout.WEST);
@@ -523,7 +533,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
         else {
           uncheckZoomItems();
           zoomCustomMenuItem.setState(true);
-          zoomCustomMenuItem.setLabel("Custom factor: " + newZoomFactor);
+          zoomCustomMenuItem.setText("Custom factor: " + newZoomFactor);
           setZoomFactor(newZoomFactor);
           dialog.dispose();
         }
@@ -596,12 +606,12 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
   }
 
   private void uncheckZoomItems() {
-    for (CheckboxMenuItem zoomMenuItem : zoomMenuItems) zoomMenuItem.setState(false);
+    for (JCheckBoxMenuItem zoomMenuItem : zoomMenuItems) zoomMenuItem.setState(false);
   }
 
   private void resetCustomZoomLabel() {
     zoomCustomMenuItem.setState(false);
-    zoomCustomMenuItem.setLabel("Custom factor...");
+    zoomCustomMenuItem.setText("Custom factor...");
   }
 
   private void hideAllInfo() {
@@ -628,7 +638,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
           automaticMaskFail();
           return;
         } else {
-          viewOldMaskColorMenuItem.setLabel("Old Mask Color: " + colorName);
+          viewOldMaskColorMenuItem.setText("Old Mask Color: " + colorName);
           color = ColorUtils.getColorFromColorName(colorName);
           oldMaskColor = color.getRGB();
         }
@@ -646,7 +656,7 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
           automaticMaskFail();
           return;
         } else {
-          viewNewMaskColorMenuItem.setLabel("New Mask Color: " + colorName);
+          viewNewMaskColorMenuItem.setText("New Mask Color: " + colorName);
           color = ColorUtils.getColorFromColorName(colorName);
           newMaskColor = color.getRGB();
         }
@@ -660,8 +670,8 @@ public class ImagePointsSourceProvider implements PointsSourceProvider {
     } else {
       oldMaskColor = colors[oldMaskIndex].getRGB();
       newMaskColor = colors[newMaskIndex].getRGB();
-      viewOldMaskColorMenuItem.setLabel("Old Mask Color");
-      viewNewMaskColorMenuItem.setLabel("New Mask Color");
+      viewOldMaskColorMenuItem.setText("Old Mask Color");
+      viewNewMaskColorMenuItem.setText("New Mask Color");
     }
 
     root.newMaskColors();

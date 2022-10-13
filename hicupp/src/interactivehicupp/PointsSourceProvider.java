@@ -1,9 +1,9 @@
 package interactivehicupp;
 
-import java.awt.*;
+import javax.swing.*;
 
 public interface PointsSourceProvider {
-  void addMenuBarItems(MenuBar menuBar);
+  void addMenuBarItems(JMenuBar menuBar);
   String[] getParameterNames();
   NodeView getRoot();
   String getSourceFile();

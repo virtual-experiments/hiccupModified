@@ -1,5 +1,6 @@
 package interactivehicupp;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -29,13 +30,13 @@ public class TreeDocumentFrame {
           System.exit(0);
       }
     });
-    Menu fileMenu = frame.getMenuBar().getMenu(0);
+    JMenu fileMenu = frame.getJMenuBar().getMenu(0);
     if (allowSwitching) {
       fileMenu.addSeparator();
-      Menu pointsSourceTypesMenu = new Menu("Points Source Types");
+      JMenu pointsSourceTypesMenu = new JMenu("Points Source Types");
       for (int i = 0; i < pointsSourceTypes.length; i++) {
         final int index = i;
-        MenuItem item = new MenuItem(pointsSourceTypeNames[i]);
+        JMenuItem item = new JMenuItem(pointsSourceTypeNames[i]);
         item.addActionListener(e -> {
           if (frame.askSaveIfDirty()) {
             frame.dispose();
@@ -47,7 +48,7 @@ public class TreeDocumentFrame {
       fileMenu.add(pointsSourceTypesMenu);
     }
     fileMenu.addSeparator();
-    MenuItem fileExitMenuItem = new MenuItem("Exit");
+    JMenuItem fileExitMenuItem = new JMenuItem("Exit");
     fileExitMenuItem.addActionListener(e -> {
       if (frame.askSaveIfDirty())
         System.exit(0);

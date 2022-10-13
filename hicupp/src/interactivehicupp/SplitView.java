@@ -9,9 +9,12 @@ import hicupp.*;
 import hicupp.classify.*;
 import hicupp.trees.*;
 
-public class SplitView extends Label {
+import javax.swing.*;
+
+public class SplitView extends JLabel {
   private static final int defaultHistogramHeight = Toolkit.getDefaultToolkit().getScreenSize().height / 5;
   private static final int defaultHistogramWidth = defaultHistogramHeight * 2;
+  private Dimension histogramSize = new Dimension(defaultHistogramWidth, defaultHistogramHeight);
 
   private final ClassSplit classSplit;
   private final NodeView parent;
@@ -113,19 +116,19 @@ public class SplitView extends Label {
                 y <= size.height;
 
         if (inComponent && (e.getButton() == MouseEvent.BUTTON3)) {
-          final PopupMenu popupMenu = new PopupMenu();
+          final JPopupMenu popupMenu = new JPopupMenu();
           popupMenu.setFont(DocumentFrame.menuFont);
 
-          final MenuItem showPointsPlotMenuItem = new MenuItem();
-          final MenuItem showDecisionRuleMenuItem = new MenuItem();
+          final JMenuItem showPointsPlotMenuItem = new JMenuItem();
+          final JMenuItem showDecisionRuleMenuItem = new JMenuItem();
 
           {
-            showPointsPlotMenuItem.setLabel("Show Points Plot");
+            showPointsPlotMenuItem.setText("Show Points Plot");
             showPointsPlotMenuItem.addActionListener(event -> showPointsPlot());
           }
 
           {
-            showDecisionRuleMenuItem.setLabel("Show Decision Rule");
+            showDecisionRuleMenuItem.setText("Show Decision Rule");
             showDecisionRuleMenuItem.addActionListener(event -> showDecisionRule());
           }
 
@@ -147,6 +150,7 @@ public class SplitView extends Label {
   }
 
   public void updateText() {
+    histogramView.setSize(histogramSize);
     setText(getEquationString(classSplit.getSplit()));
   }
 
@@ -217,7 +221,7 @@ public class SplitView extends Label {
     paintSubtree(rightChild, g);
   }
 
-  private class HistogramView extends Canvas {
+  private class HistogramView extends JPanel {
     public HistogramView() {
       setBackground(Color.white);
       setSize(defaultHistogramWidth, defaultHistogramHeight);
@@ -243,7 +247,8 @@ public class SplitView extends Label {
       }
     }
 
-    public void paint(Graphics g) {
+    @Override
+    public void paintComponent(Graphics g) {
       if (classSplit.getParent().getPointCount() > 0) {
         Histogram histogram = classSplit.getHistogram();
         Dimension size = getSize();
@@ -349,7 +354,8 @@ public class SplitView extends Label {
   }
 
   public void resizeHistogramView(float factor) {
-    histogramView.setSize((int) (defaultHistogramWidth * factor), (int) (defaultHistogramHeight * factor));
+    histogramSize = new Dimension((int) (defaultHistogramWidth * factor), (int) (defaultHistogramHeight * factor));
+    histogramView.setSize(histogramSize);
     if (leftChild != null) {
       if (leftChild.getChild() != null)
         leftChild.getChild().resizeHistogramView(factor);

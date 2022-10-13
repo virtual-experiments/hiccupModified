@@ -15,34 +15,35 @@ public class DocumentFrame extends JFrame {
   private File file;
   private boolean dirty;
 
-  private final Menu fileMenu = new Menu();
+  private final JMenu fileMenu = new JMenu();
 
   public DocumentFrame(DocumentType documentType, String title) {
     this.documentType = documentType;
     this.title = title;
 
     String documentTypeName = documentType.getCapitalizedName();
+    setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
-    fileMenu.setLabel("File");
+    fileMenu.setText("File");
 
-    MenuItem fileNewMenuItem = new MenuItem();
-    fileNewMenuItem.setLabel("New " + documentTypeName);
+    JMenuItem fileNewMenuItem = new JMenuItem();
+    fileNewMenuItem.setText("New " + documentTypeName);
     fileNewMenuItem.addActionListener(e -> newDocument());
 
-    MenuItem fileOpenMenuItem = new MenuItem();
-    fileOpenMenuItem.setLabel("Open " + documentTypeName + "...");
+    JMenuItem fileOpenMenuItem = new JMenuItem();
+    fileOpenMenuItem.setText("Open " + documentTypeName + "...");
     fileOpenMenuItem.addActionListener(e -> openDocument());
 
-    MenuItem fileSaveMenuItem = new MenuItem();
-    fileSaveMenuItem.setLabel("Save " + documentTypeName);
+    JMenuItem fileSaveMenuItem = new JMenuItem();
+    fileSaveMenuItem.setText("Save " + documentTypeName);
     fileSaveMenuItem.addActionListener(e -> saveDocument());
 
-    MenuItem fileSaveAsMenuItem = new MenuItem();
-    fileSaveAsMenuItem.setLabel("Save " + documentTypeName + " As...");
+    JMenuItem fileSaveAsMenuItem = new JMenuItem();
+    fileSaveAsMenuItem.setText("Save " + documentTypeName + " As...");
     fileSaveAsMenuItem.addActionListener(e -> saveDocumentAs());
 
-    MenuItem fileSaveCSVAsMenuItem = new MenuItem();
-    fileSaveCSVAsMenuItem.setLabel("Export " + documentTypeName + " As CSV");
+    JMenuItem fileSaveCSVAsMenuItem = new JMenuItem();
+    fileSaveCSVAsMenuItem.setText("Export " + documentTypeName + " As CSV");
     fileSaveCSVAsMenuItem.addActionListener(e -> document.exportCSV(getFileName()));
 
     fileMenu.add(fileNewMenuItem);
@@ -59,11 +60,11 @@ public class DocumentFrame extends JFrame {
 
   private void setDocument(Document document) {
     this.document = document;
-    MenuBar menuBar = new MenuBar();
+    JMenuBar menuBar = new JMenuBar();
     menuBar.setFont(menuFont);
     menuBar.add(fileMenu);
     document.addMenuBarItems(menuBar);
-    setMenuBar(menuBar);
+    setJMenuBar(menuBar);
     document.addChangeListener(() -> {
       if (!dirty) {
         dirty = true;
@@ -71,7 +72,6 @@ public class DocumentFrame extends JFrame {
       }
     });
     Container documentComponent = document.getContainer();
-    removeAll();
     setContentPane(documentComponent);
     updateTitle();
   }

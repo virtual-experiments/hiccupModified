@@ -1,11 +1,11 @@
 package interactivehicupp;
 
-import java.awt.*;
+import javax.swing.*;
 
 public interface PointsSourceClient {
-  PopupMenu createNodePopupMenu(NodeView selectedNode);
+  JPopupMenu createNodePopupMenu(NodeView selectedNode);
   void layoutTree();
-  Frame getFrame();
-  TextArea getLogTextArea();
+  JFrame getFrame();
+  JTextArea getLogTextArea();
   float getHistogramZoom();
 }

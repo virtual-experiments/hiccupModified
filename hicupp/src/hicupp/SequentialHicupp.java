@@ -15,7 +15,7 @@ public class SequentialHicupp extends JFrame {
   private final JLabel dimensionCountLabel = new JLabel();
   private final JScrollBar dimensionCountScrollbar;
   private final List indexesList = new List(10);
-  private final TextArea logTextArea = new TextArea();
+  private final JTextArea logTextArea = new JTextArea();
   private final JFrame logFrame = new JFrame();
                      
   private void updateDimensionCountLabel() {
@@ -65,7 +65,10 @@ public class SequentialHicupp extends JFrame {
     setBackground(SystemColor.control);
     
     {
-      logFrame.add(logTextArea, BorderLayout.CENTER);
+      JScrollPane scrollPane = new JScrollPane(logTextArea,
+              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+              JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      logFrame.add(scrollPane);
       logFrame.setTitle("Log Window");
       JMenuBar menuBar = new JMenuBar();
       JMenu fileMenu = new JMenu("File");
@@ -91,7 +94,7 @@ public class SequentialHicupp extends JFrame {
       menu.add(clear);
       clear.addActionListener(e -> logTextArea.setText(""));
       logFrame.setJMenuBar(menuBar);
-      logFrame.pack();
+      logFrame.setSize(400, 400);
       logFrame.setVisible(true);
     }
     
