@@ -8,7 +8,9 @@ import hicupp.*;
 import hicupp.algorithms.AlgorithmParameters;
 import hicupp.trees.*;
 
-public class TreeDocument extends Panel implements Document, PointsSourceClient {
+import javax.swing.*;
+
+public class TreeDocument extends JPanel implements Document, PointsSourceClient {
 
   private final PointsSourceProvider pointsSourceProvider;
 
@@ -301,7 +303,8 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
     SplitView.layoutSubtree(displayRoot, 0, top, size.width);
   }
 
-  public void paint(Graphics g) {
+  @Override
+  public void paintComponent(Graphics g) {
     if (displayRoot != pointsSourceProvider.getRoot()) {
       Rectangle bounds = displayRoot.getComponent().getBounds();
       g.setColor(Color.black);
@@ -309,7 +312,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
       g.drawLine(center, 0, center, bounds.y);
     }
     SplitView.paintSubtree(displayRoot, g);
-    super.paint(g);
+    super.paintComponent(g);
   }
 
   private void goTo(NodeView nodeView) {
@@ -341,7 +344,7 @@ public class TreeDocument extends Panel implements Document, PointsSourceClient 
   }
 
   @Override
-  public Component getComponent() {
+  public Container getContainer() {
     return this;
   }
 

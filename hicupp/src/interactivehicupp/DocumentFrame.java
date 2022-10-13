@@ -1,10 +1,11 @@
 package interactivehicupp;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 
-public class DocumentFrame extends Frame {
+public class DocumentFrame extends JFrame {
   public static final Font menuFont = new Font("MenuFont", Font.PLAIN, 14);
 
   private final String title;
@@ -69,9 +70,9 @@ public class DocumentFrame extends Frame {
         updateTitle();
       }
     });
-    Component documentComponent = document.getComponent();
+    Container documentComponent = document.getContainer();
     removeAll();
-    add(documentComponent, BorderLayout.CENTER);
+    setContentPane(documentComponent);
     updateTitle();
   }
 
