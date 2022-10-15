@@ -46,6 +46,8 @@ public class GeneralPointsSourceProvider implements PointsSourceProvider {
       initChild();
       initComponent();
       newPoints();
+      component.setOpaque(true);
+      component.setBackground(Color.white);
     }
 
     @Override
